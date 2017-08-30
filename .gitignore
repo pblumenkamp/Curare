@@ -1,2 +1,5 @@
 # Ignore PyCharm config folder
 .idea
+
+# Ignore all pycache folder
+__pycache__/
