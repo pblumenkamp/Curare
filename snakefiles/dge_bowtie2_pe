@@ -1,0 +1,65 @@
+from os import listdir
+from os.path import isfile
+
+GENOME="reference/listeria_monocytogenes_egd_e"
+GENOME_FASTA="reference/listeria_monocytogenes_egd_e.fasta"
+GENOME_GFF="reference/listeria_monocytogenes_egd_e.gff3"
+
+SAMPLES=['ERR985535', 'ERR985536']
+
+rule all:
+    input:
+        "results/counts.txt"
+
+rule bowtie2_index:
+    input:
+        genome=GENOME_FASTA
+    output:
+        GENOME+".1.bt2"
+    threads:
+        8
+    shell:
+        "bowtie2-build --threads {threads} {input.genome} {GENOME}"
+
+
+rule bowtie2_mapping:
+    input:
+        genome=GENOME_FASTA,
+	genome_index=GENOME+".1.bt2",
+        read="{part1}_1.fastq",
+        read_reverse="{part1}_2.fastq"
+    output:
+        "{part1}.sam"
+    threads:
+        4
+    shell:
+        "bowtie2 -p {threads} --mm --very-sensitive-local -x {GENOME} -1 {input.read} -2 {input.read_reverse} -S {output}"
+
+rule sam2bam:
+    input:
+        "{sample}.sam"
+    output:
+        "{sample}.bam",
+    shell:
+        "samtools view -F 4 -Sb {input} > {output}"
+
+rule index_bam:
+    input:
+        "{sample}.bam"
+    output:
+        bam="results/{sample}_sorted.bam",
+        bai="results/{sample}_sorted.bam.bai"
+    threads:
+        4
+    shell:
+        "samtools sort -@ {threads} -o {output.bam} {input} && samtools index {output.bam}"
+
+rule count_reads:
+    input:
+        expand("results/{A}_sorted.bam", A=SAMPLES)
+    output:
+        "results/counts.txt"
+    threads:
+        4
+    shell:
+        "featureCounts -T 8 -t 'gene' -g 'Name' -a {GENOME_GFF} -o {output} {input}"
