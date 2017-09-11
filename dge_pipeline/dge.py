@@ -21,9 +21,9 @@ def parse_groups_file(groups_file):
     file = open(groups_file, 'r')
     for entry in file:
         cols = entry.strip().split('\t')
-        cols[0] = os.path.join(os.path.dirname(groups_file), cols[0])
+        cols[0] = os.path.abspath(os.path.join(os.path.dirname(groups_file), cols[0]))
         if len(cols) == 3:
-            cols[1] = os.path.join(os.path.dirname(groups_file), cols[1])
+            cols[1] = os.path.abspath(os.path.join(os.path.dirname(groups_file), cols[1]))
         groups.append(tuple(cols))
     file.close()
     return groups
