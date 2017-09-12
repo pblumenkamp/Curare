@@ -1,0 +1,62 @@
+from os import listdir
+from os.path import isfile
+
+SAMPLES=[%%SAMPLE_NAMES%%]
+SAMPLE_PATHS={%%SAMPLE_PATHS%%}
+
+rule all:
+    input:
+        "%%OUTPUT_FOLDER%%/counts.txt"
+
+rule bowtie2_index:
+    input:
+        genome=%%GENOME_FASTA%%
+    output:
+        "%%GENOME_INDEX%%.1.bt2"
+    threads:
+        32
+    shell:
+        "bowtie2-build --threads {threads} {input.genome} %%GENOME_INDEX%%"
+
+
+rule bowtie2_mapping:
+    input:
+        genome=%%GENOME_FASTA%%,
+	genome_index=%%GENOME_INDEX%%+".1.bt2",
+	read=lamda wildcards: SAMPLE_PATHS[wildcards.part1][0]
+	read_reverse=lamda wildcards: SAMPLE_PATHS[wildcards.part1][1]
+    output:
+        "%%OUTPUT_FOLDER%%/tmp/{part1}.sam"
+    threads:
+        2
+    shell:
+        "bowtie2 -p {threads} --mm --very-sensitive-local -x %%GENOME_INDEX%% -1 {input.read} -2 {input.read_reverse} -S {output}"
+
+rule sam2bam:
+    input:
+        "%%OUTPUT_FOLDER%%/tmp/{sample}.sam"
+    output:
+        "%%OUTPUT_FOLDER%%/tmp/{sample}.bam",
+    shell:
+        "samtools view -F 4 -Sb {input} > {output}"
+
+rule index_bam:
+    input:
+        "%%OUTPUT_FOLDER%%/{sample}.bam"
+    output:
+        bam="%%OUTPUT_FOLDER%%/{sample}_sorted.bam",
+        bai="%%OUTPUT_FOLDER%%/{sample}_sorted.bam.bai"
+    threads:
+        2
+    shell:
+        "samtools sort -@ {threads} -o {output.bam} {input} && samtools index {output.bam}"
+
+rule count_reads:
+    input:
+        expand("results/{A}_sorted.bam", A=SAMPLES)
+    output:
+        "%%OUTPUT_FOLDER%%/counts.txt"
+    threads:
+        32
+    shell:
+        "featureCounts -T 8 -t 'gene' -g 'Name' -a %%GENOME_GFF%% -o {output} {input}"
