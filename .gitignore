@@ -3,3 +3,6 @@
 
 # Ignore all pycache folder
 __pycache__/
+
+# Ignore snakemake folder
+.snakemake/

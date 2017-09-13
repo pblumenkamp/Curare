@@ -4,7 +4,6 @@ import tempfile
 import re
 
 from dge_pipeline import dge
-from dge_pipeline import customErrors
 
 
 GROUPS_FILE_SE = os.path.dirname(__file__) + "/ressources/groups_se.txt"
@@ -56,7 +55,7 @@ class TestInputFilesValidation(unittest.TestCase):
         try:
             groups_se = dge.parse_groups_file(GROUPS_FILE_SE, False)
             dge.validate_inputfiles(groups_se, False)
-        except customErrors.InvalidGroupsFileError as err:
+        except dge.InvalidGroupsFileError as err:
             self.fail(f"InvalidGroupsFileError: {err}")
         except FileNotFoundError as err:
             self.fail(f"FileNotFoundError: {err}")
@@ -65,7 +64,7 @@ class TestInputFilesValidation(unittest.TestCase):
         try:
             groups_pe = dge.parse_groups_file(GROUPS_FILE_PE, True)
             dge.validate_inputfiles(groups_pe, True)
-        except customErrors.InvalidGroupsFileError as err:
+        except dge.InvalidGroupsFileError as err:
             self.fail(f"InvalidGroupsFileError: {err}")
         except FileNotFoundError as err:
             self.fail(f"FileNotFoundError: {err}")
@@ -75,11 +74,11 @@ class TestInputFilesValidation(unittest.TestCase):
     def test_incorrect_groups_files(self):
         groups_se = dge.parse_groups_file(GROUPS_FILE_SE, False)
         groups_pe = dge.parse_groups_file(GROUPS_FILE_PE, True)
-        with self.assertRaises(customErrors.InvalidGroupsFileError):
+        with self.assertRaises(dge.InvalidGroupsFileError):
             dge.parse_groups_file(GROUPS_FILE_DEFECT, True)
-        with self.assertRaises(customErrors.InvalidGroupsFileError):
+        with self.assertRaises(dge.InvalidGroupsFileError):
             dge.validate_inputfiles(groups_se, True)
-        with self.assertRaises(customErrors.InvalidGroupsFileError):
+        with self.assertRaises(dge.InvalidGroupsFileError):
             dge.validate_inputfiles(groups_pe, False)
 
 

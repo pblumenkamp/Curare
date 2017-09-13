@@ -5,8 +5,6 @@ from collections import namedtuple
 
 from snakemake import snakemake
 
-from dge_pipeline.customErrors import InvalidGroupsFileError
-
 PROGRAM_NAME = "Differential gene expression pipeline"
 
 SNAKEFILES = {
@@ -26,7 +24,9 @@ def main():
     groups = parse_groups_file(args.groups_file, args.pe)
     validate_inputfiles(groups, args.pe)
     create_output_directory(args.output_folder)
-    create_snakefile(SNAKEFILES["bowtie2"], args.output_folder)
+    snakefile = create_snakefile(SNAKEFILES["bowtie2"], args.output_folder, args.ref_genome_file, args.ref_annotation_file, groups, args.pe)
+    if not snakemake(snakefile, cores=args.threads):
+        exit(1)
 
 
 def parse_groups_file(groups_file, isPE):
@@ -73,25 +73,27 @@ def create_output_directory(output_path):
         os.makedirs(output_path)
     elif not os.path.isdir(output_path):
         raise NotADirectoryError(filename=output_path)
-    os.makedirs(os.path.join(output_path, "genome_index"))
+    if not os.path.exists(os.path.join(output_path, "genome_index")):
+        os.makedirs(os.path.join(output_path, "genome_index"))
 
 
 def create_snakefile(snakefile, output_folder, ref_genome, ref_annotation, groups, isPE):
     with open(snakefile, 'r') as sf:
         content = sf.read()
-    content = content.replace("%%SAMPLE_NAMES%%", ", ".join([entry.name for entry in groups]))
+    content = content.replace("%%SAMPLE_NAMES%%", ", ".join(['"' + entry.name + '"' for entry in groups]))
     if isPE:
         content = content.replace("%%SAMPLE_PATHS%%", ", ".join(
-            [entry.name + ": [" + entry.forward + ", " + entry.reverse + "]" for entry in groups]))
+            ['"' + entry.name + '": ["' + entry.forward + '", "' + entry.reverse + '"]' for entry in groups]))
     else:
         content = content.replace("%%SAMPLE_PATHS%%", ", ".join(
-            [entry.name + ": " + entry.file for entry in groups]))
+            ['"' + entry.name + '": "' + entry.file + '"' for entry in groups]))
     content = content.replace("%%GENOME_FASTA%%", ref_genome)
     content = content.replace("%%GENOME_INDEX%%", os.path.join(output_folder, "genome_index/genome"))
     content = content.replace("%%GENOME_GFF%%", ref_annotation)
     content = content.replace("%%OUTPUT_FOLDER%%", output_folder)
-    with open(os.path.join(output_folder, "snakefile"), 'w') as sf:
+    with open(os.path.join(output_folder, "Snakefile"), 'w') as sf:
         sf.write(content)
+    return os.path.join(output_folder, "Snakefile")
 
 
 def parse_arguments():
@@ -103,8 +105,24 @@ def parse_arguments():
     pe_se = parser.add_mutually_exclusive_group(required=True)
     pe_se.add_argument('--se', dest='se', action='store_true')
     pe_se.add_argument('--pe', dest='pe', action='store_true')
+    parser.add_argument('--threads', dest='threads', default=1, type=int)
     parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.1')
     return parser.parse_args()
+
+
+class InvalidGroupsFileError(Exception):
+    """Exception raised for errors in the groups file.
+
+        Attributes:
+            path -- path to groups file
+            for_pe -- groups file for paired-end data
+    """
+
+    def __init__(self, for_pe):
+        if for_pe:
+            super(InvalidGroupsFileError, self).__init__("Groups file should contain 3 columns in each line")
+        else:
+            super(InvalidGroupsFileError, self).__init__("Groups file should contain 2 columns in each line")
 
 
 if __name__ == '__main__':

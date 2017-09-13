@@ -10,23 +10,23 @@ rule all:
 
 rule bowtie2_index:
     input:
-        genome=%%GENOME_FASTA%%
+        genome="%%GENOME_FASTA%%"
     output:
         "%%GENOME_INDEX%%.1.bt2"
     threads:
         32
     shell:
-        "bowtie2-build --threads {threads} {input.genome} %%GENOME_INDEX%%"
+        "echo $PATH; bowtie2-build --threads {threads} {input.genome} %%GENOME_INDEX%%"
 
 
 rule bowtie2_mapping:
     input:
-        genome=%%GENOME_FASTA%%,
-	genome_index=%%GENOME_INDEX%%+".1.bt2",
-	read=lamda wildcards: SAMPLE_PATHS[wildcards.part1][0]
-	read_reverse=lamda wildcards: SAMPLE_PATHS[wildcards.part1][1]
+        genome="%%GENOME_FASTA%%",
+	genome_index="%%GENOME_INDEX%%.1.bt2",
+	read=lambda wildcards: SAMPLE_PATHS[wildcards.name][0],
+	read_reverse=lambda wildcards: SAMPLE_PATHS[wildcards.name][1]
     output:
-        "%%OUTPUT_FOLDER%%/tmp/{part1}.sam"
+        "%%OUTPUT_FOLDER%%/tmp/{name}.sam"
     threads:
         2
     shell:
@@ -42,7 +42,7 @@ rule sam2bam:
 
 rule index_bam:
     input:
-        "%%OUTPUT_FOLDER%%/{sample}.bam"
+        "%%OUTPUT_FOLDER%%/tmp/{sample}.bam"
     output:
         bam="%%OUTPUT_FOLDER%%/{sample}_sorted.bam",
         bai="%%OUTPUT_FOLDER%%/{sample}_sorted.bam.bai"
@@ -53,7 +53,7 @@ rule index_bam:
 
 rule count_reads:
     input:
-        expand("results/{A}_sorted.bam", A=SAMPLES)
+        expand("%%OUTPUT_FOLDER%%/{A}_sorted.bam", A=SAMPLES)
     output:
         "%%OUTPUT_FOLDER%%/counts.txt"
     threads:
