@@ -1,6 +1,8 @@
 import argparse
 import errno
 import os
+import subprocess
+
 from collections import namedtuple
 
 from snakemake import snakemake
@@ -10,6 +12,9 @@ PROGRAM_NAME = "Differential gene expression pipeline"
 SNAKEFILES = {
     "bowtie2": os.path.join(os.path.dirname(__file__), "snakefiles/dge_bowtie2_pe"),
     "bwa": os.path.join(os.path.dirname(__file__), "snakefiles/dge_bwa_samse")
+}
+RFILES = {
+    "deseq2": os.path.join(os.path.dirname(__file__), "r_files/deseq2_analysis.R")
 }
 
 GroupEntry_PE = namedtuple('GroupEntry_PE', ['name', 'condition', 'forward', 'reverse'])
@@ -24,9 +29,12 @@ def main():
     groups = parse_groups_file(args.groups_file, args.pe)
     validate_inputfiles(groups, args.pe)
     create_output_directory(args.output_folder)
-    snakefile = create_snakefile(SNAKEFILES["bowtie2"], args.output_folder, args.ref_genome_file, args.ref_annotation_file, groups, args.pe)
+    snakefile = create_snakefile(SNAKEFILES["bowtie2"], args.output_folder, args.ref_genome_file,
+                                 args.ref_annotation_file, groups, args.pe)
     if not snakemake(snakefile, cores=args.threads):
         exit(1)
+    rfile = create_rfile(RFILES["deseq2"], os.path.join(args.output_folder, "counts.txt"), args.output_folder, groups, args.threads)
+    subprocess.call("R --vanilla < " + rfile, shell=True)
 
 
 def parse_groups_file(groups_file, isPE):
@@ -94,6 +102,20 @@ def create_snakefile(snakefile, output_folder, ref_genome, ref_annotation, group
     with open(os.path.join(output_folder, "Snakefile"), 'w') as sf:
         sf.write(content)
     return os.path.join(output_folder, "Snakefile")
+
+
+def create_rfile(rfile, counttable, output_folder, groups, threads):
+    with open(rfile, 'r') as rf:
+        content = rf.read()
+    content = content.replace("$$THREADS$$", str(threads))
+    content = content.replace("$$COUNT_TABLE$$", counttable)
+    content = content.replace("$$SAMPLE_NAMES$$", ", ".join(['"' + entry.name + '"' for entry in groups]))
+    content = content.replace("$$CONDITIONS$$", ", ".join(['"' + entry.condition + '"' for entry in groups]))
+    content = content.replace("$$RESULT_FOLDER$$", output_folder)
+    print(os.path.join(output_folder, "dge_analysis.R"))
+    with open(os.path.join(output_folder, "dge_analysis.R"), 'w') as rf:
+        rf.write(content)
+    return os.path.join(output_folder, "dge_analysis.R")
 
 
 def parse_arguments():
