@@ -97,9 +97,11 @@ def create_snakefile(snakefile, args, groups):
     if isPE:
         content = content.replace("%%SAMPLE_PATHS%%", ", ".join(
             ['"' + entry.name + '": ["' + entry.forward + '", "' + entry.reverse + '"]' for entry in groups]))
+        content = content.replace("%%GFF_COUNT_FRAGMENTS%%", "-p")
     else:
         content = content.replace("%%SAMPLE_PATHS%%", ", ".join(
             ['"' + entry.name + '": "' + entry.file + '"' for entry in groups]))
+        content = content.replace("%%GFF_COUNT_FRAGMENTS%%", "")
     content = content.replace("%%GENOME_FASTA%%", ref_genome)
     content = content.replace("%%GENOME_INDEX%%", os.path.join(output_folder, "genome_index/genome"))
     content = content.replace("%%GENOME_GFF%%", ref_annotation)

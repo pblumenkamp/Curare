@@ -59,4 +59,4 @@ rule count_reads:
     threads:
         32
     shell:
-        "featureCounts -T 8 -t '%%GFF_FEATURE_TYPE%%' -g '%%GFF_FEATURE_NAME%%' -a %%GENOME_GFF%% -o {output} {input}"
+        "featureCounts -T 8 -t %%GFF_COUNT_FRAGMENTS%% '%%GFF_FEATURE_TYPE%%' -g '%%GFF_FEATURE_NAME%%' -a %%GENOME_GFF%% -o {output} {input}"
