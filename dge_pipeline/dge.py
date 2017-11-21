@@ -89,7 +89,7 @@ def create_snakefile(snakefile, args, groups):
     ref_genome = args.ref_genome_file
     output_folder = args.output_folder
     ref_annotation = args.ref_annotation_file
-    isPE = args.isPE
+    isPE = args.pe
     feature_type = args.gff_feature_type
     feature_name = args.gff_feature_name
 

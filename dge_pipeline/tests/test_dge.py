@@ -85,10 +85,10 @@ class TestInputFilesValidation(unittest.TestCase):
 class TestSnakefile(unittest.TestCase):
     def test_create_snakefile(self):
         Args = namedtuple('Args',
-                          ["ref_genome_file", "output_folder", "ref_annotation_file", "isPE", "gff_feature_type",
+                          ["ref_genome_file", "output_folder", "ref_annotation_file", "pe", "gff_feature_type",
                            "gff_feature_name"])
         tmp = tempfile.TemporaryDirectory()
-        args = Args(ref_genome_file=REF_GENOME, output_folder=tmp.name, ref_annotation_file=REF_ANNOTATION, isPE=True,
+        args = Args(ref_genome_file=REF_GENOME, output_folder=tmp.name, ref_annotation_file=REF_ANNOTATION, pe=True,
                     gff_feature_type="gene", gff_feature_name="ID")
         dge.create_output_directory(tmp.name)
         groups = dge.parse_groups_file(GROUPS_FILE_PE, True)
