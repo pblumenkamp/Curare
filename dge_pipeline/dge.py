@@ -90,7 +90,7 @@ def create_snakefile(snakefile, args, groups):
     output_folder = args.output_folder
     ref_annotation = args.ref_annotation_file
     isPE = args.pe
-    count_single_mapped = args.count_pe_mapped
+    count_single_mapped = args.count_single_mapped
     feature_type = args.gff_feature_type
     feature_name = args.gff_feature_name
 
