@@ -2,9 +2,9 @@ import os
 import unittest
 import tempfile
 import re
+from collections import namedtuple
 
 from dge_pipeline import dge
-
 
 GROUPS_FILE_SE = os.path.dirname(__file__) + "/ressources/groups_se.txt"
 GROUPS_FILE_PE = os.path.dirname(__file__) + "/ressources/groups_pe.txt"
@@ -84,12 +84,17 @@ class TestInputFilesValidation(unittest.TestCase):
 
 class TestSnakefile(unittest.TestCase):
     def test_create_snakefile(self):
+        Args = namedtuple('Args',
+                          ["ref_genome_file", "output_folder", "ref_annotation_file", "isPE", "gff_feature_type",
+                           "gff_feature_name"])
         tmp = tempfile.TemporaryDirectory()
+        args = Args(ref_genome_file=REF_GENOME, output_folder=tmp.name, ref_annotation_file=REF_ANNOTATION, isPE=True,
+                    gff_feature_type="gene", gff_feature_name="ID")
         dge.create_output_directory(tmp.name)
         groups = dge.parse_groups_file(GROUPS_FILE_PE, True)
-        dge.create_snakefile(dge.SNAKEFILES["bowtie2"], tmp.name, REF_GENOME, REF_ANNOTATION, groups, True)
-        self.assertTrue(os.path.exists(os.path.join(tmp.name, "snakefile")))
-        with open(os.path.join(tmp.name, "snakefile"), 'r') as sf:
+        dge.create_snakefile(dge.SNAKEFILES["bowtie2"], args, groups)
+        self.assertTrue(os.path.exists(os.path.join(tmp.name, "Snakefile")))
+        with open(os.path.join(tmp.name, "Snakefile"), 'r') as sf:
             self.assertIsNone(re.search("%%.*%%", sf.read()))
         tmp.cleanup()
 

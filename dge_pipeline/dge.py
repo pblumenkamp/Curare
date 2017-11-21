@@ -23,14 +23,11 @@ GroupEntry_SE = namedtuple('GroupEntry_SE', ['name', 'condition', 'file'])
 
 def main():
     args = parse_arguments()
-    for arg in args.__dict__:
-        print(f"{arg}: {args.__dict__[arg]}")
     validate_argsfiles(args.groups_file, args.ref_genome_file, args.ref_annotation_file)
     groups = parse_groups_file(args.groups_file, args.pe)
     validate_inputfiles(groups, args.pe)
     create_output_directory(args.output_folder)
-    snakefile = create_snakefile(SNAKEFILES["bowtie2"], args.output_folder, args.ref_genome_file,
-                                 args.ref_annotation_file, groups, args.pe)
+    snakefile = create_snakefile(SNAKEFILES["bowtie2"], args, groups)
     if not snakemake(snakefile, cores=args.threads):
         exit(1)
     rfile = create_rfile(RFILES["deseq2"], os.path.join(args.output_folder, "counts.txt"), args.output_folder, groups, args.threads)
@@ -85,9 +82,17 @@ def create_output_directory(output_path):
         os.makedirs(os.path.join(output_path, "genome_index"))
 
 
-def create_snakefile(snakefile, output_folder, ref_genome, ref_annotation, groups, isPE):
+def create_snakefile(snakefile, args, groups):
     with open(snakefile, 'r') as sf:
         content = sf.read()
+
+    ref_genome = args.ref_genome_file
+    output_folder = args.output_folder
+    ref_annotation = args.ref_annotation_file
+    isPE = args.isPE
+    feature_type = args.gff_feature_type
+    feature_name = args.gff_feature_name
+
     content = content.replace("%%SAMPLE_NAMES%%", ", ".join(['"' + entry.name + '"' for entry in groups]))
     if isPE:
         content = content.replace("%%SAMPLE_PATHS%%", ", ".join(
@@ -99,6 +104,8 @@ def create_snakefile(snakefile, output_folder, ref_genome, ref_annotation, group
     content = content.replace("%%GENOME_INDEX%%", os.path.join(output_folder, "genome_index/genome"))
     content = content.replace("%%GENOME_GFF%%", ref_annotation)
     content = content.replace("%%OUTPUT_FOLDER%%", output_folder)
+    content = content.replace("%%GFF_FEATURE_TYPE%%", feature_type)
+    content = content.replace("%%GFF_FEATURE_NAME%%", feature_name)
     with open(os.path.join(output_folder, "Snakefile"), 'w') as sf:
         sf.write(content)
     return os.path.join(output_folder, "Snakefile")
@@ -124,9 +131,13 @@ def parse_arguments():
     parser.add_argument('--reference-genome', dest='ref_genome_file', required=True)
     parser.add_argument('--reference-annotation', dest='ref_annotation_file', required=True)
     parser.add_argument('--output', dest='output_folder', required=True)
+    parser.add_argument('--gff-feature-name', dest='gff_feature_name', default='ID')
+    parser.add_argument('--gff-feature-type', dest='gff_feature_type', default='gene')
+
     pe_se = parser.add_mutually_exclusive_group(required=True)
     pe_se.add_argument('--se', dest='se', action='store_true')
     pe_se.add_argument('--pe', dest='pe', action='store_true')
+
     parser.add_argument('--threads', dest='threads', default=1, type=int)
     parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.1')
     return parser.parse_args()
