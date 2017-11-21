@@ -90,7 +90,7 @@ def create_snakefile(snakefile, args, groups):
     output_folder = args.output_folder
     ref_annotation = args.ref_annotation_file
     isPE = args.pe
-    count_single_mapped = args.count_pe_mapped
+    count_single_mapped = args.count_single_mapped
     feature_type = args.gff_feature_type
     feature_name = args.gff_feature_name
 
@@ -107,7 +107,7 @@ def create_snakefile(snakefile, args, groups):
         featurecounts_options.append("-p")
         if not count_single_mapped:
             featurecounts_options.append("-B")
-    content = content.replace("%%FEATURECOUNTS_OPTIONS", " ".join(featurecounts_options))
+    content = content.replace("%%FEATURECOUNTS_OPTIONS%%", " ".join(featurecounts_options))
     content = content.replace("%%GENOME_FASTA%%", ref_genome)
     content = content.replace("%%GENOME_INDEX%%", os.path.join(output_folder, "genome_index/genome"))
     content = content.replace("%%GENOME_GFF%%", ref_annotation)
