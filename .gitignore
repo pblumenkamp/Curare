@@ -6,3 +6,6 @@ __pycache__/
 
 # Ignore snakemake folder
 .snakemake/
+
+# Ignore R history
+*.Rhistory
