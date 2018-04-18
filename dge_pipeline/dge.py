@@ -148,7 +148,7 @@ def parse_arguments():
     feature_counts = parser.add_argument_group('FeatureCounts arguments')
     feature_counts.add_argument('--gff-feature-name', dest='gff_feature_name', default='ID')
     feature_counts.add_argument('--gff-feature-type', dest='gff_feature_type', default='gene')
-    feature_counts.add_argument('--count-single-mapped', dest='count_single_mapped', action='store_true', help="Count reads whith only one end aligned [Only for paired-end]")
+    feature_counts.add_argument('--count-single-mapped', dest='count_single_mapped', action='store_true', help="Count reads with only one end aligned [Only for paired-end]")
 
     other = parser.add_argument_group('Other arguments')
     other.add_argument('-t', '--threads', dest='threads', default=1, type=int, help="Number of threads")
