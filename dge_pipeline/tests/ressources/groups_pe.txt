@@ -1,2 +1,0 @@
-ERR985535	extracellular	input_data/ERR985535_R1.fastq	input_data/ERR985535_R2.fastq
-ERR985536	intracellular	input_data/ERR985536_R1.fastq	input_data/ERR985536_R2.fastq

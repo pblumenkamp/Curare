@@ -6,11 +6,11 @@ from collections import namedtuple
 
 from dge_pipeline import dge
 
-GROUPS_FILE_SE = os.path.dirname(__file__) + "/ressources/groups_se.txt"
-GROUPS_FILE_PE = os.path.dirname(__file__) + "/ressources/groups_pe.txt"
-GROUPS_FILE_DEFECT = os.path.dirname(__file__) + "/ressources/groups_defect.txt"
-REF_GENOME = os.path.dirname(__file__) + "/ressources/reference/listeria_monocytogenes_egd_e.fasta"
-REF_ANNOTATION = os.path.dirname(__file__) + "/ressources/reference/listeria_monocytogenes_egd_e.gff3"
+GROUPS_FILE_SE = os.path.dirname(__file__) + "/ressources_old/groups_se.txt"
+GROUPS_FILE_PE = os.path.dirname(__file__) + "/ressources_old/groups_pe.txt"
+GROUPS_FILE_DEFECT = os.path.dirname(__file__) + "/ressources_old/groups_defect.txt"
+REF_GENOME = os.path.dirname(__file__) + "/ressources_old/reference/listeria_monocytogenes_egd_e.fasta"
+REF_ANNOTATION = os.path.dirname(__file__) + "/ressources_old/reference/listeria_monocytogenes_egd_e.gff3"
 
 
 class TestGroupsfileParser(unittest.TestCase):
