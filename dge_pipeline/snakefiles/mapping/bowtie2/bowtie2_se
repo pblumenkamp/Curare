@@ -1,0 +1,45 @@
+from os import listdir
+from os.path import isfile, splitext
+
+rule all:
+    input:
+        expand("mapping/{A}_sorted.bam", A=config['entries'].keys())
+
+rule bowtie2_index:
+    params:
+        prefix=splitext("%%GENOME_FASTA%%")[0]
+    input:
+        genome="%%GENOME_FASTA%%"
+    output:
+        splitext("%%GENOME_FASTA%%")[0] + ".1.bt2"
+    threads:
+        32
+    shell:
+        "echo $PATH; bowtie2-build --threads {threads} {input.genome} {params.prefix}"
+
+
+rule bowtie2_mapping:
+    params:
+        prefix=splitext("%%GENOME_FASTA%%")[0]
+    input:
+        genome="%%GENOME_FASTA%%",
+	    genome_index=splitext("%%GENOME_FASTA%%")[0] + ".1.bt2",
+	    reads=lambda wildcards: config['entries'][wildcards.name]['bowtie2']['reads']
+	 output:
+        temp("mapping/sam/{name}.sam")
+    threads:
+        4
+    shell:
+        "bowtie2 -p {threads} --mm --very-sensitive-local -x {params.prefix} -U {input.reads} -S {output}"
+
+
+rule index_bam:
+    input:
+        "mapping/sam/{sample}.sam"
+    output:
+        bam="mapping/{sample}.bam",
+        bai="mapping/{sample}.bam.bai"
+    threads:
+        4
+    shell:
+        "samtools view -F 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam} - && samtools index {output.bam}"
