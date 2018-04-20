@@ -16,8 +16,7 @@ paired_end = False
 
 def main():
     args = parse_arguments()
-    used_modules = load_config_file(
-        os.path.realpath(args.config_file))  # {'name': module, 'path': '', 'settings': {}, columns: {}}
+    used_modules = load_config_file(args.config_file)  # {'name': module, 'path': '', 'settings': {}, columns: {}}
     validate_argsfiles(args.groups_file, args.config_file)
     groups = parse_groups_file(args.groups_file, used_modules)
     create_output_directory(args.output_folder)
@@ -57,7 +56,8 @@ def parse_groups_file(groups_file, modules):
                 elif col2module[index + 1] not in entries:
                     entries[col2module[index + 1]] = {}
                 if col2module[index + 1][1] == 'file' and not col.startswith('/'):
-                    entries[col2module[index + 1]][col_names[index + 1]] = os.path.join(os.path.dirname(os.path.realpath(groups_file)), col)
+                    entries[col2module[index + 1]][col_names[index + 1]] = os.path.join(
+                        os.path.dirname(os.path.realpath(groups_file)), col)
                 else:
                     entries[col2module[index + 1]][col_names[index + 1]] = col
             table[columns[0]] = entries
@@ -146,7 +146,8 @@ def load_module(category, module, settings, config_file_path):
                         category.capitalize() + ': Required setting "' + setting_name + '" is missing')
                 else:
                     if properties['type'] == 'file' and not settings[setting_name].startswith('/'):
-                        loaded_module['settings'][setting_name] = os.path.join(config_file_path, settings[setting_name])
+                        loaded_module['settings'][setting_name] = os.path.realpath(
+                            os.path.join(os.path.dirname(config_file_path), settings[setting_name]))
                     else:
                         loaded_module['settings'][setting_name] = settings[setting_name]
         if 'optional_settings' in module_yaml:
@@ -155,12 +156,14 @@ def load_module(category, module, settings, config_file_path):
                     loaded_module['settings'][setting_name] = ''
                 else:
                     if properties['type'] == 'file' and not settings[setting_name].startswith('/'):
-                        loaded_module['settings'][setting_name] = os.path.join(config_file_path, settings[setting_name])
+                        loaded_module['settings'][setting_name] = os.path.realpath(
+                            os.path.join(os.path.dirname(config_file_path), settings[setting_name]))
                     else:
                         loaded_module['settings'][setting_name] = settings[setting_name]
         if 'columns' in module_yaml:
             for column_name, properties in module_yaml['columns'].items():
-                loaded_module['columns'][column_name] = {'type': properties['type'], 'description': properties['description']}
+                loaded_module['columns'][column_name] = {'type': properties['type'],
+                                                         'description': properties['description']}
 
         if paired_end:
             loaded_module['path'] = os.path.join(SNAKEFILES_PATH, category, module,
@@ -172,8 +175,8 @@ def load_module(category, module, settings, config_file_path):
                             category.capitalize() + ': Required setting "' + setting_name + '" is missing')
                     else:
                         if properties['type'] == 'file' and not settings[setting_name].startswith('/'):
-                            loaded_module['settings'][setting_name] = os.path.join(config_file_path,
-                                                                                   settings[setting_name])
+                            loaded_module['settings'][setting_name] = os.path.realpath(
+                                os.path.join(os.path.dirname(config_file_path), settings[setting_name]))
                         else:
                             loaded_module['settings'][setting_name] = settings[setting_name]
             if 'optional_settings' in module_yaml['paired_end']:
@@ -182,17 +185,18 @@ def load_module(category, module, settings, config_file_path):
                         loaded_module['settings'][setting_name] = ""
                     else:
                         if properties['type'] == 'file' and not settings[setting_name].startswith('/'):
-                            loaded_module['settings'][setting_name] = os.path.join(config_file_path,
-                                                                                   settings[setting_name])
+                            loaded_module['settings'][setting_name] = os.path.realpath(
+                                os.path.join(os.path.dirname(config_file_path), settings[setting_name]))
                         else:
                             loaded_module['settings'][setting_name] = settings[setting_name]
             if 'columns' in module_yaml['paired_end']:
                 for column_name, properties in module_yaml['paired_end']['columns'].items():
                     loaded_module['columns'][column_name] = {'type': properties['type'],
                                                              'description': properties['description']}
+
         else:
-            loaded_module['path'] = os.path.isfile(
-                os.path.join(SNAKEFILES_PATH, module, module_yaml['single_end']['snakefile']))
+            loaded_module['path'] = os.path.join(SNAKEFILES_PATH, category, module,
+                                                 module_yaml['single_end']['snakefile'])
             if 'required_settings' in module_yaml['single_end']:
                 for setting_name, properties in module_yaml['single_end']['required_settings'].items():
                     if setting_name not in settings:
@@ -200,8 +204,8 @@ def load_module(category, module, settings, config_file_path):
                             category.capitalize() + ': Required setting "' + setting_name + '" is missing')
                     else:
                         if properties['type'] == 'file' and not settings[setting_name].startswith('/'):
-                            loaded_module['settings'][setting_name] = os.path.join(config_file_path,
-                                                                                   settings[setting_name])
+                            loaded_module['settings'][setting_name] = os.path.realpath(
+                                os.path.join(os.path.dirname(config_file_path), settings[setting_name]))
                         else:
                             loaded_module['settings'][setting_name] = settings[setting_name]
             if 'optional_settings' in module_yaml['single_end']:
@@ -210,8 +214,8 @@ def load_module(category, module, settings, config_file_path):
                         loaded_module['settings'][setting_name] = ""
                     else:
                         if properties['type'] == 'file' and not settings[setting_name].startswith('/'):
-                            loaded_module['settings'][setting_name] = os.path.join(config_file_path,
-                                                                                   settings[setting_name])
+                            loaded_module['settings'][setting_name] = os.path.realpath(
+                                os.path.join(os.path.dirname(config_file_path), settings[setting_name]))
                         else:
                             loaded_module['settings'][setting_name] = settings[setting_name]
             if 'columns' in module_yaml['single_end']:
@@ -304,11 +308,11 @@ def create_snakemake_config_file(output_folder, groups):
     with open(os.path.join(output_folder, 'snakefile_config.yml'), 'w') as config_file:
         config_file.write('entries:\n')
         for row, modules in groups.items():
-            config_file.write('    {}:\n'.format(row))
+            config_file.write('    "{}":\n'.format(row))
             for (module_name, module_type), columns in modules.items():
-                config_file.write('        {}:\n'.format(module_name))
+                config_file.write('        "{}":\n'.format(module_name))
                 for column, value in columns.items():
-                    config_file.write('            {}: {}\n'.format(column, value))
+                    config_file.write('            "{}": "{}"\n'.format(column, value))
     return os.path.join(output_folder, 'snakefile_config.yml')
 
 
@@ -341,7 +345,12 @@ def parse_arguments():
     other.add_argument('--verbose', dest='verbose', action="store_true", help="Print debugging output")
     other.add_argument('-h', '--help', action="help", help="Show this help message and exit")
 
-    return parser.parse_args()
+    args = parser.parse_args()
+    args.groups_file = os.path.realpath(args.groups_file)
+    args.output_folder = os.path.realpath(args.output_folder)
+    args.config_file = os.path.realpath(args.config_file)
+
+    return args
 
 
 class InvalidGroupsFileError(Exception):

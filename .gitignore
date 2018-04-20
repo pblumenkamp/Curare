@@ -6,3 +6,8 @@ __pycache__/
 
 # Ignore snakemake folder
 .snakemake/
+
+# Ignore test run results
+tests/ressources/reference/*.bt2
+tests/ressources/paired_end_run/output_dir
+tests/ressources/single_end_run/output_dir
