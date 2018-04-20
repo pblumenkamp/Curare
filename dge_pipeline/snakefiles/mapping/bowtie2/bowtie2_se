@@ -23,9 +23,9 @@ rule bowtie2_mapping:
         prefix=splitext("%%GENOME_FASTA%%")[0]
     input:
         genome="%%GENOME_FASTA%%",
-	    genome_index=splitext("%%GENOME_FASTA%%")[0] + ".1.bt2",
-	    reads=lambda wildcards: config['entries'][wildcards.name]['bowtie2']['reads']
-	 output:
+        genome_index=splitext("%%GENOME_FASTA%%")[0] + ".1.bt2",
+        reads=lambda wildcards: config['entries'][wildcards.name]['bowtie2']['reads']
+    output:
         temp("mapping/sam/{name}.sam")
     threads:
         4
