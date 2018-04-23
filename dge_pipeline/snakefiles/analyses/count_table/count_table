@@ -3,13 +3,13 @@ from os.path import isfile
 
 rule all:
     input:
-        "analysis/count_table/counts.txt"
+        "analyses/count_table/counts.txt"
 
 rule count_reads:
     input:
         expand("mapping/{A}.bam", A=config['entries'].keys())
     output:
-        "analysis/count_table/counts.txt"
+        "analyses/count_table/counts.txt"
     threads:
         32
     shell:

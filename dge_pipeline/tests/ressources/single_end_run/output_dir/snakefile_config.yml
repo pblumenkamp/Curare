@@ -1,7 +1,0 @@
-entries:
-    5536:
-        bowtie2:
-            reads: /home/patrick/Arbeit/Promotion/Pipeline/dge_pipeline/dge_pipeline/tests/ressources/single_end_run/../input_data/ERR985536_R1.fastq
-    5535:
-        bowtie2:
-            reads: /home/patrick/Arbeit/Promotion/Pipeline/dge_pipeline/dge_pipeline/tests/ressources/single_end_run/../input_data/ERR985535_R1.fastq
