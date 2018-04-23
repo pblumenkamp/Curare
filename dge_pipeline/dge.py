@@ -9,7 +9,9 @@ from snakemake import snakemake
 
 PROGRAM_NAME = "Differential gene expression pipeline"
 
-SNAKEFILES_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "snakefiles")
+SNAKEFILES_LIBRARY = os.path.join(os.path.dirname(os.path.realpath(__file__)), "snakefiles")
+
+SNAKEFILES_TARGET_DIRECTORY = 'snakemake_lib'
 
 paired_end = False
 
@@ -134,8 +136,8 @@ def load_config_file(config_file):
 
 def load_module(category, module, settings, config_file_path):
     loaded_module = {'name': module, 'path': '', 'settings': {}, 'columns': {}}
-    if os.path.isfile(os.path.join(SNAKEFILES_PATH, category, module, module + '.yaml')):
-        module_yaml = yaml.load(open(os.path.join(SNAKEFILES_PATH, category, module, module + '.yaml'), 'r'))
+    if os.path.isfile(os.path.join(SNAKEFILES_LIBRARY, category, module, module + '.yaml')):
+        module_yaml = yaml.load(open(os.path.join(SNAKEFILES_LIBRARY, category, module, module + '.yaml'), 'r'))
         if 'required_settings' in module_yaml:
             for setting_name, properties in module_yaml['required_settings'].items():
                 if setting_name not in settings:
@@ -163,7 +165,7 @@ def load_module(category, module, settings, config_file_path):
                                                          'description': properties['description']}
 
         if paired_end:
-            loaded_module['path'] = os.path.join(SNAKEFILES_PATH, category, module,
+            loaded_module['path'] = os.path.join(SNAKEFILES_LIBRARY, category, module,
                                                  module_yaml['paired_end']['snakefile'])
             if 'required_settings' in module_yaml['paired_end']:
                 for setting_name, properties in module_yaml['paired_end']['required_settings'].items():
@@ -192,7 +194,7 @@ def load_module(category, module, settings, config_file_path):
                                                              'description': properties['description']}
 
         else:
-            loaded_module['path'] = os.path.join(SNAKEFILES_PATH, category, module,
+            loaded_module['path'] = os.path.join(SNAKEFILES_LIBRARY, category, module,
                                                  module_yaml['single_end']['snakefile'])
             if 'required_settings' in module_yaml['single_end']:
                 for setting_name, properties in module_yaml['single_end']['required_settings'].items():
@@ -239,23 +241,33 @@ def create_output_directory(output_path):
     elif not os.path.isdir(output_path):
         raise NotADirectoryError(filename=output_path)
 
+    snakefiles_target_directory = os.path.join(output_path, SNAKEFILES_TARGET_DIRECTORY)
+    if not os.path.exists(snakefiles_target_directory):
+        os.makedirs(snakefiles_target_directory)
+    elif not os.path.isdir(snakefiles_target_directory):
+        raise NotADirectoryError(filename=snakefiles_target_directory)
+
 
 def create_snakefile(output_folder, groups, modules):
     config_file = create_snakemake_config_file(output_folder, groups)
     re_rule_name = re.compile('^rule (?P<rule_name>.*):$', re.MULTILINE)
+    snakefile_module_paths = []
     for module in [module for module_list in modules.values() for module in module_list]:
         with open(module['path'], 'r') as module_file:
             module_content = module_file.read()
             module_content = re_rule_name.sub('rule {}__\g<rule_name>:'.format(module['name']), module_content)
             for (wildcard, value) in module['settings'].items():
                 module_content = module_content.replace("%%{}%%".format(wildcard.upper()), value)
-            with open(os.path.join(output_folder, module['name'].upper()), 'w') as module_output_file:
+            module_path = os.path.join(output_folder, SNAKEFILES_TARGET_DIRECTORY, module['name'].lower() + '.sm')
+            with open(module_path, 'w') as module_output_file:
                 module_output_file.write(module_content)
+                snakefile_module_paths.append(os.path.basename(module_path))
 
-    with open(os.path.join(output_folder, 'SNAKEFILE'), 'w') as snakefile:
-        snakefile.write('configfile: "{}"\n\n'.format(os.path.basename(config_file)))
-        for module in [module for module_list in modules.values() for module in module_list]:
-            snakefile.write('include: "{}"\n'.format(module['name'].upper()))
+    snakefile_main_path = os.path.join(output_folder, 'Snakefile')
+    with open(snakefile_main_path, 'w') as snakefile:
+        snakefile.write('configfile: "{}"\n\n'.format(os.path.join(SNAKEFILES_TARGET_DIRECTORY, os.path.basename(config_file))))
+        for path in snakefile_module_paths:
+            snakefile.write('include: "{}"\n'.format(os.path.join(SNAKEFILES_TARGET_DIRECTORY, path)))
         snakefile.write('\n')
         snakefile.write('rule all:\n')
         snakefile.write('    input:\n')
@@ -263,11 +275,12 @@ def create_snakefile(output_folder, groups, modules):
                        category in ('premapping', 'analyses')]:
             snakefile.write('        rules.{module_name}__all.input,\n'.format(module_name=module['name']))
 
-    return os.path.join(output_folder, 'SNAKEFILE')
+    return snakefile_main_path
 
 
 def create_snakemake_config_file(output_folder, groups):
-    with open(os.path.join(output_folder, 'snakefile_config.yml'), 'w') as config_file:
+    config_path = os.path.join(output_folder, SNAKEFILES_TARGET_DIRECTORY, 'snakefile_config.yml')
+    with open(config_path, 'w') as config_file:
         config_file.write('entries:\n')
         for row, modules in groups.items():
             config_file.write('    "{}":\n'.format(row))
@@ -275,7 +288,7 @@ def create_snakemake_config_file(output_folder, groups):
                 config_file.write('        "{}":\n'.format(module_name))
                 for column, value in columns.items():
                     config_file.write('            "{}": "{}"\n'.format(column, value))
-    return os.path.join(output_folder, 'snakefile_config.yml')
+    return config_path
 
 
 def parse_arguments():
