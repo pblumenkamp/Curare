@@ -1,7 +1,7 @@
 pipeline:
   paired_end: false
 
-preoprocessing:
+preprocessing:
   module: ""
 
 premapping:
