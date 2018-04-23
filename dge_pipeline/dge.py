@@ -23,9 +23,6 @@ def main():
     snakefile = create_snakefile(args.output_folder, groups, used_modules)
     if not snakemake(snakefile, cores=args.threads, workdir=args.output_folder, verbose=args.verbose):
         exit(1)
-    # rfile = create_rfile(RFILES["deseq2"], os.path.join(args.output_folder, "counts.txt"), args.output_folder, groups,
-    #                      args.threads)
-    # subprocess.call("R --vanilla < " + rfile, shell=True)
 
 
 def check_columns(col_names, modules):
@@ -268,41 +265,6 @@ def create_snakefile(output_folder, groups, modules):
 
     return os.path.join(output_folder, 'SNAKEFILE')
 
-    # with open(snakefile, 'r') as sf:
-    #     content = sf.read()
-    #
-    # ref_genome = args.ref_genome_file
-    # output_folder = args.output_folder
-    # ref_annotation = args.ref_annotation_file
-    # isPE = args.pe
-    # count_single_mapped = args.count_single_mapped
-    # feature_type = args.gff_feature_type
-    # feature_name = args.gff_feature_name
-    #
-    # content = content.replace("%%SAMPLE_NAMES%%", ", ".join(['"' + entry.name + '"' for entry in groups]))
-    # if isPE:
-    #     content = content.replace("%%SAMPLE_PATHS%%", ", ".join(
-    #         ['"' + entry.name + '": ["' + entry.forward + '", "' + entry.reverse + '"]' for entry in groups]))
-    # else:
-    #     content = content.replace("%%SAMPLE_PATHS%%", ", ".join(
-    #         ['"' + entry.name + '": "' + entry.file + '"' for entry in groups]))
-    #
-    # featurecounts_options = []
-    # if isPE:
-    #     featurecounts_options.append("-p")
-    #     if not count_single_mapped:
-    #         featurecounts_options.append("-B")
-    # content = content.replace("%%FEATURECOUNTS_OPTIONS%%", " ".join(featurecounts_options))
-    # content = content.replace("%%GENOME_FASTA%%", ref_genome)
-    # content = content.replace("%%GENOME_INDEX%%", os.path.join(output_folder, "genome_index/genome"))
-    # content = content.replace("%%GENOME_GFF%%", ref_annotation)
-    # content = content.replace("%%OUTPUT_FOLDER%%", output_folder)
-    # content = content.replace("%%GFF_FEATURE_TYPE%%", feature_type)
-    # content = content.replace("%%GFF_FEATURE_NAME%%", feature_name)
-    # with open(os.path.join(output_folder, "Snakefile"), 'w') as sf:
-    #     sf.write(content)
-    # return os.path.join(output_folder, "Snakefile")
-
 
 def create_snakemake_config_file(output_folder, groups):
     with open(os.path.join(output_folder, 'snakefile_config.yml'), 'w') as config_file:
@@ -314,20 +276,6 @@ def create_snakemake_config_file(output_folder, groups):
                 for column, value in columns.items():
                     config_file.write('            "{}": "{}"\n'.format(column, value))
     return os.path.join(output_folder, 'snakefile_config.yml')
-
-
-def create_rfile(rfile, counttable, output_folder, groups, threads):
-    with open(rfile, 'r') as rf:
-        content = rf.read()
-    content = content.replace("$$THREADS$$", str(threads))
-    content = content.replace("$$COUNT_TABLE$$", counttable)
-    content = content.replace("$$SAMPLE_NAMES$$", ", ".join(['"' + entry.name + '"' for entry in groups]))
-    content = content.replace("$$CONDITIONS$$", ", ".join(['"' + entry.condition + '"' for entry in groups]))
-    content = content.replace("$$RESULT_FOLDER$$", output_folder)
-    print(os.path.join(output_folder, "dge_analysis.R"))
-    with open(os.path.join(output_folder, "dge_analysis.R"), 'w') as rf:
-        rf.write(content)
-    return os.path.join(output_folder, "dge_analysis.R")
 
 
 def parse_arguments():
