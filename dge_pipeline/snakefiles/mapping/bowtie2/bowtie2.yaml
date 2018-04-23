@@ -9,21 +9,8 @@ required_settings:
 single_end:
   snakefile: bowtie2_se
 
-  columns:
-    reads:
-      description: Path to the reads fastq file
-      type: file
-
 paired_end:
   snakefile: bowtie2_pe
 
-  columns:
-    forward_reads:
-      description: Path to the forward reads fastq file
-      type: file
-
-    reverse_reads:
-      description: Path to the reverse reads fastq file
-      type: file
 
 

@@ -20,15 +20,34 @@ def main():
     args = parse_arguments()
     used_modules = load_config_file(args.config_file)  # {'name': module, 'path': '', 'settings': {}, columns: {}}
     validate_argsfiles(args.groups_file, args.config_file)
-    groups = parse_groups_file(args.groups_file, used_modules)
+    groups = parse_groups_file(args.groups_file, used_modules, paired_end)
     create_output_directory(args.output_folder)
     snakefile = create_snakefile(args.output_folder, groups, used_modules)
     if not snakemake(snakefile, cores=args.threads, workdir=args.output_folder, verbose=args.verbose):
         exit(1)
 
 
-def check_columns(col_names, modules):
+def check_columns(col_names, modules, paired_end):
     col2module = ['' for entry in col_names]
+    if 'name' not in col_names:
+        raise InvalidGroupsFileError('Groups file: Column "{}" is missing'.format('name'))
+    else:
+        col2module[col_names.index('name')] = ('main', 'string')
+    if paired_end:
+        if 'forward_reads' not in col_names:
+            raise InvalidGroupsFileError('Groups file: Column "{}" is missing'.format('forward_reads'))
+        else:
+            col2module[col_names.index('forward_reads')] = ('main', 'file')
+        if 'reverse_reads' not in col_names:
+            raise InvalidGroupsFileError('Groups file: Column "{}" is missing'.format('reverse_reads'))
+        else:
+            col2module[col_names.index('reverse_reads')] = ('main', 'file')
+    else:
+        if 'reads' not in col_names:
+            raise InvalidGroupsFileError('Groups file: Column "{}" is missing'.format('reads'))
+        else:
+            col2module[col_names.index('reads')] = ('main', 'file')
+
     for module in [module for module_list in modules.values() for module in module_list]:
         if len(module['columns']) > 0:
             for col_name, properties in module['columns'].items():
@@ -39,26 +58,26 @@ def check_columns(col_names, modules):
     return col2module
 
 
-def parse_groups_file(groups_file, modules):
+def parse_groups_file(groups_file, modules, paired_end):
     table = {}
     with open(groups_file, 'r') as file:
         col_names = file.readline().strip().split('\t')
-        col2module = check_columns(col_names, modules)
+        col2module = check_columns(col_names, modules, paired_end)
         for line in file:
             if len(line.strip()) == 0:
                 continue
             columns = line.strip().split('\t')
             entries = {}
-            for index, col in enumerate(columns[1:]):
-                if col2module[index + 1] == '':
+            for index, col in enumerate(columns):
+                if col2module[index] == '' or col2module[index] == 'name':
                     continue
-                elif col2module[index + 1] not in entries:
-                    entries[col2module[index + 1]] = {}
-                if col2module[index + 1][1] == 'file' and not col.startswith('/'):
-                    entries[col2module[index + 1]][col_names[index + 1]] = os.path.join(
+                elif col2module[index][0] not in entries:
+                    entries[col2module[index][0]] = {}
+                if col2module[index][1] == 'file' and not col.startswith('/'):
+                    entries[col2module[index][0]][col_names[index]] = os.path.join(
                         os.path.dirname(os.path.realpath(groups_file)), col)
                 else:
-                    entries[col2module[index + 1]][col_names[index + 1]] = col
+                    entries[col2module[index][0]][col_names[index]] = col
             table[columns[0]] = entries
     return table
 
@@ -284,7 +303,7 @@ def create_snakemake_config_file(output_folder, groups):
         config_file.write('entries:\n')
         for row, modules in groups.items():
             config_file.write('    "{}":\n'.format(row))
-            for (module_name, module_type), columns in modules.items():
+            for module_name, columns in modules.items():
                 config_file.write('        "{}":\n'.format(module_name))
                 for column, value in columns.items():
                     config_file.write('            "{}": "{}"\n'.format(column, value))
