@@ -12,5 +12,6 @@ dependencies:
 - subread
 - python=3
 - yaml
+- fastqc
 
 
