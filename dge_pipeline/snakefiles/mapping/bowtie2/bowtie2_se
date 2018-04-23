@@ -24,7 +24,7 @@ rule bowtie2_mapping:
     input:
         genome="%%GENOME_FASTA%%",
         genome_index=splitext("%%GENOME_FASTA%%")[0] + ".1.bt2",
-        reads=lambda wildcards: config['entries'][wildcards.name]['main']['reads']
+        reads=lambda wildcards: os.path.join('preprocessing', os.path.basename(config['entries'][wildcards.name]['main']['reads']))
     output:
         temp("mapping/sam/{name}.sam")
     threads:

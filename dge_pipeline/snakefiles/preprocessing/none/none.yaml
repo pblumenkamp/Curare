@@ -1,0 +1,9 @@
+name: "none"
+
+single_end:
+  snakefile: "none_se"
+
+paired_end:
+  snakefile: "none_pe"
+
+

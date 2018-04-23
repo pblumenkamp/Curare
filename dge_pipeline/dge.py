@@ -97,8 +97,14 @@ def load_config_file(config_file):
         if "module" in config["preprocessing"]:
             if not isinstance(config["preprocessing"]["module"], str):
                 raise InvalidConfigFileError("preprocessing: Only one module as a string is allowed")
+            elif config["preprocessing"]["module"] == '':
+                modules["preprocessing"].append('none')
             else:
                 modules["preprocessing"].append(config["preprocessing"]["module"])
+        else:
+            modules["preprocessing"].append('none')
+    else:
+        modules["preprocessing"].append('none')
     if "premapping" in config:
         if "modules" in config["premapping"]:
             if "module" in config["premapping"]:
