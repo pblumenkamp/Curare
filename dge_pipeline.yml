@@ -13,5 +13,6 @@ dependencies:
 - python=3
 - yaml
 - fastqc
+- multiqc
 
 

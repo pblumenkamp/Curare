@@ -5,7 +5,7 @@ preprocessing:
   module: ""
 
 premapping:
-  modules: ["fastqc"]
+  modules: ["fastqc", "multiqc"]
 
 mapping:
   module: "bowtie2"
