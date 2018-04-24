@@ -5,7 +5,7 @@ rule all:
     input:
         expand("premapping/fastqc/{A}_fastqc.html", A=[splitext(basename(seqRun['main']['reads']))[0] for seqRun in config['entries'].values()])
 
-rule count_reads:
+rule fastqc:
     input:
         "preprocessing/{A}.fastq"
     output:
