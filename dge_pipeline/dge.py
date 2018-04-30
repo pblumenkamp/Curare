@@ -1,6 +1,8 @@
 import argparse
 import errno
 import os
+import shutil
+import filecmp
 import re
 
 import yaml
@@ -276,21 +278,39 @@ def create_output_directory(output_path):
 def create_snakefile(output_folder, groups, modules):
     config_file = create_snakemake_config_file(output_folder, groups)
     re_rule_name = re.compile('^rule (?P<rule_name>.*):$', re.MULTILINE)
+    re_lib_folder = re.compile('lib/(?P<file_name>[^\s]*)', re.MULTILINE)
     snakefile_module_paths = []
     for module in [module for module_list in modules.values() for module in module_list]:
         with open(module['path'], 'r') as module_file:
             module_content = module_file.read()
-            module_content = re_rule_name.sub('rule {}__\g<rule_name>:'.format(module['name']), module_content)
+            module_content = re_rule_name.sub('rule {}__\g<rule_name>:'.format(module['name'].lower()), module_content)
+            module_content = re_lib_folder.sub(
+                '{}/{}/{}_lib/\g<file_name>'.format(output_folder, SNAKEFILES_TARGET_DIRECTORY, module['name'].lower()),
+                module_content)
             for (wildcard, value) in module['settings'].items():
                 module_content = module_content.replace("%%{}%%".format(wildcard.upper()), value)
             module_path = os.path.join(output_folder, SNAKEFILES_TARGET_DIRECTORY, module['name'].lower() + '.sm')
             with open(module_path, 'w') as module_output_file:
                 module_output_file.write(module_content)
                 snakefile_module_paths.append(os.path.basename(module_path))
+            lib_src = os.path.join(os.path.dirname(module['path']), 'lib')
+            if os.path.isdir(lib_src):
+                lib_dest = os.path.join(output_folder, SNAKEFILES_TARGET_DIRECTORY, module['name'].lower() + '_lib')
+                if os.path.isdir(lib_dest):
+                    dir_comp = filecmp.dircmp(lib_src, lib_dest)
+                    if dir_comp.left_only or dir_comp.diff_files:
+                        copy_lib(lib_src, lib_dest)
+                    else:
+                        for sub in dir_comp.subdirs.values():
+                            if sub.left_only or sub.diff_files:
+                                copy_lib(lib_src, lib_dest)
+                else:
+                    copy_lib(lib_src, lib_dest)
 
     snakefile_main_path = os.path.join(output_folder, 'Snakefile')
     with open(snakefile_main_path, 'w') as snakefile:
-        snakefile.write('configfile: "{}"\n\n'.format(os.path.join(SNAKEFILES_TARGET_DIRECTORY, os.path.basename(config_file))))
+        snakefile.write(
+            'configfile: "{}"\n\n'.format(os.path.join(SNAKEFILES_TARGET_DIRECTORY, os.path.basename(config_file))))
         for path in snakefile_module_paths:
             snakefile.write('include: "{}"\n'.format(os.path.join(SNAKEFILES_TARGET_DIRECTORY, path)))
         snakefile.write('\n')
@@ -314,6 +334,15 @@ def create_snakemake_config_file(output_folder, groups):
                 for column, value in columns.items():
                     config_file.write('            "{}": "{}"\n'.format(column, value))
     return config_path
+
+
+def copy_lib(src_folder, dest_folder):
+    try:
+        if os.path.isdir(dest_folder):
+            shutil.rmtree(dest_folder)
+        shutil.copytree(src_folder, dest_folder, symlinks=True)
+    except shutil.Error as err:
+        raise err
 
 
 def parse_arguments():

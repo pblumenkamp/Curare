@@ -1,3 +1,3 @@
-name	forward_reads	reverse_reads
-5535	../input_data/ERR985535_R1.fastq	../input_data/ERR985535_R2.fastq
-5536	../input_data/ERR985536_R1.fastq	../input_data/ERR985536_R2.fastq
+name	forward_reads	reverse_reads	condition
+5535	../input_data/ERR985535_R1.fastq	../input_data/ERR985535_R2.fastq	WT
+5536	../input_data/ERR985536_R1.fastq	../input_data/ERR985536_R2.fastq	Mut

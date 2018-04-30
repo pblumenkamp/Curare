@@ -1,0 +1,36 @@
+name: "deseq2"
+
+required_settings:
+  gff_feature_type:
+    description: "Used feature type, e.g. gene or exon"
+    type: "string"
+
+  gff_feature_name:
+    description: "Descriptor for gene name, e.g. ID or gene_id"
+    type: "string"
+
+  gff_path:
+    description: "File path to gff file"
+    type: "file"
+
+
+optional_settings:
+  additional_options:
+    description: "Additional options to use in shell command"
+    type: "string"
+
+
+columns:
+  condition:
+    description: "Condition name of sequencing run"
+    type: "string"
+
+
+single_end:
+  snakefile: "deseq2"
+
+
+paired_end:
+  snakefile: "deseq2"
+
+
