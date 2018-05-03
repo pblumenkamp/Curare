@@ -17,7 +17,7 @@ rule count_reads:
 
 rule create_conditions:
     output:
-        "analyses/deseq2/conditions.txt"
+        temp("analyses/deseq2/conditions.txt")
     run:
         with(open(output[0], 'w')) as output_file:
             for name in sorted(config['entries'].keys()):
