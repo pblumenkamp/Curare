@@ -10,7 +10,10 @@ rule count_reads:
         expand("mapping/{A}.bam", A=config['entries'].keys())
     output:
         "analyses/count_table/counts.txt"
+    log:
+        log="analyses/count_table/logs/featurecounts.log"
     threads:
         32
     shell:
-        "featureCounts -T 4 %%ADDITIONAL_OPTIONS%% -t '%%GFF_FEATURE_TYPE%%' -g '%%GFF_FEATURE_NAME%%' -a %%GFF_PATH%% -o {output} {input}"
+        "featureCounts -T 4 %%ADDITIONAL_OPTIONS%% -t '%%GFF_FEATURE_TYPE%%' -g '%%GFF_FEATURE_NAME%%' -a %%GFF_PATH%% -o {output} {input} 2>&1 |"
+        "tee {log}"
