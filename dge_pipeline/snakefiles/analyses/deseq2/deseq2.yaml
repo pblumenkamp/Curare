@@ -15,7 +15,7 @@ required_settings:
 
 
 optional_settings:
-  additional_options:
+  additional_featcounts_options:
     description: "Additional options to use in shell command"
     type: "string"
 
@@ -27,10 +27,10 @@ columns:
 
 
 single_end:
-  snakefile: "deseq2"
+  snakefile: "deseq2_se"
 
 
 paired_end:
-  snakefile: "deseq2"
+  snakefile: "deseq2_pe"
 
 

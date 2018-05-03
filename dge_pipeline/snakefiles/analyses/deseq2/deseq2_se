@@ -13,10 +13,7 @@ rule count_reads:
     threads:
         32
     shell:
-        "featureCounts -T 4 %%ADDITIONAL_OPTIONS%% -t '%%GFF_FEATURE_TYPE%%' -g '%%GFF_FEATURE_NAME%%' -a %%GFF_PATH%% -o {output} {input}"
-#        "echo '\n\nTrim column names of count table\n...' &&"
-#        "sed -e '2 s/mapping\/\([^\.]*\).bam/\1/g' {output} &&"
-#        "echo 'Done.\n\n'"
+        "featureCounts -T {threads} %%ADDITIONAL_FEATCOUNTS_OPTIONS%% -t '%%GFF_FEATURE_TYPE%%' -g '%%GFF_FEATURE_NAME%%' -a %%GFF_PATH%% -o {output} {input}"
 
 rule create_conditions:
     output:
@@ -31,10 +28,10 @@ rule deseq2:
         counttable="analyses/deseq2/counts.txt",
         conditions="analyses/deseq2/conditions.txt"
     output:
-        dump="analyses/deseq2/deseq2.RData"
+        dump="analyses/deseq2/deseq2.RData",
+        counts_normalized="analyses/deseq2/counts_normalized.txt"
     params:
-        output_folder="analyses/deseq2",
-        normalized="analyses/deseq2/counts_normalized.txt"
+        output_folder="analyses/deseq2/"
     threads:
         32
     shell:
