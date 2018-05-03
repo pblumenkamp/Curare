@@ -20,7 +20,10 @@ rule readxplorer_import:
         expand("analyses/readxplorer/{A}.bam", A=config['entries'].keys())
     output:
         "analyses/readxplorer/readxplorer.h2.db"
+    log:
+        "analyses/readxplorer/logs/readxplorer.log"
     threads:
         32
     shell:
-        "%%READXPLORER_CLI_PATH%% --threads {threads} --reads 'analyses/readxplorer/' --db analyses/readxplorer/readxplorer --ref %%REFERENCE_GENOME%%"
+        "%%READXPLORER_CLI_PATH%% --threads {threads} --reads 'analyses/readxplorer/' --db analyses/readxplorer/readxplorer --ref %%REFERENCE_GENOME%% 2>&1 |"
+        "tee {log}"
