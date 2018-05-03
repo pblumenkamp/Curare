@@ -12,8 +12,11 @@ rule count_reads:
         "analyses/deseq2/counts.txt"
     threads:
         32
+    log:
+        log="analyses/deseq2/logs/featurecounts.log"
     shell:
-        "featureCounts -T {threads} %%ADDITIONAL_FEATCOUNTS_OPTIONS%% -t '%%GFF_FEATURE_TYPE%%' -g '%%GFF_FEATURE_NAME%%' -a %%GFF_PATH%% -o {output} {input}"
+        "featureCounts -T {threads} %%ADDITIONAL_FEATCOUNTS_OPTIONS%% -t '%%GFF_FEATURE_TYPE%%' -g '%%GFF_FEATURE_NAME%%' -a %%GFF_PATH%% -o {output} {input} 2>&1 |"
+        "tee {log}"
 
 rule create_conditions:
     output:
@@ -32,7 +35,10 @@ rule deseq2:
         counts_normalized="analyses/deseq2/counts_normalized.txt"
     params:
         output_folder="analyses/deseq2/"
+    log:
+        log="analyses/deseq2/logs/deseq2.log"
     threads:
         32
     shell:
-        "R --file=lib/deseq2_analysis.R --args --threads {threads} --counttable {input.counttable} --conditions {input.conditions} --output {params.output_folder}"
+        "R --file=lib/deseq2_analysis.R --args --threads {threads} --counttable {input.counttable} --conditions {input.conditions} --output {params.output_folder} 2>&1 |"
+        "tee {log}"
