@@ -25,7 +25,7 @@ def main():
     groups = parse_groups_file(args.groups_file, used_modules, paired_end)
     create_output_directory(args.output_folder)
     snakefile = create_snakefile(args.output_folder, groups, used_modules)
-    if not snakemake(snakefile, cores=args.threads, workdir=args.output_folder, verbose=args.verbose):
+    if not snakemake(snakefile, cores=args.threads, workdir=args.output_folder, verbose=args.verbose, printshellcmds=True):
         exit(1)
 
 
