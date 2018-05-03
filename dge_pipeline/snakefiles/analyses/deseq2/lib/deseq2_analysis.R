@@ -17,17 +17,20 @@ colnames(cData) <- c('condition')
 condition <- as.factor(cData[,1])
 
 dds <- DESeqDataSetFromMatrix(countData=d, colData=cData, design=~condition)
+dds <- estimateSizeFactors(dds)
+write.table(counts(dds, normalized = TRUE), file = paste(output_folder, "counts_normalized.txt", sep=""), sep="\t", row.names = TRUE, col.names = NA)
+
 d.deseq <- DESeq(object = dds, parallel = TRUE)
 resultsNames(d.deseq)
 save.image(paste(output_folder, "/deseq2.RData", sep=""))
 
 
-#plots <- c()
-#for (cond in combn(levels(condition), 2, simplify = FALSE)){
-#  res <-
-#    results(d.deseq,
-#            addMLE = FALSE,
-#            contrast = c("condition", cond[1], cond[2]))
-#  write.table(res, file=paste(output_folder, "/deseq2_results_", cond[1], "_Vs._", cond[2], ".csv", sep=""), sep="\t", row.names = TRUE)
-#}
+dir.create(paste(output_folder, "deseq2_comparisons", sep=""))
+for (cond in combn(levels(condition), 2, simplify = FALSE)){
+  res <-
+    results(d.deseq,
+            addMLE = FALSE,
+            contrast = c("condition", cond[1], cond[2]))
+  write.table(res, file=paste(output_folder, "deseq2_comparisons/deseq2_results_", cond[1], "_Vs_", cond[2], ".csv", sep=""), sep="\t", row.names = TRUE, col.names = NA)
+}
 
