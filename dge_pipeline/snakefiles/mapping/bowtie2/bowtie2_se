@@ -12,10 +12,13 @@ rule bowtie2_index:
         genome="%%GENOME_FASTA%%"
     output:
         splitext("%%GENOME_FASTA%%")[0] + ".1.bt2"
+    log:
+        "mapping/logs/bowtie2_index.log"
     threads:
         32
     shell:
-        "echo $PATH; bowtie2-build --threads {threads} {input.genome} {params.prefix}"
+        "echo $PATH; bowtie2-build --threads {threads} {input.genome} {params.prefix} 2>&1 |"
+        "tee {log}"
 
 
 rule bowtie2_mapping:
@@ -27,10 +30,13 @@ rule bowtie2_mapping:
         reads=lambda wildcards: os.path.join('preprocessing', os.path.basename(config['entries'][wildcards.name]['main']['reads']))
     output:
         temp("mapping/sam/{name}.sam")
+    log:
+        "mapping/logs/bowtie2_mapping.{name}.log"
     threads:
         4
     shell:
-        "bowtie2 -p {threads} --mm --very-sensitive-local -x {params.prefix} -U {input.reads} -S {output}"
+        "bowtie2 -p {threads} --mm --very-sensitive-local -x {params.prefix} -U {input.reads} -S {output} 2>&1 |"
+        "tee {log}"
 
 
 rule index_bam:
