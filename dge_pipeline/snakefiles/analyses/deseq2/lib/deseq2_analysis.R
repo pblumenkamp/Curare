@@ -21,7 +21,6 @@ dds <- estimateSizeFactors(dds)
 write.table(counts(dds, normalized = TRUE), file = paste(output_folder, "counts_normalized.txt", sep=""), sep="\t", row.names = TRUE, col.names = NA)
 
 d.deseq <- DESeq(object = dds, parallel = TRUE)
-resultsNames(d.deseq)
 save.image(paste(output_folder, "/deseq2.RData", sep=""))
 
 
