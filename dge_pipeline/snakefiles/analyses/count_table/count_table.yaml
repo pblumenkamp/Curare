@@ -23,10 +23,10 @@ optional_settings:
 
 
 single_end:
-  snakefile: "count_table"
+  snakefile: "count_table_se"
 
 
 paired_end:
-  snakefile: "count_table"
+  snakefile: "count_table_pe"
 
 
