@@ -4,8 +4,7 @@ import os
 import shutil
 import filecmp
 import re
-import typing
-from typing import Dict, List, Any
+from typing import Dict, List, Tuple, Any
 
 import yaml
 
@@ -29,8 +28,8 @@ def main():
         exit(1)
 
 
-def check_columns(col_names, modules, paired_end: bool):
-    col2module = ['' for entry in col_names]
+def check_columns(col_names: List[str], modules: Dict[str, List['Module']], paired_end: bool) -> List[Tuple[str, str]]:
+    col2module = [('', '') for entry in col_names] # type: List[Tuple[str, str]]
     if 'name' not in col_names:
         raise InvalidGroupsFileError('Groups file: Column "{}" is missing'.format('name'))
     else:
@@ -60,8 +59,8 @@ def check_columns(col_names, modules, paired_end: bool):
     return col2module
 
 
-def parse_groups_file(groups_file, modules, paired_end):
-    table = {}
+def parse_groups_file(groups_file: str, modules: Dict[str, List['Module']], paired_end: bool) -> Dict[str, Dict[str, Dict[str, Any]]]:
+    table = {} # type: Dict[str, Dict[str, Dict[str, Any]]]
     with open(groups_file, 'r') as file:
         col_names = file.readline().strip().split('\t')
         col2module = check_columns(col_names, modules, paired_end)
@@ -84,16 +83,16 @@ def parse_groups_file(groups_file, modules, paired_end):
     return table
 
 
-def load_config_file(config_file):
+def load_config_file(config_file: str) -> Tuple[Dict[str, List['Module']], bool]:
     modules = {"preprocessing": [],
                "premapping": [],
                "mapping": [],
-               "analyses": []}
+               "analyses": []}      # type: Dict[str, List[str]]
 
     used_modules = {"preprocessing": [],
                     "premapping": [],
                     "mapping": [],
-                    "analyses": []}
+                    "analyses": []}     # type: Dict[str, List['Module']]
     config = yaml.load(open(config_file, 'r'))
     if "preprocessing" in config:
         if "module" in config["preprocessing"]:
@@ -145,7 +144,7 @@ def load_config_file(config_file):
                 modules["analyses"].append(config["analyses"]["module"])
     if "pipeline" in config:
         if "paired_end" in config["pipeline"]:
-            if not isinstance(config["pipeline"]["paired_end"], bool):
+            if not isinstance(config["pipeline"]["paired_end"], bool) and not (config["pipeline"]["paired_end"] == 'True' or config["pipeline"]["paired_end"] == 'False'):
                 raise InvalidConfigFileError('Pipeline: paired_end value must be "True" or "False"')
             else:
                 paired_end = config["pipeline"]["paired_end"]
@@ -160,7 +159,7 @@ def load_config_file(config_file):
     return used_modules, paired_end
 
 
-def load_module(category, module_name, settings, config_file_path, paired_end):
+def load_module(category: str, module_name: str, settings: Dict[str, Any], config_file_path: str, paired_end: bool) -> 'Module':
     loaded_module = Module(module_name)
     if os.path.isfile(os.path.join(SNAKEFILES_LIBRARY, category, module_name, module_name + '.yaml')):
         module_yaml = yaml.load(open(os.path.join(SNAKEFILES_LIBRARY, category, module_name, module_name + '.yaml'), 'r'))
@@ -251,14 +250,14 @@ def load_module(category, module_name, settings, config_file_path, paired_end):
     return loaded_module
 
 
-def validate_argsfiles(groups_file, config_file):
+def validate_argsfiles(groups_file: str, config_file: str):
     if not os.path.isfile(groups_file):
         raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), groups_file)
     if not os.path.isfile(config_file):
         raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), config_file)
 
 
-def create_output_directory(output_path):
+def create_output_directory(output_path: str):
     if not os.path.exists(output_path):
         os.makedirs(output_path)
     elif not os.path.isdir(output_path):
@@ -271,7 +270,7 @@ def create_output_directory(output_path):
         raise NotADirectoryError(filename=snakefiles_target_directory)
 
 
-def create_snakefile(output_folder, groups, modules):
+def create_snakefile(output_folder: str, groups: Dict[str, Dict[str, Dict[str, Any]]], modules: Dict[str, List['Module']]) -> str:
     config_file = create_snakemake_config_file(output_folder, groups)
     re_rule_name = re.compile('^rule (?P<rule_name>.*):$', re.MULTILINE)
     re_lib_folder = re.compile('lib/(?P<file_name>[^\s]*)', re.MULTILINE)
@@ -319,7 +318,7 @@ def create_snakefile(output_folder, groups, modules):
     return snakefile_main_path
 
 
-def create_snakemake_config_file(output_folder, groups):
+def create_snakemake_config_file(output_folder: str, groups: Dict[str, Dict[str, Dict[str, Any]]]) -> str:
     config_path = os.path.join(output_folder, SNAKEFILES_TARGET_DIRECTORY, 'snakefile_config.yml')
     with open(config_path, 'w') as config_file:
         config_file.write('entries:\n')
@@ -332,7 +331,7 @@ def create_snakemake_config_file(output_folder, groups):
     return config_path
 
 
-def copy_lib(src_folder, dest_folder):
+def copy_lib(src_folder: str, dest_folder: str):
     try:
         if os.path.isdir(dest_folder):
             shutil.rmtree(dest_folder)
@@ -341,7 +340,7 @@ def copy_lib(src_folder, dest_folder):
         raise err
 
 
-def parse_arguments():
+def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog=PROGRAM_NAME, add_help=False)
 
     required = parser.add_argument_group('Required arguments')
@@ -375,11 +374,11 @@ class Module:
 
     """
 
-    def __init__(self, name: str, snakefile_path: str='', settings: Dict[str, Any]={}, column_properties: Dict[str, 'ColumnProperties']={}):
+    def __init__(self, name: str, snakefile_path: str=''):
         self.name = name
         self.snakefile = snakefile_path
-        self.settings = settings
-        self.columns = column_properties
+        self.settings = {}  # type: Dict[str, Any]
+        self.columns = {}   # type: Dict[str, 'ColumnProperties']
 
     def add_setting(self, name: str, value: Any):
         self.settings[name] = value
@@ -411,7 +410,7 @@ class InvalidGroupsFileError(Exception):
             message -- message displayed
     """
 
-    def __init__(self, message):
+    def __init__(self, message: str):
         super(InvalidGroupsFileError, self).__init__(message)
 
 
@@ -422,7 +421,7 @@ class InvalidConfigFileError(Exception):
             message -- message displayed
     """
 
-    def __init__(self, message):
+    def __init__(self, message: str):
         super(InvalidConfigFileError, self).__init__(message)
 
 
