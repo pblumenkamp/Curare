@@ -4,17 +4,18 @@ import os
 import shutil
 import filecmp
 import re
+from pathlib import Path
 from typing import Dict, List, Tuple, Any
 
 import yaml
 
 from snakemake import snakemake
 
-PROGRAM_NAME = "Differential gene expression pipeline"
+PROGRAM_NAME = "Differential gene expression pipeline generator"
 
-SNAKEFILES_LIBRARY = os.path.join(os.path.dirname(os.path.realpath(__file__)), "snakefiles")
+SNAKEFILES_LIBRARY = Path(__file__).resolve().parent / "snakefiles"  # type: Path
 
-SNAKEFILES_TARGET_DIRECTORY = 'snakemake_lib'
+SNAKEFILES_TARGET_DIRECTORY = 'snakemake_lib'  # type: str
 
 
 def main():
@@ -24,12 +25,13 @@ def main():
     groups = parse_groups_file(args.groups_file, used_modules, paired_end)
     create_output_directory(args.output_folder)
     snakefile = create_snakefile(args.output_folder, groups, used_modules)
-    if not snakemake(snakefile, cores=args.threads, workdir=args.output_folder, verbose=args.verbose, printshellcmds=True):
+    if not snakemake(str(snakefile), cores=args.threads, workdir=str(args.output_folder), verbose=args.verbose,
+                     printshellcmds=True):
         exit(1)
 
 
 def check_columns(col_names: List[str], modules: Dict[str, List['Module']], paired_end: bool) -> List[Tuple[str, str]]:
-    col2module = [('', '') for entry in col_names] # type: List[Tuple[str, str]]
+    col2module = [('', '') for _ in col_names]  # type: List[Tuple[str, str]]
     if 'name' not in col_names:
         raise InvalidGroupsFileError('Groups file: Column "{}" is missing'.format('name'))
     else:
@@ -59,41 +61,40 @@ def check_columns(col_names: List[str], modules: Dict[str, List['Module']], pair
     return col2module
 
 
-def parse_groups_file(groups_file: str, modules: Dict[str, List['Module']], paired_end: bool) -> Dict[str, Dict[str, Dict[str, Any]]]:
-    table = {} # type: Dict[str, Dict[str, Dict[str, Any]]]
-    with open(groups_file, 'r') as file:
+def parse_groups_file(groups_file: Path, modules: Dict[str, List['Module']], paired_end: bool) -> Dict[str, Dict[str, Dict[str, str]]]:
+    table = {}  # type: Dict[str, Dict[str, Dict[str, str]]]
+    with groups_file.open('r') as file:
         col_names = file.readline().strip().split('\t')
         col2module = check_columns(col_names, modules, paired_end)
         for line in file:
             if len(line.strip()) == 0:
                 continue
             columns = line.strip().split('\t')
-            entries = {}
+            entries = {}    # type: Dict[str, Dict[str, str]]
             for index, col in enumerate(columns):
                 if col2module[index] == '' or col2module[index] == 'name':
                     continue
                 elif col2module[index][0] not in entries:
                     entries[col2module[index][0]] = {}
                 if col2module[index][1] == 'file' and not col.startswith('/'):
-                    entries[col2module[index][0]][col_names[index]] = os.path.join(
-                        os.path.dirname(os.path.realpath(groups_file)), col)
+                    entries[col2module[index][0]][col_names[index]] = str((groups_file.parent / col).resolve())
                 else:
                     entries[col2module[index][0]][col_names[index]] = col
             table[columns[0]] = entries
     return table
 
 
-def load_config_file(config_file: str) -> Tuple[Dict[str, List['Module']], bool]:
+def load_config_file(config_file: Path) -> Tuple[Dict[str, List['Module']], bool]:
     modules = {"preprocessing": [],
                "premapping": [],
                "mapping": [],
-               "analyses": []}      # type: Dict[str, List[str]]
+               "analyses": []}  # type: Dict[str, List[str]]
 
     used_modules = {"preprocessing": [],
                     "premapping": [],
                     "mapping": [],
-                    "analyses": []}     # type: Dict[str, List['Module']]
-    config = yaml.load(open(config_file, 'r'))
+                    "analyses": []}  # type: Dict[str, List['Module']]
+    config = yaml.load(config_file.open('r'))
     if "preprocessing" in config:
         if "module" in config["preprocessing"]:
             if not isinstance(config["preprocessing"]["module"], str):
@@ -117,8 +118,7 @@ def load_config_file(config_file: str) -> Tuple[Dict[str, List['Module']], bool]
                     modules["premapping"].append(module)
         elif "module" in config["premapping"]:
             if not isinstance(config["premapping"]["modules"], str):
-                raise InvalidConfigFileError(
-                    'premapping: Only one module as a string is allowed. For multiple modules use "modules"')
+                raise InvalidConfigFileError('premapping: Only one module as a string is allowed. For multiple modules use "modules"')
             else:
                 modules["premapping"].append(config["premapping"]["module"])
     if "mapping" in config:
@@ -138,13 +138,13 @@ def load_config_file(config_file: str) -> Tuple[Dict[str, List['Module']], bool]
                     modules["analyses"].append(module)
         elif "module" in config["analyses"]:
             if not isinstance(config["analyses"]["modules"], str):
-                raise InvalidConfigFileError(
-                    'analyses: Only one module as a string is allowed. For multiple modules use "modules"')
+                raise InvalidConfigFileError('analyses: Only one module as a string is allowed. For multiple modules use "modules"')
             else:
                 modules["analyses"].append(config["analyses"]["module"])
     if "pipeline" in config:
         if "paired_end" in config["pipeline"]:
-            if not isinstance(config["pipeline"]["paired_end"], bool) and not (config["pipeline"]["paired_end"] == 'True' or config["pipeline"]["paired_end"] == 'False'):
+            if not isinstance(config["pipeline"]["paired_end"], bool) and not (
+                    config["pipeline"]["paired_end"] == 'True' or config["pipeline"]["paired_end"] == 'False'):
                 raise InvalidConfigFileError('Pipeline: paired_end value must be "True" or "False"')
             else:
                 paired_end = config["pipeline"]["paired_end"]
@@ -159,19 +159,18 @@ def load_config_file(config_file: str) -> Tuple[Dict[str, List['Module']], bool]
     return used_modules, paired_end
 
 
-def load_module(category: str, module_name: str, settings: Dict[str, Any], config_file_path: str, paired_end: bool) -> 'Module':
+def load_module(category: str, module_name: str, settings: Dict[str, str], config_file_path: Path, paired_end: bool) -> 'Module':
     loaded_module = Module(module_name)
-    if os.path.isfile(os.path.join(SNAKEFILES_LIBRARY, category, module_name, module_name + '.yaml')):
-        module_yaml = yaml.load(open(os.path.join(SNAKEFILES_LIBRARY, category, module_name, module_name + '.yaml'), 'r'))
+    module_yaml_file = SNAKEFILES_LIBRARY / category / module_name / (module_name + '.yaml')
+    if module_yaml_file.is_file():
+        module_yaml = yaml.load(module_yaml_file.open('r'))
         if 'required_settings' in module_yaml:
             for setting_name, properties in module_yaml['required_settings'].items():
                 if setting_name not in settings:
-                    raise InvalidConfigFileError(
-                        category.capitalize() + ': Required setting "' + setting_name + '" is missing')
+                    raise InvalidConfigFileError(category.capitalize() + ': Required setting "' + setting_name + '" is missing')
                 else:
                     if properties['type'] == 'file' and not settings[setting_name].startswith('/'):
-                        loaded_module.add_setting(setting_name, os.path.realpath(
-                            os.path.join(os.path.dirname(config_file_path), settings[setting_name])))
+                        loaded_module.add_setting(setting_name, str((config_file_path.parent / settings[setting_name]).resolve()))
                     else:
                         loaded_module.add_setting(setting_name, settings[setting_name])
         if 'optional_settings' in module_yaml:
@@ -180,8 +179,7 @@ def load_module(category: str, module_name: str, settings: Dict[str, Any], confi
                     loaded_module.add_setting(setting_name, '')
                 else:
                     if properties['type'] == 'file' and not settings[setting_name].startswith('/'):
-                        loaded_module.add_setting(setting_name, os.path.realpath(
-                            os.path.join(os.path.dirname(config_file_path), settings[setting_name])))
+                        loaded_module.add_setting(setting_name, str((config_file_path.parent / settings[setting_name]).resolve()))
                     else:
                         loaded_module.add_setting(setting_name, settings[setting_name])
         if 'columns' in module_yaml:
@@ -189,17 +187,14 @@ def load_module(category: str, module_name: str, settings: Dict[str, Any], confi
                 loaded_module.add_column(column_name, ColumnProperties(properties['type'], properties['description']))
 
         if paired_end:
-            loaded_module.snakefile = os.path.join(SNAKEFILES_LIBRARY, category, module_name,
-                                                 module_yaml['paired_end']['snakefile'])
+            loaded_module.snakefile = SNAKEFILES_LIBRARY / category / module_name / module_yaml['paired_end']['snakefile']
             if 'required_settings' in module_yaml['paired_end']:
                 for setting_name, properties in module_yaml['paired_end']['required_settings'].items():
                     if setting_name not in settings:
-                        raise InvalidConfigFileError(
-                            category.capitalize() + ': Required setting "' + setting_name + '" is missing')
+                        raise InvalidConfigFileError(category.capitalize() + ': Required setting "' + setting_name + '" is missing')
                     else:
                         if properties['type'] == 'file' and not settings[setting_name].startswith('/'):
-                            loaded_module.add_setting(setting_name, os.path.realpath(
-                                os.path.join(os.path.dirname(config_file_path), settings[setting_name])))
+                            loaded_module.add_setting(setting_name, str((config_file_path.parent / settings[setting_name]).resolve()))
                         else:
                             loaded_module.add_setting(setting_name, settings[setting_name])
             if 'optional_settings' in module_yaml['paired_end']:
@@ -208,8 +203,7 @@ def load_module(category: str, module_name: str, settings: Dict[str, Any], confi
                         loaded_module.add_setting(setting_name, "")
                     else:
                         if properties['type'] == 'file' and not settings[setting_name].startswith('/'):
-                            loaded_module.add_setting(setting_name, os.path.realpath(
-                                os.path.join(os.path.dirname(config_file_path), settings[setting_name])))
+                            loaded_module.add_setting(setting_name, str((config_file_path.parent / settings[setting_name]).resolve()))
                         else:
                             loaded_module.add_setting(setting_name, settings[setting_name])
             if 'columns' in module_yaml['paired_end']:
@@ -217,17 +211,14 @@ def load_module(category: str, module_name: str, settings: Dict[str, Any], confi
                     loaded_module.add_column(column_name, ColumnProperties(properties['type'], properties['description']))
 
         else:
-            loaded_module.snakefile = os.path.join(SNAKEFILES_LIBRARY, category, module_name,
-                                                 module_yaml['single_end']['snakefile'])
+            loaded_module.snakefile = SNAKEFILES_LIBRARY / category / module_name / module_yaml['single_end']['snakefile']
             if 'required_settings' in module_yaml['single_end']:
                 for setting_name, properties in module_yaml['single_end']['required_settings'].items():
                     if setting_name not in settings:
-                        raise InvalidConfigFileError(
-                            category.capitalize() + ': Required setting "' + setting_name + '" is missing')
+                        raise InvalidConfigFileError(category.capitalize() + ': Required setting "' + setting_name + '" is missing')
                     else:
                         if properties['type'] == 'file' and not settings[setting_name].startswith('/'):
-                            loaded_module.add_setting(setting_name, os.path.realpath(
-                                os.path.join(os.path.dirname(config_file_path), settings[setting_name])))
+                            loaded_module.add_setting(setting_name, str((config_file_path.parent / settings[setting_name]).resolve()))
                         else:
                             loaded_module.add_setting(setting_name, settings[setting_name])
             if 'optional_settings' in module_yaml['single_end']:
@@ -236,8 +227,7 @@ def load_module(category: str, module_name: str, settings: Dict[str, Any], confi
                         loaded_module.add_setting(setting_name, "")
                     else:
                         if properties['type'] == 'file' and not settings[setting_name].startswith('/'):
-                            loaded_module.add_setting(setting_name, os.path.realpath(
-                                os.path.join(os.path.dirname(config_file_path), settings[setting_name])))
+                            loaded_module.add_setting(setting_name, str((config_file_path.parent / settings[setting_name]).resolve()))
                         else:
                             loaded_module.add_setting(setting_name, settings[setting_name])
             if 'columns' in module_yaml['single_end']:
@@ -250,49 +240,51 @@ def load_module(category: str, module_name: str, settings: Dict[str, Any], confi
     return loaded_module
 
 
-def validate_argsfiles(groups_file: str, config_file: str):
-    if not os.path.isfile(groups_file):
-        raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), groups_file)
-    if not os.path.isfile(config_file):
-        raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), config_file)
+def validate_argsfiles(groups_file: Path, config_file: Path):
+    if not groups_file.is_file():
+        raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), str(groups_file))
+    if not config_file.is_file():
+        raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), str(config_file))
 
 
-def create_output_directory(output_path: str):
-    if not os.path.exists(output_path):
-        os.makedirs(output_path)
-    elif not os.path.isdir(output_path):
+def create_output_directory(output_path: Path):
+    if not output_path.exists():
+        output_path.mkdir(parents=True)
+    elif not output_path.is_dir():
         raise NotADirectoryError(filename=output_path)
 
-    snakefiles_target_directory = os.path.join(output_path, SNAKEFILES_TARGET_DIRECTORY)
-    if not os.path.exists(snakefiles_target_directory):
-        os.makedirs(snakefiles_target_directory)
-    elif not os.path.isdir(snakefiles_target_directory):
+    snakefiles_target_directory = output_path / SNAKEFILES_TARGET_DIRECTORY
+    if not snakefiles_target_directory.exists():
+        snakefiles_target_directory.mkdir(parents=True)
+    elif not snakefiles_target_directory.is_dir():
         raise NotADirectoryError(filename=snakefiles_target_directory)
 
 
-def create_snakefile(output_folder: str, groups: Dict[str, Dict[str, Dict[str, Any]]], modules: Dict[str, List['Module']]) -> str:
+def create_snakefile(output_folder: Path, groups: Dict[str, Dict[str, Dict[str, Any]]], modules: Dict[str, List['Module']]) -> Path:
     config_file = create_snakemake_config_file(output_folder, groups)
+    # find every rule name
     re_rule_name = re.compile('^rule (?P<rule_name>.*):$', re.MULTILINE)
+    # find every lib reference
     re_lib_folder = re.compile('lib/(?P<file_name>[^\s]*)', re.MULTILINE)
     snakefile_module_paths = []
+    # for every Module in modules
     for module in [module for module_list in modules.values() for module in module_list]:
-        with open(module.snakefile, 'r') as module_file:
+        with module.snakefile.open('r') as module_file:
             module_content = module_file.read()
+            # change rule name from <rule name> to <module name>__<rule name>
             module_content = re_rule_name.sub('rule {}__\g<rule_name>:'.format(module.name.lower()), module_content)
-            module_content = re_lib_folder.sub(
-                '{}/{}/{}_lib/\g<file_name>'.format(output_folder, SNAKEFILES_TARGET_DIRECTORY, module.name.lower()),
-                module_content)
+            module_content = re_lib_folder.sub('{}/{}_lib/\g<file_name>'.format(SNAKEFILES_TARGET_DIRECTORY, module.name.lower()), module_content)
             for (wildcard, value) in module.settings.items():
                 module_content = module_content.replace("%%{}%%".format(wildcard.upper()), value)
-            module_path = os.path.join(output_folder, SNAKEFILES_TARGET_DIRECTORY, module.name.lower() + '.sm')
-            with open(module_path, 'w') as module_output_file:
+            module_path = output_folder / SNAKEFILES_TARGET_DIRECTORY / (module.name.lower() + '.sm')
+            with module_path.open('w') as module_output_file:
                 module_output_file.write(module_content)
-                snakefile_module_paths.append(os.path.basename(module_path))
-            lib_src = os.path.join(os.path.dirname(module.snakefile), 'lib')
-            if os.path.isdir(lib_src):
-                lib_dest = os.path.join(output_folder, SNAKEFILES_TARGET_DIRECTORY, module.name.lower() + '_lib')
-                if os.path.isdir(lib_dest):
-                    dir_comp = filecmp.dircmp(lib_src, lib_dest)
+                snakefile_module_paths.append(module_path.name)
+            lib_src = module.snakefile.parent / 'lib'
+            if lib_src.is_dir():
+                lib_dest = output_folder / SNAKEFILES_TARGET_DIRECTORY / (module.name.lower() + '_lib')
+                if lib_dest.is_dir():
+                    dir_comp = filecmp.dircmp(str(lib_src), str(lib_dest))
                     if dir_comp.left_only or dir_comp.diff_files:
                         copy_lib(lib_src, lib_dest)
                     else:
@@ -302,25 +294,24 @@ def create_snakefile(output_folder: str, groups: Dict[str, Dict[str, Dict[str, A
                 else:
                     copy_lib(lib_src, lib_dest)
 
-    snakefile_main_path = os.path.join(output_folder, 'Snakefile')
-    with open(snakefile_main_path, 'w') as snakefile:
+    snakefile_main_path = output_folder / 'Snakefile'
+    with snakefile_main_path.open('w') as snakefile:
         snakefile.write(
-            'configfile: "{}"\n\n'.format(os.path.join(SNAKEFILES_TARGET_DIRECTORY, os.path.basename(config_file))))
+            'configfile: "{}"\n\n'.format(os.path.join(SNAKEFILES_TARGET_DIRECTORY, config_file.name)))
         for path in snakefile_module_paths:
             snakefile.write('include: "{}"\n'.format(os.path.join(SNAKEFILES_TARGET_DIRECTORY, path)))
         snakefile.write('\n')
         snakefile.write('rule all:\n')
         snakefile.write('    input:\n')
-        for module in [module for (category, module_list) in modules.items() for module in module_list if
-                       category in ('premapping', 'analyses')]:
+        for module in [module for (category, module_list) in modules.items() for module in module_list if category in ('premapping', 'analyses')]:
             snakefile.write('        rules.{module_name}__all.input,\n'.format(module_name=module.name))
 
     return snakefile_main_path
 
 
-def create_snakemake_config_file(output_folder: str, groups: Dict[str, Dict[str, Dict[str, Any]]]) -> str:
-    config_path = os.path.join(output_folder, SNAKEFILES_TARGET_DIRECTORY, 'snakefile_config.yml')
-    with open(config_path, 'w') as config_file:
+def create_snakemake_config_file(output_folder: Path, groups: Dict[str, Dict[str, Dict[str, Any]]]) -> Path:
+    config_path = output_folder / SNAKEFILES_TARGET_DIRECTORY / 'snakefile_config.yml'
+    with config_path.open('w') as config_file:
         config_file.write('entries:\n')
         for row, modules in groups.items():
             config_file.write('    "{}":\n'.format(row))
@@ -331,11 +322,11 @@ def create_snakemake_config_file(output_folder: str, groups: Dict[str, Dict[str,
     return config_path
 
 
-def copy_lib(src_folder: str, dest_folder: str):
+def copy_lib(src_folder: Path, dest_folder: Path):
     try:
-        if os.path.isdir(dest_folder):
-            shutil.rmtree(dest_folder)
-        shutil.copytree(src_folder, dest_folder, symlinks=True)
+        if dest_folder.is_dir():
+            shutil.rmtree(str(dest_folder))
+        shutil.copytree(str(src_folder), str(dest_folder), symlinks=True)
     except shutil.Error as err:
         raise err
 
@@ -356,9 +347,9 @@ def parse_arguments() -> argparse.Namespace:
     other.add_argument('-h', '--help', action="help", help="Show this help message and exit")
 
     args = parser.parse_args()
-    args.groups_file = os.path.realpath(args.groups_file)
-    args.output_folder = os.path.realpath(args.output_folder)
-    args.config_file = os.path.realpath(args.config_file)
+    args.groups_file = Path(args.groups_file).resolve()
+    args.output_folder = Path(args.output_folder)
+    args.config_file = Path(args.config_file).resolve()
 
     return args
 
@@ -374,16 +365,19 @@ class Module:
 
     """
 
-    def __init__(self, name: str, snakefile_path: str=''):
-        self.name = name
-        self.snakefile = snakefile_path
+    def __init__(self, name: str, snakefile_path: Path = None):
+        self.name = name  # type: str
+        if snakefile_path is not None:
+            self.snakefile = snakefile_path.resolve()  # type: Path
+        else:
+            self.snakefile = snakefile_path
         self.settings = {}  # type: Dict[str, Any]
-        self.columns = {}   # type: Dict[str, 'ColumnProperties']
+        self.columns = {}  # type: Dict[str, 'ColumnProperties']
 
-    def add_setting(self, name: str, value: Any):
+    def add_setting(self, name: str, value: str):
         self.settings[name] = value
 
-    def get_setting(self, name: str) -> Any:
+    def get_setting(self, name: str) -> str:
         return self.settings[name]
 
     def add_column(self, name: str, value: 'ColumnProperties'):
