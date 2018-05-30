@@ -1,0 +1,44 @@
+from os import listdir
+from os.path import isfile
+
+rule all:
+    input:
+        "analyses/deseq2/deseq2.RData"
+
+rule count_reads:
+    input:
+        expand("mapping/{A}.bam", A=sorted(config['entries'].keys()))
+    output:
+        "analyses/deseq2/counts.txt"
+    threads:
+        32
+    log:
+        log="analyses/deseq2/logs/featurecounts.log"
+    shell:
+        "featureCounts -T {threads} %%ADDITIONAL_FEATCOUNTS_OPTIONS%% -t '%%GFF_FEATURE_TYPE%%' -g '%%GFF_FEATURE_NAME%%' -a %%GFF_PATH%% -o {output} {input} 2>&1 |"
+        "tee {log}"
+
+rule create_conditions:
+    output:
+        temp("analyses/deseq2/conditions.txt")
+    run:
+        with(open(output[0], 'w')) as output_file:
+            for name in sorted(config['entries'].keys()):
+                output_file.write('{}\t{}\n'.format(name, config['entries'][name]['deseq2']['condition']))
+
+rule deseq2:
+    input:
+        counttable="analyses/deseq2/counts.txt",
+        conditions="analyses/deseq2/conditions.txt"
+    output:
+        dump="analyses/deseq2/deseq2.RData",
+        counts_normalized="analyses/deseq2/counts_normalized.txt"
+    params:
+        output_folder="analyses/deseq2/"
+    log:
+        log="analyses/deseq2/logs/deseq2.log"
+    threads:
+        32
+    shell:
+        "R --file=lib/deseq2_analysis.R --args --threads {threads} --counttable {input.counttable} --conditions {input.conditions} --output {params.output_folder} 2>&1 |"
+        "tee {log}"

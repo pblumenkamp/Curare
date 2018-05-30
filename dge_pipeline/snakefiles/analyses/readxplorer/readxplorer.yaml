@@ -1,0 +1,20 @@
+name: readxplorer
+
+required_settings:
+
+  readxplorer_cli_path:
+    description: Path to ReadXplorer-CLI execution path
+    type: file
+
+  reference_genome:
+    description: Path to reference genome to use
+    type: file
+
+single_end:
+  snakefile: "readxplorer_se"
+
+
+paired_end:
+  snakefile: "readxplorer_pe"
+
+

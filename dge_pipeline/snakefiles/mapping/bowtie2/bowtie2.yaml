@@ -1,0 +1,16 @@
+name: bowtie2
+
+required_settings:
+
+  genome_fasta:
+    description: Path to genome fasta file
+    type: file
+
+single_end:
+  snakefile: bowtie2_se
+
+paired_end:
+  snakefile: bowtie2_pe
+
+
+

@@ -1,0 +1,17 @@
+from os import listdir
+from os.path import isfile, basename, splitext
+
+rule all:
+    input:
+        expand("premapping/fastqc/{A}_fastqc.html", A=[splitext(basename(seqRun['main'][column_name]))[0] for seqRun in config['entries'].values() for column_name in seqRun['main'].keys() if column_name in ('forward_reads', 'reverse_reads')])
+
+rule fastqc:
+    input:
+        "preprocessing/{A}.fastq"
+    output:
+        "premapping/fastqc/{A}_fastqc.html",
+        "premapping/fastqc/{A}_fastqc.zip"
+    threads:
+        1
+    shell:
+        "fastqc -o premapping/fastqc {input}"
