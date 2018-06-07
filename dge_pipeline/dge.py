@@ -171,6 +171,8 @@ def load_module(category: str, module_name: str, settings: Dict[str, str], confi
                 else:
                     if properties['type'] == 'file' and not settings[setting_name].startswith('/'):
                         loaded_module.add_setting(setting_name, str((config_file_path.parent / settings[setting_name]).resolve()))
+                    elif properties['type'] == 'enum':
+                        loaded_module.add_setting(setting_name, properties['choices'][settings[setting_name]])
                     else:
                         loaded_module.add_setting(setting_name, settings[setting_name])
         if 'optional_settings' in module_yaml:
@@ -180,6 +182,8 @@ def load_module(category: str, module_name: str, settings: Dict[str, str], confi
                 else:
                     if properties['type'] == 'file' and not settings[setting_name].startswith('/'):
                         loaded_module.add_setting(setting_name, str((config_file_path.parent / settings[setting_name]).resolve()))
+                    elif properties['type'] == 'enum':
+                        loaded_module.add_setting(setting_name, properties['choices'][settings[setting_name]])
                     else:
                         loaded_module.add_setting(setting_name, settings[setting_name])
         if 'columns' in module_yaml:
@@ -195,6 +199,8 @@ def load_module(category: str, module_name: str, settings: Dict[str, str], confi
                     else:
                         if properties['type'] == 'file' and not settings[setting_name].startswith('/'):
                             loaded_module.add_setting(setting_name, str((config_file_path.parent / settings[setting_name]).resolve()))
+                        elif properties['type'] == 'enum':
+                            loaded_module.add_setting(setting_name, properties['choices'][settings[setting_name]])
                         else:
                             loaded_module.add_setting(setting_name, settings[setting_name])
             if 'optional_settings' in module_yaml['paired_end']:
@@ -204,6 +210,8 @@ def load_module(category: str, module_name: str, settings: Dict[str, str], confi
                     else:
                         if properties['type'] == 'file' and not settings[setting_name].startswith('/'):
                             loaded_module.add_setting(setting_name, str((config_file_path.parent / settings[setting_name]).resolve()))
+                        elif properties['type'] == 'enum':
+                            loaded_module.add_setting(setting_name, properties['choices'][settings[setting_name]])
                         else:
                             loaded_module.add_setting(setting_name, settings[setting_name])
             if 'columns' in module_yaml['paired_end']:
@@ -219,6 +227,8 @@ def load_module(category: str, module_name: str, settings: Dict[str, str], confi
                     else:
                         if properties['type'] == 'file' and not settings[setting_name].startswith('/'):
                             loaded_module.add_setting(setting_name, str((config_file_path.parent / settings[setting_name]).resolve()))
+                        elif properties['type'] == 'enum':
+                            loaded_module.add_setting(setting_name, properties['choices'][settings[setting_name]])
                         else:
                             loaded_module.add_setting(setting_name, settings[setting_name])
             if 'optional_settings' in module_yaml['single_end']:
@@ -228,6 +238,8 @@ def load_module(category: str, module_name: str, settings: Dict[str, str], confi
                     else:
                         if properties['type'] == 'file' and not settings[setting_name].startswith('/'):
                             loaded_module.add_setting(setting_name, str((config_file_path.parent / settings[setting_name]).resolve()))
+                        elif properties['type'] == 'enum':
+                            loaded_module.add_setting(setting_name, properties['choices'][settings[setting_name]])
                         else:
                             loaded_module.add_setting(setting_name, settings[setting_name])
             if 'columns' in module_yaml['single_end']:

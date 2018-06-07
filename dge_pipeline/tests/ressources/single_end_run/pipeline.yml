@@ -12,6 +12,7 @@ mapping:
 
   bowtie2:
     genome_fasta: "../reference/listeria_monocytogenes_egd_e.fasta"
+    alignment_type: "end-to-end"
 
 analyses:
   modules: ["readxplorer", "count_table", "deseq2"]

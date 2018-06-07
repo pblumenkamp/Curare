@@ -1,16 +1,24 @@
-name: bowtie2
+name: 'bowtie2'
 
 required_settings:
 
   genome_fasta:
-    description: Path to genome fasta file
-    type: file
+    description: 'Path to genome fasta file'
+    type: 'file'
+
+  alignment_type:
+    description: 'Choose local or end-to-end alignment'
+    type: 'enum'
+    choices:
+      local: '--very-sensitive-local'
+      end-to-end: '--very-sensitive'
+
 
 single_end:
-  snakefile: bowtie2_se
+  snakefile: 'bowtie2_se'
 
 paired_end:
-  snakefile: bowtie2_pe
+  snakefile: 'bowtie2_pe'
 
 
 
