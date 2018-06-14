@@ -45,8 +45,10 @@ rule index_bam:
         "mapping/sam/{sample}.sam"
     output:
         bam="mapping/{sample}.bam",
-        bai="mapping/{sample}.bam.bai"
+        bai="mapping/{sample}.bam.bai",
+        bam_unmapped="mapping/{sample}_unmapped.bam"
     threads:
         4
     shell:
-        "samtools view -F 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam} - && samtools index {output.bam}"
+        "samtools view -F 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam} - && samtools index {output.bam};"
+        "samtools view -f 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam_unmapped} -"
