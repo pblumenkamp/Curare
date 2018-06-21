@@ -1,5 +1,6 @@
 library("DESeq2")
 library("BiocParallel")
+library("pheatmap")
 
 args <- commandArgs(TRUE)
 counttable_file <- args[match('--counttable', args) + 1]
@@ -8,26 +9,30 @@ output_folder <- args[match('--output', args) + 1]
 threads <- args[match('--threads', args) + 1]
 register(MulticoreParam(threads))
 
-d.raw <- read.csv(counttable_file, header=TRUE, row.names=1, sep = "\t", comment.char = "#")
-d <- as.matrix(d.raw[, c(6:length(d.raw))])
-colnames(d) <- as.vector(sapply(colnames(d), function(x) gsub("mapping\\.(.*)\\.bam", "\\1", x)))
+countdata.raw <- read.csv(counttable_file, header=TRUE, row.names=1, sep = "\t", comment.char = "#")
+countdata <- as.matrix(countdata.raw[, c(6:length(countdata.raw))])
+colnames(countdata) <- as.vector(sapply(colnames(countdata), function(x) gsub("mapping\\.(.*)\\.bam", "\\1", x)))
 
-cData <- read.csv(condition_file, header=FALSE, row.names=1, sep = "\t", comment.char = "#")
-colnames(cData) <- c('condition')
-condition <- as.factor(cData[,1])
+conditiontable <- read.csv(condition_file, header=FALSE, row.names=1, sep = "\t", comment.char = "#")
+colnames(conditiontable) <- c('condition')
+condition <- as.factor(conditiontable[,1])
 
-dds <- DESeqDataSetFromMatrix(countData=d, colData=cData, design=~condition)
-dds <- estimateSizeFactors(dds)
-write.table(counts(dds, normalized = TRUE), file = paste(output_folder, "counts_normalized.txt", sep=""), sep="\t", row.names = TRUE, col.names = NA)
+deseqDataset <- DESeqDataSetFromMatrix(countData=countdata, colData=conditiontable, design=~condition)
+deseqDataset <- estimateSizeFactors(deseqDataset)
+countdata.normalized <- counts(deseqDataset, normalized = TRUE)
+write.table(countdata.normalized, file = paste(output_folder, "counts_normalized.txt", sep=""), sep="\t", row.names = TRUE, col.names = NA)
 
-d.deseq <- DESeq(object = dds, parallel = TRUE)
+deseq.results <- DESeq(object = deseqDataset, parallel = TRUE)
 save.image(paste(output_folder, "/deseq2.RData", sep=""))
 
 
+
+
+# Create all DESeq2 comparisons
 dir.create(paste(output_folder, "deseq2_comparisons", sep=""))
 for (cond in combn(levels(condition), 2, simplify = FALSE)){
   res <-
-    results(d.deseq,
+    results(deseq.results,
             addMLE = FALSE,
             contrast = c("condition", cond[1], cond[2]))
   write.table(res, file=paste(output_folder, "deseq2_comparisons/deseq2_results_", cond[1], "_Vs_", cond[2], ".csv", sep=""), sep="\t", row.names = TRUE, col.names = NA)
