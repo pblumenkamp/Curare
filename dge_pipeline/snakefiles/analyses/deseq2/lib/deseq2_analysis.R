@@ -2,6 +2,17 @@ library("DESeq2")
 library("BiocParallel")
 library("pheatmap")
 
+create_correlation_matrix <- function(countdata, conditiontable, output) {
+    countdata.normalized.processed <- as.matrix(countdata)
+    countdata.normalized.processed <- countdata.normalized.processed[rowSums(countdata.normalized.processed) >= 10,]
+    countdata.normalized.processed <- log2(countdata.normalized.processed+1)
+    sample_cor <- cor(countdata.normalized.processed, method='pearson', use='pairwise.complete.obs')
+
+    pdf(output, width=8, height=7)
+    pheatmap(sample_cor, annotation_col=conditiontable, annotation_row=conditiontable)
+    dev.off()
+}
+
 args <- commandArgs(TRUE)
 counttable_file <- args[match('--counttable', args) + 1]
 condition_file <- args[match('--conditions', args) + 1]
@@ -25,8 +36,7 @@ write.table(countdata.normalized, file = paste(output_folder, "counts_normalized
 deseq.results <- DESeq(object = deseqDataset, parallel = TRUE)
 save.image(paste(output_folder, "/deseq2.RData", sep=""))
 
-
-
+create_correlation_matrix(countdata.normalized, conditiontable, paste(output_folder, 'correlation_heatmap.pdf', sep=""))
 
 # Create all DESeq2 comparisons
 dir.create(paste(output_folder, "deseq2_comparisons", sep=""))
