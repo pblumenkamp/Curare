@@ -3,7 +3,7 @@ from os.path import isfile, splitext
 
 rule all:
     input:
-        expand("mapping/{A}_sorted.bam", A=config['entries'].keys())
+        expand("mapping/{A}.bam", A=config['entries'].keys())
 
 rule bowtie2_index:
     params:

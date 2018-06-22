@@ -315,7 +315,7 @@ def create_snakefile(output_folder: Path, groups: Dict[str, Dict[str, Dict[str, 
         snakefile.write('\n')
         snakefile.write('rule all:\n')
         snakefile.write('    input:\n')
-        for module in [module for (category, module_list) in modules.items() for module in module_list if category in ('premapping', 'analyses')]:
+        for module in [module for (category, module_list) in modules.items() for module in module_list if category in ('premapping', 'analyses', 'mapping')]:
             snakefile.write('        rules.{module_name}__all.input,\n'.format(module_name=module.name))
 
     return snakefile_main_path
