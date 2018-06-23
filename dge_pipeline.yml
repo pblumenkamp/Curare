@@ -14,5 +14,11 @@ dependencies:
 - yaml
 - fastqc
 - multiqc
+- pandas
+- xlsxwriter
+- bioconductor-deseq2
+- r-ggplot2
+- r-reshape
+- r-pheatmap
 
 
