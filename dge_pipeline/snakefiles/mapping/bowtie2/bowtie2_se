@@ -12,7 +12,7 @@ rule mapping_stats_xlsx:
     output:
         "mapping/stats/mapping_stats.xlsx"
     shell:
-        "python3 lib/mapping_stats_tsv_to_xlsx.py {input} {output}"
+        "python3 lib/se_mapping_stats_tsv_to_xlsx.py {input} {output}"
 
 
 rule mapping_stats_tsv:
@@ -22,7 +22,7 @@ rule mapping_stats_tsv:
         "mapping/stats/mapping_stats.tsv"
     shell:
         """
-        echo "sample	unpaired	unpaired[%]	aligned_0_times	aligned_0_times[%]	aligned_1_time	aligned_1_time[%]	aligned_more_than_1_times	aligned_more_than_1_times[%]	overall_alignment_rate" > {output}
+        echo "sample	reads	reads[%]	aligned_0_times	aligned_0_times[%]	aligned_1_time	aligned_1_time[%]	aligned_more_than_1_times	aligned_more_than_1_times[%]	overall_alignment_rate" > {output}
         for i in {input}; do
             sample=$(basename $i);
             sample=${{sample%*.log}};

@@ -37,9 +37,6 @@ def main():
     rows = len(list_data)
     columns = len(list_data[1])
 
-    # set name of unpaired/paired to Reads
-    list_data[0][columns - 9] = "Reads"
-
     # make a pandas DataFrame (you don't have to to this with pandas. Maybe it's better to rewrite it and write the cells with a for-loop)
     # and write it to the xlsx sheet
     df = pd.DataFrame(list_data[1:], columns=list_data[0])
