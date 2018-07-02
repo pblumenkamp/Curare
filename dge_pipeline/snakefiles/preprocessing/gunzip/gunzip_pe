@@ -1,0 +1,20 @@
+from os import listdir
+from os.path import isfile, splitext
+import sys
+
+def getPath(file_name):
+    for seqRun in config['entries'].values():
+        if os.path.basename(seqRun['main']['forward_reads']) == file_name:
+            return seqRun['main']['forward_reads']
+    for seqRun in config['entries'].values():
+        if os.path.basename(seqRun['main']['reverse_reads']) == file_name:
+            return seqRun['main']['reverse_reads']
+    print('Cannot find {} in groups file'.format(file_name), file=sys.stderr)
+
+rule extract:
+    input:
+        lambda wildcards: getPath(wildcards.name + '.fastq.gz')
+    output:
+        "preprocessing/{name}.fastq"
+    shell:
+        "gunzip -ck {input} > {output}"
