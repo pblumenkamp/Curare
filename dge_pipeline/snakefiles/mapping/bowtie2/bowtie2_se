@@ -64,7 +64,7 @@ rule bowtie2_mapping:
     threads:
         4
     shell:
-        "bowtie2 -p {threads} --mm %%ALIGNMENT_TYPE%% -x {params.prefix} -U {input.reads} -S {output} 2>&1 |"
+        "bowtie2 %%ADDITIONAL_BOWTIE2_OPTIONS%% -p {threads} --mm %%ALIGNMENT_TYPE%% -x {params.prefix} -U {input.reads} -S {output} 2>&1 |"
         "tee {log}"
 
 

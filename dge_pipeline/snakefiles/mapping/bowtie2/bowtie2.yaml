@@ -13,6 +13,11 @@ required_settings:
       local: '--very-sensitive-local'
       end-to-end: '--very-sensitive'
 
+optional_settings:
+  additional_bowtie2_options:
+    description: "Additional options to use in shell command"
+    type: "string"
+
 
 single_end:
   snakefile: 'bowtie2_se'

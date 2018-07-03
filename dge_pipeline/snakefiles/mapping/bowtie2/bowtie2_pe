@@ -70,7 +70,7 @@ rule bowtie2_mapping:
     threads:
         4
     shell:
-        "bowtie2 -p {threads} --mm --very-sensitive-local -x {params.prefix} -1 {input.reads} -2 {input.reads_reverse} -S {output} 2>&1 |"
+        "bowtie2 %%ADDITIONAL_BOWTIE2_OPTIONS%% -p {threads} --mm --very-sensitive-local -x {params.prefix} -1 {input.reads} -2 {input.reads_reverse} -S {output} 2>&1 |"
         "tee {log}"
 
 
