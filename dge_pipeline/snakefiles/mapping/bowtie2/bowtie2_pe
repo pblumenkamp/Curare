@@ -3,7 +3,8 @@ from os.path import isfile, splitext
 
 rule all:
     input:
-        "mapping/stats/mapping_stats.xlsx"
+        "mapping/stats/mapping_stats.xlsx",
+        expand("mapping/{A}.bam", A=sorted(config['entries'].keys()))
 
 
 rule mapping_stats_xlsx:
