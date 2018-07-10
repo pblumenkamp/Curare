@@ -142,6 +142,7 @@ for (cond in combn(levels(condition), 2, simplify = FALSE)) {
 }
 
 dir.create(paste(output_folder, "summary", sep = ""))
+write.table(data.frame(), file='keep_summary.txt', col.names=FALSE)
 sapply(1 : length(levels(condition)), function(control_i) {
     control = levels(condition)[control_i]
     vs_condition <- levels(condition)[-control_i]
@@ -161,19 +162,19 @@ sapply(1 : length(levels(condition)), function(control_i) {
         )
     )
 
-    log2foldChangeOnly <- log2foldChange[, c(1,
-                                             seq(from = 3, to = length(log2foldChange), by = 6),
-                                             seq(from = 7, to = length(log2foldChange), by = 6),
-                                             seq(from = 6, to = length(log2foldChange), by = 6))
-                                        ]
     if (length(vs_condition) > 2) {
+        log2foldChangeOnly <- log2foldChange[, c(1,
+                                                 seq(from = 3, to = length(log2foldChange), by = 6),
+                                                 seq(from = 7, to = length(log2foldChange), by = 6),
+                                                 seq(from = 6, to = length(log2foldChange), by = 6))
+                                            ]
         log2foldChangeOnly$minFC <- apply(log2foldChangeOnly[, 2:(length(vs_condition) + 1)], 1, min, na.rm = T)
         log2foldChangeOnly$maxFC <- apply(log2foldChangeOnly[, 2:(length(vs_condition) + 1)], 1, max, na.rm = T)
         fc2 <- log2foldChangeOnly[log2foldChangeOnly$minFC <= -2 | log2foldChangeOnly$maxFC >= 2,]
         fc2$minFC <- NULL
         fc2$maxFC <- NULL
     } else {
-        log2foldChangeOnly <- log2foldChange[, c(7, 1:6)]
+        log2foldChangeOnly <- log2foldChange[, c(7, 2, 5, 6)]
         fc2 <- log2foldChangeOnly[log2foldChangeOnly[, 3] <= - 2 | log2foldChangeOnly[, 3] >= 2,]
         fc2 <- fc2[complete.cases(fc2[, 3]),]
     }
