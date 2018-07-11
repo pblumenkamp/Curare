@@ -20,7 +20,7 @@ optional_settings:
     type: "string"
 
   attribute_columns:
-    description: ""
+    description: "GFF attributes to show in the beginning of the xlsx summary"
     type: "string"
 
 
