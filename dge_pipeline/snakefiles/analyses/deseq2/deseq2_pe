@@ -1,9 +1,27 @@
 from os import listdir
 from os.path import isfile
 
+def getConditions():
+    return set([seqRun['deseq2']['condition'] for seqRun in config['entries'].values()])
+
+
 rule all:
     input:
-        "analyses/deseq2/deseq2.RData"
+        "analyses/deseq2/counts.txt",
+        "analyses/deseq2/counts_normalized.txt",
+        "analyses/deseq2/deseq2.RData",
+        expand('analyses/deseq2/summary/{COND}.xlsx', COND=getConditions())
+
+rule summary_tsv_to_xslx:
+    input:
+        'analyses/deseq2/summary/{COND}.tsv'
+    output:
+        'analyses/deseq2/summary/{COND}.xlsx'
+    params:
+        number_conditions = len(getConditions())-1
+    shell:
+        "python3 lib/deseq2_summary_tsv_to_xlsx.py --tsv {input} --conditions {params.number_conditions} --gff '%%GFF_PATH%%' --identifier '%%GFF_FEATURE_NAME%%' "
+        "--feature '%%GFF_FEATURE_TYPE%%' --attributes %%ATTRIBUTE_COLUMNS%% --output {output}"
 
 rule count_reads:
     input:
@@ -34,7 +52,8 @@ rule deseq2:
         feature_counts_log = "analyses/deseq2/counts.txt.summary"
     output:
         dump="analyses/deseq2/deseq2.RData",
-        counts_normalized="analyses/deseq2/counts_normalized.txt"
+        counts_normalized="analyses/deseq2/counts_normalized.txt",
+        summary=expand('analyses/deseq2/summary/{COND}.tsv', COND=getConditions())
     params:
         output_folder="analyses/deseq2/"
     log:

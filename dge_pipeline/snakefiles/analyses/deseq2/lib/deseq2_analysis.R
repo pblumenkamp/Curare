@@ -175,8 +175,8 @@ sapply(1 : length(levels(condition)), function(control_i) {
         fc2$maxFC <- NULL
     } else {
         log2foldChangeOnly <- log2foldChange[, c(7, 2, 5, 6)]
-        fc2 <- log2foldChangeOnly[log2foldChangeOnly[, 3] <= - 2 | log2foldChangeOnly[, 3] >= 2,]
-        fc2 <- fc2[complete.cases(fc2[, 3]),]
+        fc2 <- log2foldChangeOnly[log2foldChangeOnly[, 2] <= - 2 | log2foldChangeOnly[, 2] >= 2,]
+        fc2 <- fc2[complete.cases(fc2[, 2]),]
     }
 
     rownames(fc2) <- fc2$gene_id
