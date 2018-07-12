@@ -8,10 +8,10 @@ from pathlib import Path
 from typing import Dict, List, Tuple, Any
 
 import yaml
-
 from snakemake import snakemake
 
-PROGRAM_NAME = "Differential gene expression pipeline generator"
+import metadata
+
 
 SNAKEFILES_LIBRARY = Path(__file__).resolve().parent / "snakefiles"  # type: Path
 
@@ -344,7 +344,7 @@ def copy_lib(src_folder: Path, dest_folder: Path):
 
 
 def parse_arguments() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(prog=PROGRAM_NAME, add_help=False)
+    parser = argparse.ArgumentParser(prog=metadata.__program_name__, add_help=False)
 
     required = parser.add_argument_group('Required arguments')
     required.add_argument('--groups', dest='groups_file', required=True)
@@ -353,7 +353,7 @@ def parse_arguments() -> argparse.Namespace:
 
     other = parser.add_argument_group('Other arguments')
     other.add_argument('-t', '--threads', dest='threads', default=1, type=int, help="Number of threads")
-    other.add_argument('-v', '--version', action='version', version='%(prog)s 0.1',
+    other.add_argument('-v', '--version', action='version', version='%(prog)s \nVersion: {}'.format(metadata.__version__),
                        help="Show program's version number and exit")
     other.add_argument('--verbose', dest='verbose', action="store_true", help="Print debugging output")
     other.add_argument('-h', '--help', action="help", help="Show this help message and exit")
