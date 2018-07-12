@@ -5,14 +5,19 @@ channels:
 - anaconda
 - defaults
 dependencies:
-- bowtie2
-- samtools
+- bowtie2=2.3.4.1
+- samtools>=1.8
 - ncurses
-- snakemake
-- subread
-- python=3
-- yaml
-- fastqc
-- multiqc
-
-
+- snakemake>=5
+- subread>=1.6.1
+- python>=3.6
+- yaml>=0.1.7
+- fastqc=0.11.7
+- multiqc>=1.5
+- pandas>=0.23
+- xlsxwriter>=1.0.5
+- bioconductor-deseq2
+- r-ggplot2
+- r-reshape
+- r-pheatmap
+- r-gplots

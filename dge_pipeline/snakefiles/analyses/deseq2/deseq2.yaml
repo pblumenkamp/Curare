@@ -19,6 +19,10 @@ optional_settings:
     description: "Additional options to use in shell command"
     type: "string"
 
+  attribute_columns:
+    description: "GFF attributes to show in the beginning of the xlsx summary"
+    type: "string"
+
 
 columns:
   condition:

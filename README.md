@@ -3,6 +3,8 @@
 Patrick Blumenkamp<br />
 patrick.blumenkamp@computational.bio<br />
 
-Professur für Systembiologie<br />
-Justus-Liebig-Universität Gießen<br />
+Institute for Bioinformatics and Systems Biology<br />
+Justus Liebig University Giessen<br />
 Heinrich-Buff-Ring 58<br />
+35390 Giessen<br />
+Germany

@@ -1,21 +1,40 @@
 from os import listdir
 from os.path import isfile
 
+def getConditions():
+    return set([seqRun['deseq2']['condition'] for seqRun in config['entries'].values()])
+
+
 rule all:
     input:
-        "analyses/deseq2/deseq2.RData"
+        "analyses/deseq2/counts.txt",
+        "analyses/deseq2/counts_normalized.txt",
+        "analyses/deseq2/deseq2.RData",
+        expand('analyses/deseq2/summary/{COND}.xlsx', COND=getConditions())
+
+rule summary_tsv_to_xslx:
+    input:
+        'analyses/deseq2/summary/{COND}.tsv'
+    output:
+        'analyses/deseq2/summary/{COND}.xlsx'
+    params:
+        number_conditions = len(getConditions())-1
+    shell:
+        "python3 lib/deseq2_summary_tsv_to_xlsx.py --tsv {input} --conditions {params.number_conditions} --gff '%%GFF_PATH%%' --identifier '%%GFF_FEATURE_NAME%%' "
+        "--feature '%%GFF_FEATURE_TYPE%%' --attributes %%ATTRIBUTE_COLUMNS%% --output {output}"
 
 rule count_reads:
     input:
         expand("mapping/{A}.bam", A=sorted(config['entries'].keys()))
     output:
-        "analyses/deseq2/counts.txt"
+        counts = "analyses/deseq2/counts.txt",
+        summary = "analyses/deseq2/counts.txt.summary"
     threads:
         32
     log:
         log="analyses/deseq2/logs/featurecounts.log"
     shell:
-        "featureCounts -p -T {threads} %%ADDITIONAL_FEATCOUNTS_OPTIONS%% -t '%%GFF_FEATURE_TYPE%%' -g '%%GFF_FEATURE_NAME%%' -a %%GFF_PATH%% -o {output} {input} 2>&1 |"
+        "featureCounts -p -T {threads} %%ADDITIONAL_FEATCOUNTS_OPTIONS%% -t '%%GFF_FEATURE_TYPE%%' -g '%%GFF_FEATURE_NAME%%' -a %%GFF_PATH%% -o {output.counts} {input} 2>&1 |"
         "tee {log}"
 
 rule create_conditions:
@@ -28,11 +47,13 @@ rule create_conditions:
 
 rule deseq2:
     input:
-        counttable="analyses/deseq2/counts.txt",
-        conditions="analyses/deseq2/conditions.txt"
+        counttable = "analyses/deseq2/counts.txt",
+        conditions = "analyses/deseq2/conditions.txt",
+        feature_counts_log = "analyses/deseq2/counts.txt.summary"
     output:
         dump="analyses/deseq2/deseq2.RData",
-        counts_normalized="analyses/deseq2/counts_normalized.txt"
+        counts_normalized="analyses/deseq2/counts_normalized.txt",
+        summary=expand('analyses/deseq2/summary/{COND}.tsv', COND=getConditions())
     params:
         output_folder="analyses/deseq2/"
     log:
@@ -40,5 +61,5 @@ rule deseq2:
     threads:
         32
     shell:
-        "R --file=lib/deseq2_analysis.R --args --threads {threads} --counttable {input.counttable} --conditions {input.conditions} --output {params.output_folder} 2>&1 |"
-        "tee {log}"
+        "R --file=lib/deseq2_analysis.R --args --threads {threads} --counttable {input.counttable} --conditions {input.conditions} --output {params.output_folder} "
+        "--featcounts-log {input.feature_counts_log} 2>&1 | tee {log}"
