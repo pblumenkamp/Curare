@@ -149,6 +149,9 @@ def main():
     # freeze first row and column
     worksheet.freeze_panes(1, 1)
 
+    # autofilter for each column
+    worksheet.autofilter(0, 0, rows - 1, columns)
+
     # legend sheet
     legend_sheet = workbook.add_worksheet("legend")
     legend_sheet.write(0, 0, "p-values")
