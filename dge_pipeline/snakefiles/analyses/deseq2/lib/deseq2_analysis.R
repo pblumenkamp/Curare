@@ -142,7 +142,6 @@ for (cond in combn(levels(condition), 2, simplify = FALSE)) {
 }
 
 dir.create(paste(output_folder, "summary", sep = ""))
-write.table(data.frame(), file='keep_summary.txt', col.names=FALSE)
 sapply(1 : length(levels(condition)), function(control_i) {
     control = levels(condition)[control_i]
     vs_condition <- levels(condition)[-control_i]
@@ -180,7 +179,7 @@ sapply(1 : length(levels(condition)), function(control_i) {
     }
 
     rownames(fc2) <- fc2$gene_id
-    fc2 <- merge(fc2, counts(deseqDataset), by = 0)
+    fc2 <- merge(fc2, counts(deseqDataset, normalized = TRUE), by = 0)
     fc2$Row.names <- NULL
     rownames(fc2) <- fc2$gene_id
     write.table(x = fc2[, c(1,
