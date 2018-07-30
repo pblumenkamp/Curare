@@ -1,0 +1,5 @@
+---
+title: "Fixed a bug in DESeq2 R script which occurred if three conditions were present"
+type: fixed
+ 
+
