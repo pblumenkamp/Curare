@@ -161,7 +161,7 @@ sapply(1 : length(levels(condition)), function(control_i) {
         )
     )
 
-    if (length(vs_condition) > 2) {
+    if (length(vs_condition) >= 2) {
         log2foldChangeOnly <- log2foldChange[, c(1,
                                                  seq(from = 3, to = length(log2foldChange), by = 6),
                                                  seq(from = 7, to = length(log2foldChange), by = 6),
