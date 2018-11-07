@@ -1,7 +1,7 @@
 name: dge_pipeline
 channels:
-- bioconda
 - conda-forge
+- bioconda
 - anaconda
 - defaults
 dependencies:
