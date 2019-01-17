@@ -283,7 +283,7 @@ def create_snakefile(output_folder: Path, groups: Dict[str, Dict[str, Dict[str, 
         with module.snakefile.open('r') as module_file:
             module_content = module_file.read()
             # change rule name from <rule name> to <module name>__<rule name>
-            module_content = re_rule_name.sub('rule {}__\g<rule_name>:'.format(module.name.lower()), module_content)
+            module_content = re_rule_name.sub('rule {}__\g<rule_name>:'.format(module.name.lower().replace('-', '_')), module_content)
             module_content = re_lib_folder.sub('{}/{}_lib/\g<file_name>'.format(SNAKEFILES_TARGET_DIRECTORY, module.name.lower()), module_content)
             for (wildcard, value) in module.settings.items():
                 module_content = module_content.replace("%%{}%%".format(wildcard.upper()), value)
@@ -316,7 +316,7 @@ def create_snakefile(output_folder: Path, groups: Dict[str, Dict[str, Dict[str, 
         snakefile.write('    input:\n')
         for module in [module for (category, module_list) in modules.items() for module in module_list if
                        category in ('premapping', 'analyses', 'mapping')]:
-            snakefile.write('        rules.{module_name}__all.input,\n'.format(module_name=module.name))
+            snakefile.write('        rules.{module_name}__all.input,\n'.format(module_name=module.name.lower().replace('-', '_')))
 
     return snakefile_main_path
 
