@@ -53,7 +53,10 @@ rule deseq2:
     output:
         dump="analyses/deseq2/deseq2.RData",
         counts_normalized="analyses/deseq2/counts_normalized.txt",
-        summary=expand('analyses/deseq2/summary/{COND}.tsv', COND=getConditions())
+        correlation_heatmap="analyses/deseq2/correlation_heatmap.pdf",
+        assignment_statistics="analyses/deseq2/counts_assignment.pdf",
+        summary=expand('analyses/deseq2/summary/{COND}.tsv', COND=getConditions()),
+        comparisons=directory("analyses/deseq2/deseq2_comparisons")
     params:
         output_folder="analyses/deseq2/"
     log:
@@ -61,5 +64,5 @@ rule deseq2:
     threads:
         32
     shell:
-        "R --file=lib/deseq2_analysis.R --args --threads {threads} --counttable {input.counttable} --conditions {input.conditions} --output {params.output_folder} "
-        "--featcounts-log {input.feature_counts_log} 2>&1 | tee {log}"
+        "R --vanilla --file=lib/deseq2_analysis.R --args --threads {threads} --counttable {input.counttable} --conditions {input.conditions} --output {params.output_folder} "
+        "--featcounts-log {input.feature_counts_log} 2>&1 | tee -a {log.log}"

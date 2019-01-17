@@ -1,19 +1,43 @@
 #!/usr/bin/env python3
 
+"""
+Converts the TSV output of the DESeq2 module of the dge pipeline to XLSX
+
+Exit codes:
+    0: Program finished successful
+    1: Error while reading GFF file
+    2: GFF file does not contain specified identifier (--identifier)
+    3: TSV file is empty or only contains a header (or one row and no header)
+    4: Python module is missing
+"""
+
+import importlib
+import sys
 import csv
-import pandas as pd
 import argparse
+
+missing_modules = []
+for module in ['pandas', 'xlsxwriter']:
+    if importlib.util.find_spec(module) is None:
+        missing_modules.append(module)
+if len(missing_modules) != 0:
+    for module in missing_modules:
+        print('Python module "{}" is missing'.format(module), file=sys.stderr)
+    sys.exit(4)
+
+import pandas as pd
 
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--tsv', help="tsv")
-    parser.add_argument('--conditions', dest='number_of_conditions', type=int)
-    parser.add_argument('--gff')
-    parser.add_argument('--identifier')
-    parser.add_argument('--feature')
-    parser.add_argument('--attributes', nargs='*', type=str, default=[])
-    parser.add_argument('--output')
+    parser.add_argument('--tsv', help="TSV file to convert. File must contain a header in the first row and must not have any comments.")
+    parser.add_argument('--conditions', dest='number_of_conditions', type=int, help="Number of Conditions in TSV minus 1 (#Cond - 1)")
+    parser.add_argument('--gff', help="GFF file used for creating the TSV")
+    parser.add_argument('--identifier', help="GFF identifier, e.g. ID")
+    parser.add_argument('--feature', help="Used GFF feature, e.g. gene or CDS")
+    parser.add_argument('--attributes', nargs='*', type=str, default=[],
+                        help="GFF atributes (e.g product) to show as columns at the beginning of the XLSX file")
+    parser.add_argument('--output', help="Output path for XLSX file")
     return parser.parse_args()
 
 
@@ -31,10 +55,11 @@ def main():
     outfile = args.output
     # name of sheet
     sheet_name = "DGE"
-    # gff
+    # gff file path
     gff_file = args.gff
     # e.g. ID
     identifier = args.identifier.upper()
+    # e.g. gene or CDS
     feature = args.feature
     wanted_gff_attributes = [arg.upper() for arg in args.attributes]
 
@@ -62,9 +87,12 @@ def main():
                         else:
                             annotations[attributes[identifier]][attr] = "-"
             except Exception as e:
-                print(e)
-                print(line)
-                raise e
+                print('Error while reading GFF file "{}"'.format(gff_file), file=sys.stderr)
+                print(e, file=sys.stderr)
+                sys.exit(1)
+    if len(annotations) == 0:
+        print('No identifier "{}" found in GFF file "{}"'.format(identifier, gff_file), file=sys.stderr)
+        sys.exit(2)
 
     # fill list of lists:
     # first element = 1st row: header
@@ -91,14 +119,16 @@ def main():
                 else:
                     row.insert(1, "-")
             list_data.append(row)
-
+    if len(list_data) < 2:
+        print('TSV file "{}" is empty or only contains a header'.format(tsv), file=sys.stderr)
+        sys.exit(3)
 
     # get number of rows & columns
     rows = len(list_data)
     columns = len(list_data[1])
 
+    # convert to pandas data frame, so pandas ExcelWriter is usable
     df = pd.DataFrame(list_data[1:], columns=list_data[0])
-
     writer = pd.ExcelWriter(outfile,
                             engine='xlsxwriter',
                             options={'strings_to_numbers': True}
@@ -142,8 +172,10 @@ def main():
                     'max_value': 1000}
 
     # conditional formatting
-    worksheet.conditional_format(1, 4 + len(wanted_gff_attributes), rows - 1, 2 * number_of_conditions + len(wanted_gff_attributes) + 3, p_value_format)
-    worksheet.conditional_format(1, 4 + len(wanted_gff_attributes) + 2 * number_of_conditions, rows - 1, 3 * number_of_conditions + len(wanted_gff_attributes) + 3, log_fold_format)
+    worksheet.conditional_format(1, 4 + len(wanted_gff_attributes), rows - 1, 2 * number_of_conditions + len(wanted_gff_attributes) + 3,
+                                 p_value_format)
+    worksheet.conditional_format(1, 4 + len(wanted_gff_attributes) + 2 * number_of_conditions, rows - 1,
+                                 3 * number_of_conditions + len(wanted_gff_attributes) + 3, log_fold_format)
     worksheet.conditional_format(1, 4 + len(wanted_gff_attributes) + 3 * number_of_conditions, rows - 1, columns - 1, count_format)
 
     # freeze first row and column
