@@ -12,7 +12,6 @@ from snakemake import snakemake
 
 import metadata
 
-
 SNAKEFILES_LIBRARY = Path(__file__).resolve().parent / "snakefiles"  # type: Path
 
 SNAKEFILES_TARGET_DIRECTORY = 'snakemake_lib'  # type: str
@@ -26,7 +25,7 @@ def main():
     create_output_directory(args.output_folder)
     snakefile = create_snakefile(args.output_folder, groups, used_modules)
     if not snakemake(str(snakefile), cores=args.threads, workdir=str(args.output_folder), verbose=args.verbose,
-                     printshellcmds=True):
+                     printshellcmds=True, cluster=args.cluster_command):
         exit(1)
 
 
@@ -70,7 +69,7 @@ def parse_groups_file(groups_file: Path, modules: Dict[str, List['Module']], pai
             if len(line.strip()) == 0:
                 continue
             columns = line.strip().split('\t')
-            entries = {}    # type: Dict[str, Dict[str, str]]
+            entries = {}  # type: Dict[str, Dict[str, str]]
             for index, col in enumerate(columns):
                 if col2module[index] == '' or col2module[index] == 'name':
                     continue
@@ -315,7 +314,8 @@ def create_snakefile(output_folder: Path, groups: Dict[str, Dict[str, Dict[str, 
         snakefile.write('\n')
         snakefile.write('rule all:\n')
         snakefile.write('    input:\n')
-        for module in [module for (category, module_list) in modules.items() for module in module_list if category in ('premapping', 'analyses', 'mapping')]:
+        for module in [module for (category, module_list) in modules.items() for module in module_list if
+                       category in ('premapping', 'analyses', 'mapping')]:
             snakefile.write('        rules.{module_name}__all.input,\n'.format(module_name=module.name))
 
     return snakefile_main_path
@@ -352,6 +352,8 @@ def parse_arguments() -> argparse.Namespace:
     required.add_argument('--output', dest='output_folder', required=True)
 
     other = parser.add_argument_group('Other arguments')
+    other.add_argument('--cluster-command', dest='cluster_command', default=None, type=str,
+                       help="Command fpr cluster execution. , e.g. 'qsub'. Warning: No ressource allocation possible at the moment!")
     other.add_argument('-t', '--threads', dest='threads', default=1, type=int, help="Number of threads")
     other.add_argument('-v', '--version', action='version', version='%(prog)s \nVersion: {}'.format(metadata.__version__),
                        help="Show program's version number and exit")

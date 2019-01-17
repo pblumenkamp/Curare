@@ -1,10 +1,33 @@
-library("DESeq2")
-library("BiocParallel")
-library("pheatmap")
-library("ggplot2")
-library("reshape2")
+# Parse arguments
+args <- commandArgs(TRUE)
+counttable_file <- args[match('--counttable', args) + 1]
+condition_file <- args[match('--conditions', args) + 1]
+feature_counts_log_file <- args[match('--featcounts-log', args) + 1]
+output_folder <- args[match('--output', args) + 1]
+threads <- args[match('--threads', args) + 1]
 
+# Required packages
+for (package in c("DESeq2")) {
+    if (!(package %in% rownames(installed.packages()))) {
+        library("crayon")
+        stop(paste('Package "', package, '" not installed', sep=""))
+    } else {
+        print(paste("Import:", package))
+        library(package, character.only=TRUE)
+    }
+}
 
+# "Optional" packages
+for (package in c("BiocParallel", "pheatmap", "ggplot2", "reshape2", "gplots")) {
+    if (!(package %in% rownames(installed.packages()))) {
+        stop(paste('Package "', package, '" not installed', sep=""))
+    } else {
+        print(paste("Import:", package))
+        library(package, character.only=TRUE)
+    }
+}
+
+# Heatmap showing similarities between samples (needs a count table and conditions )
 create_correlation_matrix <- function(countdata, conditiontable) {
     countdata.normalized.processed <- as.matrix(countdata)
     countdata.normalized.processed <- countdata.normalized.processed[rowSums(countdata.normalized.processed) >= 10,]
@@ -14,7 +37,7 @@ create_correlation_matrix <- function(countdata, conditiontable) {
     return(pheatmap(sample_cor, annotation_col = conditiontable, annotation_row = conditiontable))
 }
 
-
+# Bar charts showing the assignment of allignments to genes (featureCounts statistics)
 create_feature_counts_statistics <- function(featureCountsLog) {
     d <- read.table(featureCountsLog, header = T, row.names = 1)
     colnames(d) <- gsub(".bam", "", colnames(d))
@@ -40,8 +63,8 @@ create_feature_counts_statistics <- function(featureCountsLog) {
     return(list(assignment.absolute, assignment.relative))
 }
 
-plotHeatmap2 <- function(x, name = "no_name_set.pdf", row_subset = NA, distMethod = "euclidean", clusterMethod = "complete", clrn = NA, ...){
-    require('gplots')
+# Heatmap showing log fold change of one condition versus all others (TODO legend and description)
+plotHeatmap2 <- function(x, name = "no_name_set.pdf", row_subset = NA, distMethod = "euclidean", clusterMethod = "complete", clrn = NA){
     if (! is.na(clrn)) {
         # set the custom distance and clustering functions
         hclustfunc <- function(x) hclust(x, method = clusterMethod)
@@ -97,42 +120,59 @@ rotate_vector <- function(vec, n=1L){
     vec[x]
 }
 
+# Run on multiple threads
+if ("BiocParallel" %in% rownames(installed.packages())) {
+    register(MulticoreParam(threads))
+}
 
-args <- commandArgs(TRUE)
-counttable_file <- args[match('--counttable', args) + 1]
-condition_file <- args[match('--conditions', args) + 1]
-feature_counts_log_file <- args[match('--featcounts-log', args) + 1]
-output_folder <- args[match('--output', args) + 1]
-threads <- args[match('--threads', args) + 1]
-register(MulticoreParam(threads))
-
+# Import count table (featureCounts)
 countdata.raw <- read.csv(counttable_file, header = TRUE, row.names = 1, sep = "\t", comment.char = "#")
 countdata <- as.matrix(countdata.raw[, c(6 : length(countdata.raw))])
 colnames(countdata) <- as.vector(sapply(colnames(countdata), function(x) gsub("mapping\\.(.*)\\.bam", "\\1", x)))
 
+# Import condition file:
+#
+# Sample1<tab>Condition1
+# Sample2<tab>Condition1
+# Sample3<tab>Condition2
+# Sample4<tab>Condition2
+#
 conditiontable <- read.csv(condition_file, header = FALSE, row.names = 1, sep = "\t", comment.char = "#")
+rownames(conditiontable) <- gsub("-", ".", rownames(conditiontable))
 colnames(conditiontable) <- c('condition')
 condition <- as.factor(conditiontable[, 1])
 
 deseqDataset <- DESeqDataSetFromMatrix(countData = countdata, colData = conditiontable, design = ~ condition)
+
+# Write normalized count table
 deseqDataset <- estimateSizeFactors(deseqDataset)
 countdata.normalized <- counts(deseqDataset, normalized = TRUE)
 write.table(countdata.normalized, file = paste(output_folder, "counts_normalized.txt", sep = ""), sep = "\t", row.names = TRUE, col.names = NA)
 
+# Often called dds
 deseq.results <- DESeq(object = deseqDataset, parallel = TRUE)
+
+# Save R state in file
 save.image(paste(output_folder, "/deseq2.RData", sep = ""))
 
-pdf(paste(output_folder, 'correlation_heatmap.pdf', sep = ""), width = 8, height = 8, onefile = FALSE)
-print(create_correlation_matrix(countdata.normalized, conditiontable))
-dev.off()
+# Heatmap showing similarities between samples (needs a count table and conditions )
+if ("pheatmap" %in% rownames(installed.packages())) {
+    pdf(paste(output_folder, 'correlation_heatmap.pdf', sep = ""), width = 8, height = 8, onefile = FALSE)
+    print(create_correlation_matrix(countdata.normalized, conditiontable))
+    dev.off()
+}
 
-pdf(paste(output_folder, 'counts_assignment.pdf', sep = ""))
-invisible(lapply(create_feature_counts_statistics(feature_counts_log_file), print))
-dev.off()
-
+# Bar charts showing the assignment of allignments to genes (featureCounts statistics)
+if (("ggplot2" %in% rownames(installed.packages())) && ("reshape2" %in% rownames(installed.packages()))) {
+    pdf(paste(output_folder, 'counts_assignment.pdf', sep = ""))
+    invisible(lapply(create_feature_counts_statistics(feature_counts_log_file), print))
+    dev.off()
+}
 
 # Create all DESeq2 comparisons
-dir.create(paste(output_folder, "deseq2_comparisons", sep = ""))
+if (!file.exists(paste(output_folder, "deseq2_comparisons", sep = ""))) {
+    dir.create(paste(output_folder, "deseq2_comparisons", sep = ""))
+}
 for (cond in combn(levels(condition), 2, simplify = FALSE)) {
     res <-
     results(deseq.results,
@@ -141,7 +181,10 @@ for (cond in combn(levels(condition), 2, simplify = FALSE)) {
     write.table(res, file = paste(output_folder, "deseq2_comparisons/deseq2_results_", cond[1], "_Vs_", cond[2], ".csv", sep = ""), sep = "\t", row.names = TRUE, col.names = NA)
 }
 
-dir.create(paste(output_folder, "summary", sep = ""))
+# Create a summary file for each condition
+if (!file.exists(paste(output_folder, "summary", sep = ""))) {
+    dir.create(paste(output_folder, "summary", sep = ""))
+}
 sapply(1 : length(levels(condition)), function(control_i) {
     control = levels(condition)[control_i]
     vs_condition <- levels(condition)[-control_i]
@@ -190,6 +233,8 @@ sapply(1 : length(levels(condition)), function(control_i) {
     if (length(vs_condition) > 2) {
         m <- as.matrix(fc2[, 2 : (length(vs_condition) + 1)])
         colnames(m) <- sapply(colnames(m), function(x) gsub("\\..{1,}$", '', x))
-        plotHeatmap2(m, name = paste(output_folder, 'summary/', control, ".pdf", sep = ""))
+        if ('gplots' %in% rownames(installed.packages())) {
+            plotHeatmap2(m, name = paste(output_folder, 'summary/', control, ".pdf", sep = ""))
+        }
     }
 })
