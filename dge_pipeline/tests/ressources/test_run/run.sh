@@ -24,6 +24,13 @@ if [ $? -ne 0 ]; then FAILEDRUNS+=("Single_end_bwa_sw"); fi
 bash "`dirname $SCRIPTPATH`/paired_end_run_bwasw/run.sh"
 if [ $? -ne 0 ]; then FAILEDRUNS+=("Single_end_bwa_sw"); fi
 
+bash "`dirname $SCRIPTPATH`/single_end_run_bwabacktrack/run.sh"
+if [ $? -ne 0 ]; then FAILEDRUNS+=("Single_end_bwa_backtrack"); fi
+
+bash "`dirname $SCRIPTPATH`/paired_end_run_bwabacktrack/run.sh"
+if [ $? -ne 0 ]; then FAILEDRUNS+=("Single_end_bwa_backtrack"); fi
+
+
 echo "\n\n"
 echo "Aborted runs:"
 for run in $FAILEDRUNS; do
