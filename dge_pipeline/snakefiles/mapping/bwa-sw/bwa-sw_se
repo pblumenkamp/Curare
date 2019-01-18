@@ -1,0 +1,47 @@
+from os import listdir
+from os.path import isfile, splitext
+
+rule all:
+    input:
+        expand("mapping/{A}.bam", A=sorted(config['entries'].keys()))
+
+
+rule bwa_index:
+    input:
+        genome="%%GENOME_FASTA%%"
+    output:
+        expand("%%GENOME_FASTA%%.{SUFFIX}", SUFFIX=["amb", "ann", "bwt", "pac", "sa"])
+    log:
+        "mapping/logs/bwa_index.log"
+    shell:
+        "bwa index {input.genome} 2>&1 | tee {log}"
+
+
+rule bwa_mem_mapping:
+    input:
+        genome="%%GENOME_FASTA%%",
+        genome_index=expand("%%GENOME_FASTA%%.{SUFFIX}", SUFFIX=["amb", "ann", "bwt", "pac", "sa"]),
+        reads=lambda wildcards: os.path.join('preprocessing', os.path.basename(config['entries'][wildcards.name]['main']['reads'])).strip('.gz')
+    output:
+        temp("mapping/sam/{name}.sam")
+    log:
+        "mapping/logs/bwa_mem_mapping.{name}.log"
+    threads:
+        4
+    shell:
+        "bwa bwasw %%ADDITIONAL_BWA_OPTIONS%% -t {threads} -f {output} {input.genome} {input.reads} 2>&1 |"
+        "tee {log}"
+
+
+rule sam_to_bam:
+    input:
+        "mapping/sam/{sample}.sam"
+    output:
+        bam="mapping/{sample}.bam",
+        bai="mapping/{sample}.bam.bai",
+        bam_unmapped="mapping/{sample}_unmapped.bam"
+    threads:
+        4
+    shell:
+        "samtools view -F 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam} - && samtools index {output.bam};"
+        "samtools view -f 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam_unmapped} -"

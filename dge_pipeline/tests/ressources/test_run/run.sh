@@ -15,6 +15,14 @@ if [ $? -ne 0 ]; then FAILEDRUNS+=("Zipped_run"); fi
 bash "`dirname $SCRIPTPATH`/single_end_run_bwamem/run.sh"
 if [ $? -ne 0 ]; then FAILEDRUNS+=("Single_end_bwa_mem"); fi
 
+bash "`dirname $SCRIPTPATH`/paired_end_run_bwamem/run.sh"
+if [ $? -ne 0 ]; then FAILEDRUNS+=("Single_end_bwa_mem"); fi
+
+bash "`dirname $SCRIPTPATH`/single_end_run_bwasw/run.sh"
+if [ $? -ne 0 ]; then FAILEDRUNS+=("Single_end_bwa_sw"); fi
+
+bash "`dirname $SCRIPTPATH`/paired_end_run_bwasw/run.sh"
+if [ $? -ne 0 ]; then FAILEDRUNS+=("Single_end_bwa_sw"); fi
 
 echo "\n\n"
 echo "Aborted runs:"
