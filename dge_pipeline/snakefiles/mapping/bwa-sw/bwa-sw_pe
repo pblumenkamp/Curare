@@ -17,12 +17,44 @@ rule bwa_index:
         "bwa index {input.genome} 2>&1 | tee {log}"
 
 
-rule bwa_mem_mapping:
+rule bwa_backtrack_align:
     input:
         genome="%%GENOME_FASTA%%",
         genome_index=expand("%%GENOME_FASTA%%.{SUFFIX}", SUFFIX=["amb", "ann", "bwt", "pac", "sa"]),
-        reads=lambda wildcards: os.path.join('preprocessing', os.path.basename(config['entries'][wildcards.name]['main']['forward_reads'])).strip('.gz'),
-	    reads_reverse=lambda wildcards: os.path.join('preprocessing', os.path.basename(config['entries'][wildcards.name]['main']['reverse_reads'])).strip('.gz')
+        reads=lambda wildcards: os.path.join('preprocessing', os.path.basename(config['entries'][wildcards.name]['main']['reads'])).strip('.gz')
+    output:
+        sai_forward=temp("mapping/sam/{name}.forward.sai")
+    log:
+        "mapping/logs/bwa_mem_mapping.{name}.log"
+    threads:
+        4
+    shell:
+        "bwa aln %%ADDITIONAL_BWA_OPTIONS%% -t {threads} -f {output} {input.genome} {input.reads} 2>&1 |"
+        "tee {log}"
+
+rule bwa_backtrack_align:
+    input:
+        genome="%%GENOME_FASTA%%",
+        genome_index=expand("%%GENOME_FASTA%%.{SUFFIX}", SUFFIX=["amb", "ann", "bwt", "pac", "sa"]),
+        reads=lambda wildcards: os.path.join('preprocessing', os.path.basename(config['entries'][wildcards.name]['main']['reverse_reads'])).strip('.gz')
+    output:
+        sai_forward=temp("mapping/sam/{name}.reverse.sai")
+    log:
+        "mapping/logs/bwa_mem_mapping.{name}.log"
+    threads:
+        4
+    shell:
+        "bwa aln %%ADDITIONAL_BWA_OPTIONS%% -t {threads} -f {output} {input.genome} {input.reads} 2>&1 |"
+        "tee {log}"
+
+rule bwa_backtrack_samse:
+    input:
+        genome="%%GENOME_FASTA%%",
+        genome_index=expand("%%GENOME_FASTA%%.{SUFFIX}", SUFFIX=["amb", "ann", "bwt", "pac", "sa"]),
+        reads=lambda wildcards: os.path.join('preprocessing', os.path.basename(config['entries'][wildcards.name]['main']['reads'])).strip('.gz'),
+        reads_reverse=lambda wildcards: os.path.join('preprocessing', os.path.basename(config['entries'][wildcards.name]['main']['reverse_reads'])).strip('.gz'),
+        sai="mapping/sam/{name}.forward.sai",
+        sai_reverse="mapping/sam/{name}.reverse.sai"
     output:
         temp("mapping/sam/{name}.sam")
     log:
@@ -30,7 +62,7 @@ rule bwa_mem_mapping:
     threads:
         4
     shell:
-        "bwa bwasw %%ADDITIONAL_BWA_OPTIONS%% -t {threads} -f {output} {input.genome} {input.reads} {input.reads_reverse} 2>&1 |"
+        "bwa sampe %%ADDITIONAL_BWA_OPTIONS%% -f {output} {input.genome} {input.sai} {input.reads} {input.reads_reverse} 2>&1 |"
         "tee {log}"
 
 

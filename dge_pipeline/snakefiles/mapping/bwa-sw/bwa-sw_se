@@ -17,7 +17,7 @@ rule bwa_index:
         "bwa index {input.genome} 2>&1 | tee {log}"
 
 
-rule bwa_mem_mapping:
+rule bwa_sw_mapping:
     input:
         genome="%%GENOME_FASTA%%",
         genome_index=expand("%%GENOME_FASTA%%.{SUFFIX}", SUFFIX=["amb", "ann", "bwt", "pac", "sa"]),
