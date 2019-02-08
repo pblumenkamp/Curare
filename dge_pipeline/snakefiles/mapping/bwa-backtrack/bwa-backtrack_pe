@@ -1,9 +1,100 @@
 from os import listdir
 from os.path import isfile, splitext
 
+
 rule all:
     input:
-        expand("mapping/{A}.bam", A=sorted(config['entries'].keys()))
+        expand("mapping/{A}.bam", A=sorted(config['entries'].keys())),
+        "mapping/statistics/flagstat_summary.tsv"
+
+
+rule summarize_flagstat:
+    input:
+        expand("mapping/statistics/{NAME}_flagstat.txt", NAME=config['entries'].keys())
+    output:
+        "mapping/statistics/flagstat_summary.tsv"
+    run:
+        with open(output[0], "w") as summary_file:
+            total_pattern = re.compile(r"(\d+) \+ (\d+) in total \(QC-passed reads \+ QC-failed reads\)")
+            secondary_pattern = re.compile(r"(\d+) \+ (\d+) secondary")
+            supplementary_pattern = re.compile(r"(\d+) \+ (\d+) supplementary")
+            duplicates_pattern = re.compile(r"(\d+) \+ (\d+) duplicates")
+            mapped_pattern = re.compile( r"(\d+) \+ (\d+) mapped \((.+):(.+)\)")
+            paired_in_sequencing_pattern = re.compile(r"(\d+) \+ (\d+) paired in sequencing")
+            read1_pattern = re.compile(r"(\d+) \+ (\d+) read1")
+            read2_pattern = re.compile(r"(\d+) \+ (\d+) read2")
+            properly_paired_pattern = re.compile(r"(\d+) \+ (\d+) properly paired \((.+):(.+)\)")
+            with_itself_and_mate_pattern = re.compile(r"(\d+) \+ (\d+) with itself and mate mapped")
+            singletons_pattern = re.compile(r"(\d+) \+ (\d+) singletons \((.+):(.+)\)")
+            summary_file.write("sample	total alignments	secondary	supplementary	duplicates	mapped	mapped[%]	paired in sequencing	read1	read2	properly paired	properly paired[%]	with itself and mate mapped	singletons	singletons[%]\n")
+            for i in input:
+                summary_file.write(i.replace("_flagstat.txt", "").replace("mapping/statistics/", "") + "	")
+                with open(i, "r") as input_file:
+                    for line in input_file:
+                        total_match = total_pattern.match(line)
+                        if total_match:
+                            total = int(total_match.group(1))
+                            continue
+                        secondary_match = secondary_pattern.match(line)
+                        if secondary_match:
+                            secondary = int(secondary_match.group(1))
+                            continue
+                        supplementary_match = supplementary_pattern.match(line)
+                        if supplementary_match:
+                            supplementary = int(supplementary_match.group(1))
+                            continue
+                        duplicates_match = duplicates_pattern.match(line)
+                        if duplicates_match:
+                            duplicates = int(duplicates_match.group(1))
+                            continue
+                        mapped_match = mapped_pattern.match(line)
+                        if mapped_match:
+                            mapped = int(mapped_match.group(1))
+                            continue
+                        paired_in_sequencing_match = paired_in_sequencing_pattern.match(line)
+                        if paired_in_sequencing_match:
+                            paired_in_sequencing = int(paired_in_sequencing_match.group(1))
+                            continue
+                        read1_match = read1_pattern.match(line)
+                        if read1_match:
+                            read1 = int(read1_match.group(1))
+                            continue
+                        read2_match = read2_pattern.match(line)
+                        if read2_match:
+                            read2 = int(read2_match.group(1))
+                            continue
+                        properly_paired_match = properly_paired_pattern.match(line)
+                        if properly_paired_match:
+                            properly_paired = int(properly_paired_match.group(1))
+                            continue
+                        with_itself_and_mate_match = with_itself_and_mate_pattern.match(line)
+                        if with_itself_and_mate_match:
+                            with_itself_and_mate = int(with_itself_and_mate_match.group(1))
+                            continue
+                        singletons_match = singletons_pattern.match(line)
+                        if singletons_match:
+                            singletons = int(singletons_match.group(1))
+                            continue
+                    summary_file.write(("{}\t"*5 + "{:2f}\t" + "{}\t"*4 + "{:2f}" + "\t{}\t{}\t{:2f}\n").format(
+                        total,
+                        secondary,
+                        supplementary,
+                        duplicates,
+                        mapped, mapped/total*100,
+                        paired_in_sequencing,
+                        read1, read2,
+                        properly_paired, properly_paired/paired_in_sequencing*100,
+                        with_itself_and_mate,
+                        singletons, singletons/paired_in_sequencing*100))
+
+
+rule samtools_flagstat:
+    input:
+        "mapping/sam/{name}.sam"
+    output:
+        "mapping/statistics/{name}_flagstat.txt"
+    shell:
+        "samtools flagstat {input} > {output}"
 
 
 rule bwa_index:
@@ -32,6 +123,7 @@ rule bwa_backtrack_align_forward:
         "bwa aln %%ADDITIONAL_BWA_OPTIONS%% -t {threads} -f {output} {input.genome} {input.reads} 2>&1 |"
         "tee {log}"
 
+
 rule bwa_backtrack_align_reverse:
     input:
         genome="%%GENOME_FASTA%%",
@@ -46,6 +138,7 @@ rule bwa_backtrack_align_reverse:
     shell:
         "bwa aln %%ADDITIONAL_BWA_OPTIONS%% -t {threads} -f {output} {input.genome} {input.reads} 2>&1 |"
         "tee {log}"
+
 
 rule bwa_backtrack_samse:
     input:
