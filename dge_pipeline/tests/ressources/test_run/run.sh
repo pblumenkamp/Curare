@@ -16,19 +16,19 @@ bash "`dirname $SCRIPTPATH`/single_end_run_bwamem/run.sh"
 if [ $? -ne 0 ]; then FAILEDRUNS+=("Single_end_bwa_mem"); fi
 
 bash "`dirname $SCRIPTPATH`/paired_end_run_bwamem/run.sh"
-if [ $? -ne 0 ]; then FAILEDRUNS+=("Single_end_bwa_mem"); fi
+if [ $? -ne 0 ]; then FAILEDRUNS+=("Paired_end_bwa_mem"); fi
 
 bash "`dirname $SCRIPTPATH`/single_end_run_bwasw/run.sh"
 if [ $? -ne 0 ]; then FAILEDRUNS+=("Single_end_bwa_sw"); fi
 
 bash "`dirname $SCRIPTPATH`/paired_end_run_bwasw/run.sh"
-if [ $? -ne 0 ]; then FAILEDRUNS+=("Single_end_bwa_sw"); fi
+if [ $? -ne 0 ]; then FAILEDRUNS+=("Paired_end_bwa_sw"); fi
 
 bash "`dirname $SCRIPTPATH`/single_end_run_bwabacktrack/run.sh"
 if [ $? -ne 0 ]; then FAILEDRUNS+=("Single_end_bwa_backtrack"); fi
 
 bash "`dirname $SCRIPTPATH`/paired_end_run_bwabacktrack/run.sh"
-if [ $? -ne 0 ]; then FAILEDRUNS+=("Single_end_bwa_backtrack"); fi
+if [ $? -ne 0 ]; then FAILEDRUNS+=("Paired_end_bwa_backtrack"); fi
 
 
 echo "\n\n"
