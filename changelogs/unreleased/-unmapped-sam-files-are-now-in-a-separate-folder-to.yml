@@ -1,0 +1,5 @@
+---
+title: "unmapped sam files are now in a separate folder to prevent a bug when the sample name ends with '_unmapped'"
+type: fixed
+ 
+

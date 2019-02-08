@@ -118,7 +118,7 @@ rule sam_to_bam:
     output:
         bam="mapping/{sample}.bam",
         bai="mapping/{sample}.bam.bai",
-        bam_unmapped="mapping/{sample}_unmapped.bam"
+        bam_unmapped="mapping/unmapped/{sample}_unmapped.bam"
     threads:
         4
     shell:
