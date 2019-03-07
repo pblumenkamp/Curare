@@ -4,6 +4,7 @@ from os.path import isfile
 def getConditions():
     return set([seqRun['deseq2']['condition'] for seqRun in config['entries'].values()])
 
+localrules: deseq2__create_conditions
 
 rule all:
     input:
@@ -19,6 +20,8 @@ rule summary_tsv_to_xslx:
         'analyses/deseq2/summary/{COND}.xlsx'
     params:
         number_conditions = len(getConditions())-1
+    group:
+        "deseq2"
     shell:
         "python3 lib/deseq2_summary_tsv_to_xlsx.py --tsv {input} --conditions {params.number_conditions} --gff '%%GFF_PATH%%' --identifier '%%GFF_FEATURE_NAME%%' "
         "--feature '%%GFF_FEATURE_TYPE%%' --attributes %%ATTRIBUTE_COLUMNS%% --output {output}"
@@ -29,8 +32,10 @@ rule count_reads:
     output:
         counts = "analyses/deseq2/counts.txt",
         summary = "analyses/deseq2/counts.txt.summary"
+    group:
+        "count_reads"
     threads:
-        32
+        1
     log:
         log="analyses/deseq2/logs/featurecounts.log"
     shell:
@@ -57,12 +62,14 @@ rule deseq2:
         assignment_statistics="analyses/deseq2/counts_assignment.pdf",
         summary=expand('analyses/deseq2/summary/{COND}.tsv', COND=getConditions()),
         comparisons=directory("analyses/deseq2/deseq2_comparisons")
+    group:
+        "deseq2"
     params:
         output_folder="analyses/deseq2/"
     log:
         log="analyses/deseq2/logs/deseq2.log"
     threads:
-        32
+        1
     shell:
         "R --vanilla --file=lib/deseq2_analysis.R --args --threads {threads} --counttable {input.counttable} --conditions {input.conditions} --output {params.output_folder} "
         "--featcounts-log {input.feature_counts_log} 2>&1 | tee -a {log.log}"

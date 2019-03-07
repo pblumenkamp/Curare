@@ -7,6 +7,8 @@ def getPath(file_name):
                 return seqRun['main']['reads']
     print('Cannot find {} in groups file'.format(file_name))
 
+localrules: none__create_symlink
+
 rule create_symlink:
     input:
         lambda wildcards: getPath(wildcards.name)

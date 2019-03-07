@@ -11,6 +11,8 @@ def getPath(file_name):
             return seqRun['main']['reverse_reads']
     print('Cannot find {} in groups file'.format(file_name), file=sys.stderr)
 
+localrules: gunzip__extract
+
 rule extract:
     input:
         lambda wildcards: getPath(wildcards.name + '.fastq.gz')

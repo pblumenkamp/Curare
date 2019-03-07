@@ -24,8 +24,10 @@ def main():
     groups = parse_groups_file(args.groups_file, used_modules, paired_end)
     create_output_directory(args.output_folder)
     snakefile = create_snakefile(args.output_folder, groups, used_modules)
-    if not snakemake(str(snakefile), cores=args.threads, workdir=str(args.output_folder), verbose=args.verbose,
-                     printshellcmds=True, cluster=args.cluster_command):
+    if not snakemake(str(snakefile), cores=args.cores, local_cores=args.cores, nodes=args.cluster_nodes, workdir=str(args.output_folder),
+                     verbose=args.verbose, printshellcmds=True, cluster=args.cluster_command,
+                     cluster_config=str(args.cluster_config_file) if args.cluster_config_file is not None else None,
+                     latency_wait=args.latency):
         exit(1)
 
 
@@ -353,8 +355,16 @@ def parse_arguments() -> argparse.Namespace:
 
     other = parser.add_argument_group('Other arguments')
     other.add_argument('--cluster-command', dest='cluster_command', default=None, type=str,
-                       help="Command fpr cluster execution. , e.g. 'qsub'. Warning: No ressource allocation possible at the moment!")
-    other.add_argument('-t', '--threads', dest='threads', default=1, type=int, help="Number of threads")
+                       help="Command for cluster execution. , e.g. 'qsub'. For resource requests use also --cluster-config")
+    other.add_argument('--cluster-config-file', dest='cluster_config_file', default=None, type=str,
+                       help="Path to cluster config file. "
+                            "See also: https://snakemake.readthedocs.io/en/stable/snakefiles/configuration.html#cluster-configuration")
+    other.add_argument('-t', '--cores', dest='cores', default=1, type=int,
+                       help="Number of threads/cores. Defines locales cores in cluster mode")
+    other.add_argument('--cluster-nodes', dest='cluster_nodes', default=1, type=int,
+                       help="Number of provided cluster nodes. Only used in cluster mode is used.")
+    other.add_argument('--latency-wait', dest='latency', default=3, type=int,
+                       help="Seconds to wait before checking if all files of a rule were created. Should be increased if using cluster mode.")
     other.add_argument('-v', '--version', action='version', version='%(prog)s \nVersion: {}'.format(metadata.__version__),
                        help="Show program's version number and exit")
     other.add_argument('--verbose', dest='verbose', action="store_true", help="Print debugging output")
@@ -364,6 +374,8 @@ def parse_arguments() -> argparse.Namespace:
     args.groups_file = Path(args.groups_file).resolve()
     args.output_folder = Path(args.output_folder)
     args.config_file = Path(args.config_file).resolve()
+    if args.cluster_config_file is not None:
+        args.cluster_config_file = Path(args.cluster_config_file).resolve()
 
     return args
 

@@ -13,6 +13,8 @@ rule summarize_flagstat:
         expand("mapping/statistics/{NAME}_flagstat.txt", NAME=config['entries'].keys())
     output:
         "mapping/statistics/flagstat_summary.tsv"
+    group:
+        "bwa_mapping"
     run:
         with open(output[0], "w") as summary_file:
             total_pattern = re.compile(r"(\d+) \+ (\d+) in total \(QC-passed reads \+ QC-failed reads\)")
@@ -93,6 +95,8 @@ rule samtools_flagstat:
         "mapping/sam/{name}.sam"
     output:
         "mapping/statistics/{name}_flagstat.txt"
+    group:
+        "bwa_mapping"
     shell:
         "samtools flagstat {input} > {output}"
 
@@ -102,6 +106,8 @@ rule bwa_index:
         genome="%%GENOME_FASTA%%"
     output:
         expand("%%GENOME_FASTA%%.{SUFFIX}", SUFFIX=["amb", "ann", "bwt", "pac", "sa"])
+    group:
+        "bwa_index"
     log:
         "mapping/logs/bwa_index.log"
     shell:
@@ -115,10 +121,12 @@ rule bwa_backtrack_align_forward:
         reads=lambda wildcards: os.path.join('preprocessing', os.path.basename(config['entries'][wildcards.name]['main']['forward_reads'])).strip('.gz')
     output:
         sai_forward=temp("mapping/sam/{name}.forward.sai")
+    group:
+        "bwa_mapping"
     log:
         "mapping/logs/bwa_mem_mapping.{name}.log"
     threads:
-        4
+        1
     shell:
         "bwa aln %%ADDITIONAL_BWA_OPTIONS%% -t {threads} -f {output} {input.genome} {input.reads} 2>&1 |"
         "tee {log}"
@@ -131,10 +139,12 @@ rule bwa_backtrack_align_reverse:
         reads=lambda wildcards: os.path.join('preprocessing', os.path.basename(config['entries'][wildcards.name]['main']['reverse_reads'])).strip('.gz')
     output:
         sai_forward=temp("mapping/sam/{name}.reverse.sai")
+    group:
+        "bwa_mapping"
     log:
         "mapping/logs/bwa_mem_mapping.{name}.log"
     threads:
-        4
+        1
     shell:
         "bwa aln %%ADDITIONAL_BWA_OPTIONS%% -t {threads} -f {output} {input.genome} {input.reads} 2>&1 |"
         "tee {log}"
@@ -150,10 +160,12 @@ rule bwa_backtrack_samse:
         sai_reverse="mapping/sam/{name}.reverse.sai"
     output:
         temp("mapping/sam/{name}.sam")
+    group:
+        "bwa_mapping"
     log:
         "mapping/logs/bwa_mem_mapping.{name}.log"
     threads:
-        4
+        1
     shell:
         "bwa sampe %%ADDITIONAL_BWA_OPTIONS%% -f {output} {input.genome} {input.sai} {input.sai_reverse} {input.reads} {input.reads_reverse} 2>&1 |"
         "tee {log}"
@@ -166,8 +178,10 @@ rule sam_to_bam:
         bam="mapping/{sample}.bam",
         bai="mapping/{sample}.bam.bai",
         bam_unmapped="mapping/unmapped/{sample}_unmapped.bam"
+    group:
+        "bwa_mapping"
     threads:
-        4
+        1
     shell:
         "samtools view -F 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam} - && samtools index {output.bam};"
         "samtools view -f 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam_unmapped} -"

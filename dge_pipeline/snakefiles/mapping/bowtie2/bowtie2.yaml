@@ -24,6 +24,3 @@ single_end:
 
 paired_end:
   snakefile: 'bowtie2_pe'
-
-
-

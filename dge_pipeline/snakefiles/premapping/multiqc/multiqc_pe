@@ -11,6 +11,8 @@ rule fastqc:
     output:
         "premapping/multiqc/fastqc/{A}_fastqc.html",
         "premapping/multiqc/fastqc/{A}_fastqc.zip"
+    group:
+        "multiqc"
     threads:
         1
     shell:
@@ -23,6 +25,8 @@ rule multiqc:
         "premapping/multiqc/multiqc_report.html"
     params:
         input_dir="premapping/multiqc/fastqc"
+    group:
+        "multiqc"
     threads:
         1
     shell:
