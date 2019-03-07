@@ -1,5 +1,5 @@
 ---
-title: "added more detailed error messages when DESeq2 analyses terminate"
+title: "Added more detailed error messages when DESeq2 analyses terminate. Now, the module prints if and which R package is missing."
 type: added
  
 

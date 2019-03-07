@@ -1,5 +1,5 @@
 ---
-title: "Fixed a bug in DESeq2 R script which occurred if three conditions were present"
+title: "Fixed a bug in which the DESeq2 R script would crash if exactly three conditions were present"
 type: fixed
  
 

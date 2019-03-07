@@ -1,0 +1,5 @@
+---
+title: "Add bwa (http://bio-bwa.sourceforge.net/) as a mapping module. This includes the bwa-backtrack bwa-mem and bwa-sw algorithm."
+type: added
+ 
+

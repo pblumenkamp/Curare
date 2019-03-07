@@ -1,0 +1,5 @@
+---
+title: "Add a cluster mode for send long-running steps to a cluster node as a job (--cluster-comand, --cluster-config-file, --cluster-nodes). If using cluster mode, the latency-wait parameter should be increased (--latency-wait in seconds)"
+type: added
+ 
+
