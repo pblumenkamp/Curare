@@ -10,8 +10,15 @@ __pycache__/
 # Ignore test run results
 /dge_pipeline/tests/ressources/reference/*.bt2
 /dge_pipeline/tests/ressources/reference/*.fai
-/dge_pipeline/tests/ressources/paired_end_run/output_dir
-/dge_pipeline/tests/ressources/single_end_run/output_dir
+/dge_pipeline/tests/ressources/**/output_dir*/
+
+#bwa index files
+/dge_pipeline/tests/ressources/reference/*.amb
+/dge_pipeline/tests/ressources/reference/*.ann
+/dge_pipeline/tests/ressources/reference/*.bwt
+/dge_pipeline/tests/ressources/reference/*.pac
+/dge_pipeline/tests/ressources/reference/*.sa
+
 
 # Core latex/pdflatex auxiliary files:
 *.aux
