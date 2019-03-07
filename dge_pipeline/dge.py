@@ -360,11 +360,11 @@ def parse_arguments() -> argparse.Namespace:
                        help="Path to cluster config file. "
                             "See also: https://snakemake.readthedocs.io/en/stable/snakefiles/configuration.html#cluster-configuration")
     other.add_argument('-t', '--cores', dest='cores', default=1, type=int,
-                       help="Number of threads/cores. Defines locales cores in cluster mode")
+                       help="Number of threads/cores [Default: 1]. Defines locales cores in cluster mode")
     other.add_argument('--cluster-nodes', dest='cluster_nodes', default=1, type=int,
-                       help="Number of provided cluster nodes. Only used in cluster mode is used.")
+                       help="Maximal number of parallel jobs send to the cluster [Default: 1]. Only used in cluster mode is used.")
     other.add_argument('--latency-wait', dest='latency', default=3, type=int,
-                       help="Seconds to wait before checking if all files of a rule were created. Should be increased if using cluster mode.")
+                       help="Seconds to wait before checking if all files of a rule were created [Default: 3]. Should be increased if using cluster mode.")
     other.add_argument('-v', '--version', action='version', version='%(prog)s \nVersion: {}'.format(metadata.__version__),
                        help="Show program's version number and exit")
     other.add_argument('--verbose', dest='verbose', action="store_true", help="Print debugging output")
