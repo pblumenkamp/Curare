@@ -161,7 +161,7 @@ fi
 echo ""
 echo "##Analysis##"
 
-command -v multiqc >/dev/null 2>&1
+command -v featureCounts >/dev/null 2>&1
 if [[ $? == 0 ]]
 then
     VERSION=$(featureCounts -v 2>&1 | grep "featureCounts")
