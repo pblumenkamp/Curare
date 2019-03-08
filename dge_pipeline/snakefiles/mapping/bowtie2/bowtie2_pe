@@ -58,7 +58,7 @@ rule bowtie2_index:
     threads:
         8
     shell:
-        "echo $PATH; bowtie2-build --threads {threads} {input.genome} {params.prefix} 2>&1 |"
+        "bowtie2-build --threads {threads} {input.genome} {params.prefix} 2>&1 |"
         "tee {log}"
 
 
