@@ -1,0 +1,507 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+	</head>
+	<body>
+  <div id="app">
+    <div id="titlePart">
+
+      <h1>DGE YAML creator page</h1>
+      <div class="well well-sm">
+        This page represents a possibility for any user to create its own DGE analyses conform .YAML file.<br>
+        Simply drag and drop the modules you desire from the right module pools into the selection in the center.<br>
+        The page informs you about requirements like a necessary minimum or maximum amount of modules.<br>
+      </div>
+
+      <button type="button" class="btn btn-basic" onclick="page1func()">
+        do net press
+      </button>
+      <p></p>
+
+    </div>
+
+    <template v-if="page1">
+      <div id="page1" align="center">
+        <table border="0px solid black">
+          <tr>
+            <td class="groupColumn"></td>
+            <td class="mainColumn">
+              <i>input <b>dge-pipeline.yaml</b></i>
+            </td>
+            <td class="sideColumn"></td>
+          </tr>
+          <template v-for="(group, index) in this.dynamicModuleList">
+            <tr class="mainRow">
+              <td class="groupColumn groupName">
+                <i>{{ group.groupName }}</i><br>
+                <i v-if="group.groupOptional === true" style="color:grey">(optional)</i>
+              </td>
+              <td class="mainColumn">
+                <div :id="'selection_' + index" ondrop="dropSection(event)" ondragover="allowDrop(event)"
+                     class="field selection well well-sm"
+                     v-bind:class="{'selectionTrue': group.selectionAcceptance, 'selectionFalse': !group.selectionAcceptance}">
+                </div>
+                <!--<p v-if="group.maxAmount !== null"> ({{ selectionList[index].selectedAmount }} / {{ group.maxAmount }}) </p>-->
+              </td>
+              <td class="sideColumn">
+                <div class="field pool well well-sm" ondrop="dropSection(event)" ondragover="allowDrop(event)"
+                     :id="'pool_' + index">
+                  <button v-for="module in group.modules" type="button" draggable="true" ondragstart="drag(event)" ondragover="forbidDrop(event)"
+                          :id="module.id"
+                          class="moduleButton"
+                          v-bind:class="{'installed': module.installed, 'noninstalled': !module.installed}">{{ module.name }}</button>
+                </div>
+              </td>
+            </tr>
+            <tr class="infoRow">
+              <td class="groupColumn groupInfo">
+                module minimum:<br>
+                <strong v-bind:class="{ 'selectionTextTrue': group.selectionAcceptance, 'selectionTextFalse': !group.selectionAcceptance }">
+                  chosen:
+                </strong><br>
+                module maximum:
+              </td>
+              <td class="mainColumn groupInfoContent">
+                <div v-if="group.groupMin === null">no minimum</div>
+                <div v-else>{{ group.groupMin }}</div>
+                <strong v-bind:class="{ 'selectionTextTrue': group.selectionAcceptance, 'selectionTextFalse': !group.selectionAcceptance }">
+                  {{ group.selectionAmount }}
+                </strong><br>
+                <div v-if="group.groupMax === null">no maximum</div>
+                <div v-else>{{ group.groupMax }}</div>
+              </td>
+              <td class="sideColumn">
+              </td>
+            </tr>
+            <tr class="bottomRow">
+              <td class="groupColumn"></td>
+              <td class="mainColumn">
+                <i class="fas fa-long-arrow-alt-down"></i>
+              </td>
+              <td class="sideColumn">
+              </td>
+            </tr>
+          </template>
+          <tr class="lastRow">
+            <td class="groupColumn"></td>
+            <td class="mainColumn optionsButtonCell">
+              <button :disabled="!this.globalAcceptance" id="generationButton" type="button" class="btn btn-basic" onclick="testFunc()">
+                module options
+                <i class="fas fa-arrow-circle-right"></i>
+              </button>
+              <p></p>
+            </td>
+            <td class="sideColumn"></td>
+          </tr>
+        </table>
+      </div>
+    </template>
+    <template v-if="page2">
+      <h1>DGE YAML creator page</h1>
+    </template>
+  </div>
+	</body>
+</html>
+
+<style>
+  .installed {
+    background-image: linear-gradient(to bottom, #e4e4e4, lightgrey);
+  }
+  .noninstalled {
+    background-image: linear-gradient(to bottom, #e4e4e4, #efb943);
+  }
+  .moduleButton {
+    border: 1px solid #afafaf;
+    /*box-shadow: 0 4px 4px 0 rgba(0,0,0,0.2), 0 6px 4px 0 rgba(0,0,0,0.19);*/
+    font-size: 18px;
+    padding: 5px;
+  }
+  .mainRow {
+    height: 21rem;
+  }
+  .groupName {
+    text-align: left;
+    font-size: 2.5rem;
+    padding: 1rem;
+  }
+  .mainColumn {
+    background-color: lightgrey;
+    text-align: center;
+    vertical-align: top;
+    width: 21rem;
+  }
+  .infoRow {
+    vertical-align: top;
+    /* vertical-align: top in main-column affects groupInfoContent too */
+    font-size: 1.5rem;
+    border-bottom: 1px solid dimgrey;
+    max-height: 2rem;
+  }
+  .groupInfo {
+    text-align: right;
+    padding: 0.5rem
+  }
+  .groupInfoContent {
+    text-align: left;
+    padding: 0.5rem
+  }
+  .sideColumn {
+    vertical-align: top;
+  }
+  .field {
+    min-height: 18rem;
+  }
+  .selection {
+    border-color: dimgrey;
+    box-shadow: 0.75rem 0.75rem grey;
+    display: inline-grid;
+    min-width: 18rem;
+    margin: 1rem;
+    padding: 2rem;
+  }
+  .selectionFalse {
+    background-image: linear-gradient(to bottom right, lightgrey, #e56640);
+    /*background-color: #e56640;*/
+  }
+  .selectionTrue {
+    background-image: linear-gradient(to bottom right, lightgrey, #8dd875);
+    /*background-color: #d2e5a2; !*4fd998; 4fd953*!*/
+  }
+  .selectionTextTrue {
+    color: limegreen;
+  }
+  .selectionTextFalse {
+    color: orangered;
+  }
+  .lastRow {
+    height: 10rem;
+  }
+  .pool {
+    border-color: darkgrey;
+    box-shadow: 0.75rem 0.75rem grey;
+    display: inline-block;
+    min-width: 21rem;
+    max-width: 21rem;
+    margin: 1rem;
+    padding: 1rem;
+  }
+  .btn {
+    margin: 0px;
+  }
+  .divDrag1 {
+    border: 1px solid grey;
+    background: lightgrey;
+    /*background-color: lightgrey;*/
+  }
+  .divDrag2 {
+    border: 1px solid dimgrey;
+    background: grey;
+    /*background-color: grey;*/
+  }
+  .modules {
+    border-radius: 5px;
+    width: 190px;
+    height: 45px;
+    text-align: center;
+  }
+  .modulename {
+    display: table-cell;
+    width: 185px;
+    height: 40px;
+    border: 1px solid black;
+    vertical-align: middle
+  }
+  #generationButton {
+    background-color: dimgrey;
+    color: white;
+  }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script>
+  var app = new Vue({
+    el: '#app',
+    data: {
+      storedSelectionKeys: ['groupName', 'groupShowName', 'groupId', 'groupMax', 'groupMin', 'selectionAmount', 'selectionAcceptance'],
+      storedGroupsNames: ['preprocessing', 'premapping', 'mapping', 'analyses'],
+      storedModuleGroups: [
+        // order of dictionaries = order of groups on HTML page
+        // main storage for module group information
+        // ** add new module groups here **
+        {
+          groupName: 'preprocessing',
+          groupShowName: 'Preprocessing',
+          groupOptional: true,
+          groupMin: 0,
+          groupMax: null
+        },
+        {
+          groupName: 'premapping',
+          groupShowName: 'Premapping',
+          groupOptional: false,
+          groupMin: 0,
+          groupMax: null
+        },
+        {
+          groupName: 'mapping',
+          groupShowName: 'Mapping',
+          groupOptional: false,
+          groupMin: 1,
+          groupMax: null
+        },
+        {
+          groupName: 'analyses',
+          groupShowName: 'Analyses',
+          groupOptional: false,
+          groupMin: 0,
+          groupMax: null
+        }
+      ],
+      storedJsonList: {
+        'analyses': {
+          groupName: 'analyses',
+          modules: [
+            {
+              name: 'count_table',
+              installed: true,
+            },
+            {
+              name: 'deseq2',
+              installed: true,
+            },
+            {
+              name: 'readexplorer',
+              installed: false,
+            }
+          ]
+        },
+        'controlling': {
+          groupName: 'controlling',
+          modules: {
+            name: 'control_test',
+            installed: false,
+          }
+        },
+        'mapping': {
+          groupName: 'mapping',
+          modules: [
+            {
+              name: 'bowtie2',
+              installed: true,
+            }
+          ]
+        },
+        'premapping': {
+          modules: [
+            {
+              name: 'fastqc',
+              installed: true,
+            },
+            {
+              name: 'multiqc',
+              installed: true,
+            }
+          ]
+        },
+        'preprocessing': {
+          groupName: 'preprocessing',
+          modules: [
+            {
+              name: 'gunzip',
+              installed: true,
+            }
+          ]
+        }
+      },
+      dynamicModuleList: null,
+      globalAcceptance: false,
+      page1: true,
+      page2: false,
+      page3: false
+    },
+    methods: {
+      generateId (type, index) {
+        let id = type + '-' + index
+        console.log(id)
+        return id
+      },
+      createDynamicModuleList () {
+        let mainList = []
+        let counter = 0
+
+        for (let entry of this.storedModuleGroups) {
+          let tempDict = this.createTempDict(entry, counter)
+
+          mainList.push(tempDict)
+          counter = counter + 1
+        }
+        this.dynamicModuleList = mainList
+      },
+      createTempDict (entry, counter) {
+        let tempDict = {}
+        tempDict['groupName'] = entry.groupName
+        tempDict['groupShowName'] = entry.groupShowName
+        tempDict['groupId'] = entry.groupName + '_' + counter
+        tempDict['groupIndex'] = counter
+        tempDict['groupMax'] = entry.groupMax
+        tempDict['groupMin'] = entry.groupMin
+        tempDict['groupOptional'] = entry.groupOptional
+        tempDict['selectionAmount'] = 0
+        tempDict['selectionAcceptance'] = false
+        tempDict['modules'] = this.refinedModuleList(entry, counter)
+        return (tempDict)
+      },
+      refinedModuleList (entry, counter) {
+        let moduleList = this.storedJsonList[entry.groupName]['modules']
+        for (let moduleDict of moduleList) {
+          moduleDict['id'] = moduleDict['name'] + '-' + counter
+        }
+        return (moduleList)
+      },
+      checkAcceptability() {
+        let mainList = this.dynamicModuleList
+        let globalAcceptance = true
+        for (let entry of mainList) {
+          let focusedValue = 'selectionAcceptance'
+
+          this.checkAmountRange(entry, focusedValue)
+
+          if (entry[focusedValue] === false) {
+            globalAcceptance = false
+          }
+        }
+        this.globalAcceptance = globalAcceptance
+      },
+      checkAmountRange (entry, focusedValue) {
+        if (entry.groupMax === null) {
+          console.log('ENTRY:')
+          console.log(entry.selectionAmount)
+          if (entry.selectionAmount >= entry.groupMin) {
+            entry[focusedValue] = true
+          } else {
+            entry[focusedValue] = false
+          }
+        } else {
+          if (entry.selectionAmount >= entry.groupMin && entry.selectionAmount <= entry.groupMax) {
+            entry[focusedValue] = true
+          } else {
+            entry[focusedValue] = false
+          }
+        }
+      }
+    },
+    beforeMount () {
+      console.log('>>> beforeMount')
+      console.log('LOADING JSON FUNCTION')
+      this.createDynamicModuleList()
+    },
+    mounted () {
+      console.log('>>> mounted')
+      this.checkAcceptability()
+    },
+    updated () {
+      console.log('>>> updated')
+      this.checkAcceptability()
+      console.log('GLOB-ACCEPT:' + this.globalAcceptance)
+    }
+  })
+
+  let VUE = app._data
+  function page1func () {
+    if (VUE.page1 === true) {
+      VUE.page1 = false
+      VUE.page2 = true
+    } else if (VUE.page2 === true) {
+      VUE.page1 = true
+      VUE.page2 = false
+    }
+    console.log('PAGE1:     ' + VUE.page1)
+    console.log('PAGE2:     ' + VUE.page2)
+  }
+  function testFunc () {
+    let testList = []
+    let counter = 0
+    for (let group of VUE.storedModuleGroups) {
+      let tempDict = {}
+      let selectionId = 'selection_' + counter
+      let selectionField = document.getElementById(selectionId)
+      let modules = selectionField.children
+
+      tempDict['groupName'] = group.groupName
+      tempDict['groupId'] = group.groupName + '_' + counter
+      tempDict['groupNumber'] = counter
+      tempDict['modules'] = []
+      let moduleCounter = 0
+      for (let module of modules) {
+        let moduleId = module.id
+        let moduleName = moduleId.split('-')[0]
+        tempDict['modules'].push(moduleName)
+        moduleCounter = moduleCounter + 1
+      }
+      tempDict['moduleAmount'] = moduleCounter
+      testList.push(tempDict)
+      counter = counter + 1
+    }
+    console.log(testList)
+  }
+	function allowDrop(ev) {
+		// var data = ev.dataTransfer.getData("text");
+		// console.log(data);
+		ev.preventDefault();
+	}
+	function forbidDrop(ev) {
+		ev.dataTransfer.dropEffect = "none"
+	}
+	function drag(ev) {
+		ev.dataTransfer.setData("elementId", ev.target.id);
+	}
+	function dropSection(ev) {
+		console.log(' >>> dropSection')
+		ev.preventDefault();
+		let dragged = ev.dataTransfer.getData("elementId");
+		console.log(dragged)
+		let target = ev.target.id
+		let section = target.substring(target.length-1,)
+    console.log(section)
+
+		if (dragged.endsWith(section)) {
+      ev.target.appendChild(document.getElementById(dragged));
+		}
+    // checkSelection(section)
+    changeSelectedAmount(section)
+	}
+	function multiNegotiator(ev, section, dragged) {
+		let maxAmount = VUE.moduleList[section].maxAmount
+		let childAmount = ev.target.childElementCount
+		if (childAmount < maxAmount) {
+			ev.target.appendChild(document.getElementById(dragged));
+		} else {
+      ev.target.appendChild(document.getElementById(dragged));
+
+      let firstChildId = ev.target.children[0].id
+      let firstChild = document.getElementById(firstChildId)
+      let originalPool = document.getElementById('pool_'+section)
+      originalPool.appendChild(firstChild)
+		}
+	}
+	function checkSelection(section) {
+    let selectionId = 'selection_' + section
+    let selection = document.getElementById(selectionId)
+    let amount = selection.children.length
+    if (amount > 0) {
+      selection.className = 'field activeSelection well well-sm'
+    } else {
+      selection.className = 'field selection well well-sm'
+    }
+    changeSelectedAmount(section, amount)
+  }
+  function changeSelectedAmount (section) {
+    console.log('changeSelectedAmount')
+    let selectionId = 'selection_' + section
+    let selection = document.getElementById(selectionId)
+    let amount = selection.children.length
+    VUE.dynamicModuleList[section].selectionAmount = amount
+  }
+</script>
