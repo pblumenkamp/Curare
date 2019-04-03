@@ -1,3 +1,30 @@
+"""
+DGE pipeline generator.
+
+Usage:
+    dge.py start --groups <groups_file> --config <config_file> --output <output_folder>
+                 [--cluster-command <cluster_command>] [--cluster-config-file <config_file>] [--cluster-nodes <nodes>]
+                 [--cores <cores>] [--latency-wait <seconds>] [--verbose]
+    dge.py (--version | --help)
+
+Options:
+    -h --help               Show this help message and exit
+    --version               Show version and exit
+
+    Start:
+    --groups <groups_file>                          File containing information about each sample
+    --config <config_file>                          File containing information about the RNA-seq pipeline
+    --output <output_folder>                        Output folder (will be created if not existing)
+    --cluster-command <command>                     Command for cluster execution. , e.g. 'qsub'. For resource requests use also --cluster-config
+    --cluster-config-file <config_file>             File containing cluster settings for individual rules.
+                                                    See also: https://snakemake.readthedocs.io/en/stable/snakefiles/configuration.html#cluster-configuration
+    --cluster-nodes <nodes>                         Maximal number of parallel jobs send to the cluster. Only used in cluster mode is used. [Default: 1]
+    -t <cores> --cores <cores>                      Number of threads/cores. Defines locales cores in cluster mode. [Default: 1]
+    --latency-wait <seconds>                        Seconds to wait before checking if all files of a rule were created. Should be increased if using cluster mode. [Default: 3]
+    -v --verbose                                    Print additional information
+"""
+
+
 import argparse
 import errno
 import os
@@ -9,6 +36,7 @@ from typing import Dict, List, Tuple, Any
 
 import yaml
 from snakemake import snakemake
+from docopt import docopt
 
 import metadata
 
@@ -19,15 +47,15 @@ SNAKEFILES_TARGET_DIRECTORY = 'snakemake_lib'  # type: str
 
 def main():
     args = parse_arguments()
-    used_modules, paired_end = load_config_file(args.config_file)
-    validate_argsfiles(args.groups_file, args.config_file)
-    groups = parse_groups_file(args.groups_file, used_modules, paired_end)
-    create_output_directory(args.output_folder)
-    snakefile = create_snakefile(args.output_folder, groups, used_modules)
-    if not snakemake(str(snakefile), cores=args.cores, local_cores=args.cores, nodes=args.cluster_nodes, workdir=str(args.output_folder),
-                     verbose=args.verbose, printshellcmds=True, cluster=args.cluster_command,
-                     cluster_config=str(args.cluster_config_file) if args.cluster_config_file is not None else None,
-                     latency_wait=args.latency):
+    used_modules, paired_end = load_config_file(args["--config"])
+    validate_argsfiles(args["--groups"], args["--config"])
+    groups = parse_groups_file(args["--groups"], used_modules, paired_end)
+    create_output_directory(args["--output"])
+    snakefile = create_snakefile(args["--output"], groups, used_modules)
+    if not snakemake(str(snakefile), cores=int(args["--cores"]), local_cores=int(args["--cores"]), nodes=int(args["--cluster-nodes"]), workdir=str(args["--output"]),
+                     verbose=args["--verbose"], printshellcmds=True, cluster=args["--cluster-command"],
+                     cluster_config=str(args["--cluster-config-file"]) if args["--cluster-config-file"] is not None else None,
+                     latency_wait=int(args["--latency-wait"])):
         exit(1)
 
 
@@ -345,39 +373,49 @@ def copy_lib(src_folder: Path, dest_folder: Path):
         raise err
 
 
-def parse_arguments() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(prog=metadata.__program_name__, add_help=False)
-
-    required = parser.add_argument_group('Required arguments')
-    required.add_argument('--groups', dest='groups_file', required=True)
-    required.add_argument('--config', dest='config_file', required=True)
-    required.add_argument('--output', dest='output_folder', required=True)
-
-    other = parser.add_argument_group('Other arguments')
-    other.add_argument('--cluster-command', dest='cluster_command', default=None, type=str,
-                       help="Command for cluster execution. , e.g. 'qsub'. For resource requests use also --cluster-config")
-    other.add_argument('--cluster-config-file', dest='cluster_config_file', default=None, type=str,
-                       help="Path to cluster config file. "
-                            "See also: https://snakemake.readthedocs.io/en/stable/snakefiles/configuration.html#cluster-configuration")
-    other.add_argument('-t', '--cores', dest='cores', default=1, type=int,
-                       help="Number of threads/cores [Default: 1]. Defines locales cores in cluster mode")
-    other.add_argument('--cluster-nodes', dest='cluster_nodes', default=1, type=int,
-                       help="Maximal number of parallel jobs send to the cluster [Default: 1]. Only used in cluster mode is used.")
-    other.add_argument('--latency-wait', dest='latency', default=3, type=int,
-                       help="Seconds to wait before checking if all files of a rule were created [Default: 3]. Should be increased if using cluster mode.")
-    other.add_argument('-v', '--version', action='version', version='%(prog)s \nVersion: {}'.format(metadata.__version__),
-                       help="Show program's version number and exit")
-    other.add_argument('--verbose', dest='verbose', action="store_true", help="Print debugging output")
-    other.add_argument('-h', '--help', action="help", help="Show this help message and exit")
-
-    args = parser.parse_args()
-    args.groups_file = Path(args.groups_file).resolve()
-    args.output_folder = Path(args.output_folder)
-    args.config_file = Path(args.config_file).resolve()
-    if args.cluster_config_file is not None:
-        args.cluster_config_file = Path(args.cluster_config_file).resolve()
-
+def parse_arguments():
+    args = docopt(__doc__, version=metadata.__version__)
+    args["--groups"] = Path(args["--groups"]).resolve()
+    args["--output"] = Path(args["--output"])
+    args["--config"] = Path(args["--config"]).resolve()
+    if args["--cluster-config-file"] is not None:
+        args["--cluster-config-file"] = Path(args["--cluster-config-file"]).resolve()
     return args
+
+
+# def parse_arguments() -> argparse.Namespace:
+#     parser = argparse.ArgumentParser(prog=metadata.__program_name__, add_help=False)
+#
+#     required = parser.add_argument_group('Required arguments')
+#     required.add_argument('--groups', dest='groups_file', required=True)
+#     required.add_argument('--config', dest='config_file', required=True)
+#     required.add_argument('--output', dest='output_folder', required=True)
+#
+#     other = parser.add_argument_group('Other arguments')
+#     other.add_argument('--cluster-command', dest='cluster_command', default=None, type=str,
+#                        help="Command for cluster execution. , e.g. 'qsub'. For resource requests use also --cluster-config")
+#     other.add_argument('--cluster-config-file', dest='cluster_config_file', default=None, type=str,
+#                        help="Path to cluster config file. "
+#                             "See also: https://snakemake.readthedocs.io/en/stable/snakefiles/configuration.html#cluster-configuration")
+#     other.add_argument('-t', '--cores', dest='cores', default=1, type=int,
+#                        help="Number of threads/cores [Default: 1]. Defines locales cores in cluster mode")
+#     other.add_argument('--cluster-nodes', dest='cluster_nodes', default=1, type=int,
+#                        help="Maximal number of parallel jobs send to the cluster [Default: 1]. Only used in cluster mode is used.")
+#     other.add_argument('--latency-wait', dest='latency', default=3, type=int,
+#                        help="Seconds to wait before checking if all files of a rule were created [Default: 3]. Should be increased if using cluster mode.")
+#     other.add_argument('-v', '--version', action='version', version='%(prog)s \nVersion: {}'.format(metadata.__version__),
+#                        help="Show program's version number and exit")
+#     other.add_argument('--verbose', dest='verbose', action="store_true", help="Print debugging output")
+#     other.add_argument('-h', '--help', action="help", help="Show this help message and exit")
+#
+#     args = parser.parse_args()
+#     args.groups_file = Path(args.groups_file).resolve()
+#     args.output_folder = Path(args.output_folder)
+#     args.config_file = Path(args.config_file).resolve()
+#     if args.cluster_config_file is not None:
+#         args.cluster_config_file = Path(args.cluster_config_file).resolve()
+#
+#     return args
 
 
 class Module:
