@@ -217,7 +217,7 @@
           </tr>
         </table>
 
-        <button :disabled="!this.page2Acceptance" type="button" class="btn btn-basic button" @click="switchPage('page3'); prepareModuleInformation()">
+        <button :disabled="!this.page2Acceptance" type="button" class="btn btn-basic button" @click="switchPage('page3'); prepareFinalYaml()">
           <b> module options </b>
           <i class="fas fa-arrow-circle-right"></i>
         </button>
@@ -227,6 +227,15 @@
     </div>
     <div v-show="page3">
       <div id="page3" align="center">
+
+        <button :disabled="!this.page1Acceptance" type="button" class="btn btn-basic button" @click="switchPage('page2')">
+          <i class="fas fa-arrow-circle-left"></i>
+          <b> module options </b>
+        </button><p></p>
+
+        <table class="resumeeTable" border="0px solid black">
+
+        </table>
 
       </div>
     </div>
@@ -707,6 +716,7 @@
       // },
       collectedModules: null,
       dynamicModuleList: null,
+      finalYaml: null,
       singleEnd: true,
       page1: true,
       page2: false,
@@ -807,7 +817,6 @@
         let moduleList = this.collectedModules
         for (let group of moduleList) {
           for (let module of group.modules) {
-            console.log(module)
             let tempAcceptance = true
             if (module.settings) {
               for (let rOption of module.settings.required) {
@@ -821,10 +830,55 @@
         }
       },
       checkPage2Acceptability () {
-        let moduleList = this.collectedModules
-        for (let module of moduleList) {
+        let groupList = this.collectedModules
+        let page2Acceptance = true
+
+        for (let group of groupList) {
+          if (group.moduleAmount > 0) {
+            let moduleList = group.modules
+
+            for (let module of moduleList) {
+              if (module.acceptance === false) {
+                page2Acceptance = false
+              }
+            }
+          }
+        }
+        this.page2Acceptance = page2Acceptance
+      },
+      prepareFinalYaml () {
+        let finalYaml = {}
+        let groupList = this.collectedModules
+
+        for (let group of groupList) {
+          if (group.moduleAmount > 0) {
+            finalYaml[group.groupName] = this.prepareGroupList(group)
+          } else {
+            // pass
+          }
+        }
+        console.log('FINAL YAML:')
+        console.log(finalYaml)
+      },
+      prepareGroupList (group) {
+        let tempGroupDict = {}
+
+        if (group.groupName === 'mapping') {
+          tempGroupDict['module'] = group.modules[0].name
+        } else {
+          let tempModuleList = []
+          for (let module of group.modules) {
+            tempModuleList.push(module.name)
+          }
+          tempGroupDict['modules'] = tempModuleList
+        }
+
+        console.log('MODULES:')
+        for (let module of group.modules) {
           console.log(module)
         }
+
+        return (tempGroupDict)
       },
       switchPage(targetPage) {
         let pageList = ["page1", "page2", "page3"]
@@ -874,6 +928,7 @@
       tempDict['groupName'] = group.groupName
       tempDict['groupId'] = group.groupName + '_' + counter
       tempDict['groupNumber'] = counter
+      tempDict['groupAcceptance'] = false
       tempDict['modules'] = []
 
       let modules = getDomModules(counter)
