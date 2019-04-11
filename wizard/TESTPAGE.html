@@ -26,7 +26,7 @@
       <div id="page1" align="center">
         <table class="contentTable switcherTable" border="0px solid black">
           <tr align="center" class="switcherLine">
-            <td v-bind:class="{'singleEndHighlight': this.singleEnd}">
+            <td v-bind:class="{'singleEndHighlight': !this.pairedEnd}">
               <strong>
                 Single End
               </strong>
@@ -37,7 +37,7 @@
                 <span class="slider round"></span>
               </label>
             </td>
-            <td v-bind:class="{'pairedEndHighlight': !this.singleEnd}">
+            <td v-bind:class="{'pairedEndHighlight': this.pairedEnd}">
               <strong>
                 Paired End
               </strong>
@@ -233,9 +233,29 @@
           <b> module options </b>
         </button><p></p>
 
-        <table class="resumeeTable" border="0px solid black">
+        <div class="well well-sm finalYamlWell">
+          <template v-for="(group, index) in this.finalYaml" :value="group">
+            {{ index }}<br>
+            <!--({{ group }})-->
+            <template v-for="(module, index) in group">
 
-        </table>
+              <div v-if="index === 'modules'">
+                &nbsp;&nbsp;{{ index }}: {{ module }} <br><br>
+              </div>
+              <div v-else-if="index === 'module' || index === 'paired_end'">
+                &nbsp;&nbsp;{{ index }}: "{{ module }}" <br><br>
+              </div>
+              <div v-else>
+                &nbsp;&nbsp;{{ index }}: <br>
+                <template v-for="(option, index) in module">
+                  &nbsp;&nbsp;&nbsp;&nbsp;{{ index }}: "{{ option }}"<br>
+                </template>
+                <br>
+              </div>
+
+            </template>
+          </template>
+        </div>
 
       </div>
     </div>
@@ -529,6 +549,18 @@
     width: 90%;
   }
 
+  /*
+  ---------- Page 3 ----------
+  */
+
+  .page3Table {
+    min-width: 20rem;
+    max-width: 40rem;
+  }
+  .finalYamlWell {
+    text-align: left;
+  }
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
@@ -717,7 +749,7 @@
       collectedModules: null,
       dynamicModuleList: null,
       finalYaml: null,
-      singleEnd: true,
+      pairedEnd: false,
       page1: true,
       page2: false,
       page3: false,
@@ -734,10 +766,10 @@
         }
       },
       changeEnd () {
-        if (this.singleEnd === true) {
-          this.singleEnd = false
+        if (this.pairedEnd === true) {
+          this.pairedEnd = false
         } else {
-          this.singleEnd = true
+          this.pairedEnd = true
         }
       },
       generateId (type, index) {
@@ -847,18 +879,25 @@
         this.page2Acceptance = page2Acceptance
       },
       prepareFinalYaml () {
-        let finalYaml = {}
+        let finalYaml = {
+          pipeline: {
+            paired_end: this.pairedEnd
+          }
+        }
         let groupList = this.collectedModules
 
         for (let group of groupList) {
           if (group.moduleAmount > 0) {
             finalYaml[group.groupName] = this.prepareGroupList(group)
           } else {
-            // pass
+            finalYaml[group.groupName] = {
+              module: '',
+            }
           }
         }
-        console.log('FINAL YAML:')
+
         console.log(finalYaml)
+        this.finalYaml = finalYaml
       },
       prepareGroupList (group) {
         let tempGroupDict = {}
@@ -873,19 +912,44 @@
           tempGroupDict['modules'] = tempModuleList
         }
 
+        tempGroupDict = this.prepareModuleList(tempGroupDict, group)
+
         console.log('MODULES:')
         for (let module of group.modules) {
-          console.log(module)
         }
 
         return (tempGroupDict)
+      },
+      prepareModuleList (groupDict, group) {
+        let modules = group.modules
+
+        for (let module of modules) {
+          let tempSettingsDict = {}
+          let settings = module.settings
+          for (let settingsType in settings) {
+            for (let setting of settings[settingsType]) {
+              let regexResult = this.zeroContentCheck(setting.value)
+              if (regexResult !== null) {
+                tempSettingsDict[setting.name] = setting.value
+              }
+            }
+          }
+          groupDict[module.name] = tempSettingsDict
+        }
+
+        return (groupDict)
+      },
+      zeroContentCheck (string) {
+        let regex = RegExp('\\w+')
+        let check = string.match(regex)
+
+        return (check)
       },
       switchPage(targetPage) {
         let pageList = ["page1", "page2", "page3"]
         for (let pageElement of pageList) {
           VUE[pageElement] = false
         }
-
         VUE[targetPage] = true
       }
     },
