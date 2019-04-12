@@ -16,10 +16,6 @@
         The page informs you about requirements like a necessary minimum or maximum amount of modules.<br>
       </div>
 
-      <button @click="testfunc()">
-        Click if u r developer
-      </button>
-
     </div>
 
     <div v-show="page1">
@@ -256,6 +252,11 @@
             </template>
           </template>
         </div>
+
+        <button :disabled="!this.page1Acceptance" type="button" class="btn btn-basic button" onclick="download(VUE.finalYaml, 'dge-pipeline.yaml', 'yaml')">
+          <b> download YAML </b>
+          <i class="fas fa-file-download"></i>
+        </button><p></p>
 
       </div>
     </div>
@@ -1081,5 +1082,25 @@
     let selection = document.getElementById(selectionId)
     let amount = selection.children.length
     VUE.dynamicModuleList[section].selectionAmount = amount
+  }
+  function download(rawData, filename, type) {
+    console.log(rawData)
+    
+    let data = JSON.stringify(rawData)
+    let file = new Blob([data], {type: type});
+    if (window.navigator.msSaveOrOpenBlob) // IE10+
+      window.navigator.msSaveOrOpenBlob(file, filename);
+    else { // Others
+      let a = document.createElement("a"),
+        url = URL.createObjectURL(file);
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function() {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 0);
+    }
   }
 </script>
