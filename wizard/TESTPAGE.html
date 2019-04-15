@@ -229,7 +229,35 @@
           <b> module options </b>
         </button><p></p>
 
-        <div class="well well-sm finalYamlWell">
+        <!--<div class="well well-sm finalYamlWell">-->
+          <!--<template v-for="(group, index) in this.finalYaml" :value="group">-->
+            <!--{{ index }}<br>-->
+            <!--&lt;!&ndash;({{ group }})&ndash;&gt;-->
+            <!--<template v-for="(module, index) in group">-->
+
+              <!--<div v-if="index === 'modules'">-->
+                <!--&nbsp;&nbsp;{{ index }}: {{ module }} <br><br>-->
+              <!--</div>-->
+              <!--<div v-else-if="index === 'module' || index === 'paired_end'">-->
+                <!--&nbsp;&nbsp;{{ index }}: "{{ module }}" <br><br>-->
+              <!--</div>-->
+              <!--<div v-else>-->
+
+                <!--<div v-if="Object.keys(module).length > 0">-->
+                  <!--&nbsp;&nbsp;{{ index }}: <br>-->
+                  <!--<template v-for="(option, index) in module">-->
+                    <!--&nbsp;&nbsp;&nbsp;&nbsp;{{ index }}: "{{ option }}"<br>-->
+                  <!--</template>-->
+                  <!--<br>-->
+                <!--</div>-->
+
+              <!--</div>-->
+
+            <!--</template>-->
+          <!--</template>-->
+        <!--</div>-->
+
+        <div id="yamlTextWell" class="well well-sm finalYamlWell clickHighlighting">
           <template v-for="(group, index) in this.finalYaml" :value="group">
             {{ index }}<br>
             <!--({{ group }})-->
@@ -242,16 +270,24 @@
                 &nbsp;&nbsp;{{ index }}: "{{ module }}" <br><br>
               </div>
               <div v-else>
-                &nbsp;&nbsp;{{ index }}: <br>
-                <template v-for="(option, index) in module">
-                  &nbsp;&nbsp;&nbsp;&nbsp;{{ index }}: "{{ option }}"<br>
-                </template>
-                <br>
+
+                <div v-if="Object.keys(module).length > 0">
+                  &nbsp;&nbsp;{{ index }}: <br>
+                  <template v-for="(option, index) in module">
+                    &nbsp;&nbsp;&nbsp;&nbsp;{{ index }}: "{{ option }}"<br>
+                  </template>
+                  <br>
+                </div>
+
               </div>
 
             </template>
           </template>
         </div>
+
+        <button type="button" class="btn btn-basic button" onclick="copyToClipboard()">
+          <b>Copy to Clipboard</b>
+        </button>
 
         <button :disabled="!this.page1Acceptance" type="button" class="btn btn-basic button" onclick="download(VUE.finalYaml, 'dge-pipeline.yaml', 'yaml')">
           <b> download YAML </b>
@@ -1102,5 +1138,16 @@
         window.URL.revokeObjectURL(url);
       }, 0);
     }
+  }
+  function copyToClipboard() {
+    // let copyText = document.getElementById("yamlTextWell")
+    // copyText.select()
+    // document.execCommand("copy")
+    let range = document.createRange()
+    console.log(range)
+    range.selectNode(document.getElementById("yamlTextWell"));
+    window.getSelection().addRange(range);
+    document.execCommand("copy");
+    alert("text copied")
   }
 </script>
