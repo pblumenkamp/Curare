@@ -214,7 +214,7 @@
         </table>
 
         <button :disabled="!this.page2Acceptance" type="button" class="btn btn-basic button" @click="switchPage('page3'); prepareFinalYaml()">
-          <b> module options </b>
+          <b> final yaml input </b>
           <i class="fas fa-arrow-circle-right"></i>
         </button>
 
@@ -229,58 +229,25 @@
           <b> module options </b>
         </button><p></p>
 
-        <!--<div class="well well-sm finalYamlWell">-->
-          <!--<template v-for="(group, index) in this.finalYaml" :value="group">-->
-            <!--{{ index }}<br>-->
-            <!--&lt;!&ndash;({{ group }})&ndash;&gt;-->
-            <!--<template v-for="(module, index) in group">-->
-
-              <!--<div v-if="index === 'modules'">-->
-                <!--&nbsp;&nbsp;{{ index }}: {{ module }} <br><br>-->
-              <!--</div>-->
-              <!--<div v-else-if="index === 'module' || index === 'paired_end'">-->
-                <!--&nbsp;&nbsp;{{ index }}: "{{ module }}" <br><br>-->
-              <!--</div>-->
-              <!--<div v-else>-->
-
-                <!--<div v-if="Object.keys(module).length > 0">-->
-                  <!--&nbsp;&nbsp;{{ index }}: <br>-->
-                  <!--<template v-for="(option, index) in module">-->
-                    <!--&nbsp;&nbsp;&nbsp;&nbsp;{{ index }}: "{{ option }}"<br>-->
-                  <!--</template>-->
-                  <!--<br>-->
-                <!--</div>-->
-
-              <!--</div>-->
-
-            <!--</template>-->
-          <!--</template>-->
-        <!--</div>-->
-
-        <div id="yamlTextWell" class="well well-sm finalYamlWell clickHighlighting">
-          <template v-for="(group, index) in this.finalYaml" :value="group">
-            {{ index }}<br>
-            <!--({{ group }})-->
+        <div id="yamlTextWell" class="well well-sm finalYamlWell clickForHighlighting">
+          <template v-for="(group, index) in this.finalYaml">
+            {{ index }} <br>
             <template v-for="(module, index) in group">
-
-              <div v-if="index === 'modules'">
+              <template v-if="index === 'modules'">
                 &nbsp;&nbsp;{{ index }}: {{ module }} <br><br>
-              </div>
-              <div v-else-if="index === 'module' || index === 'paired_end'">
+              </template>
+              <template v-else-if="index === 'module' || index === 'paired_end'">
                 &nbsp;&nbsp;{{ index }}: "{{ module }}" <br><br>
-              </div>
-              <div v-else>
-
-                <div v-if="Object.keys(module).length > 0">
+              </template>
+              <template v-else>
+                <template v-if="Object.keys(module).length > 0">
                   &nbsp;&nbsp;{{ index }}: <br>
                   <template v-for="(option, index) in module">
                     &nbsp;&nbsp;&nbsp;&nbsp;{{ index }}: "{{ option }}"<br>
                   </template>
                   <br>
-                </div>
-
-              </div>
-
+                </template>
+              </template>
             </template>
           </template>
         </div>
@@ -596,6 +563,9 @@
   }
   .finalYamlWell {
     text-align: left;
+  }
+  .clickForHighlighting {
+    user-select: all;
   }
 
 </style>
@@ -1119,10 +1089,25 @@
     let amount = selection.children.length
     VUE.dynamicModuleList[section].selectionAmount = amount
   }
+  function copyToClipboard() {
+    // let copyText = document.getElementById("yamlTextWell")
+    // copyText.select()
+    // document.execCommand("copy")
+    let range = document.createRange()
+    range.selectNode(document.getElementById("yamlTextWell"));
+
+    console.log(document.getElementById("yamlTextWell").innerText)
+    console.log(document.getElementById("yamlTextWell").innerHTML)
+
+    window.getSelection().addRange(range);
+    document.execCommand("copy");
+    // alert("text copied")
+  }
   function download(rawData, filename, type) {
-    console.log(rawData)
-    
-    let data = JSON.stringify(rawData)
+    // let data = JSON.stringify(rawData)
+
+    let data = document.getElementById("yamlTextWell").innerText
+
     let file = new Blob([data], {type: type});
     if (window.navigator.msSaveOrOpenBlob) // IE10+
       window.navigator.msSaveOrOpenBlob(file, filename);
@@ -1138,16 +1123,5 @@
         window.URL.revokeObjectURL(url);
       }, 0);
     }
-  }
-  function copyToClipboard() {
-    // let copyText = document.getElementById("yamlTextWell")
-    // copyText.select()
-    // document.execCommand("copy")
-    let range = document.createRange()
-    console.log(range)
-    range.selectNode(document.getElementById("yamlTextWell"));
-    window.getSelection().addRange(range);
-    document.execCommand("copy");
-    alert("text copied")
   }
 </script>
