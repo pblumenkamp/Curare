@@ -95,7 +95,7 @@ def load_config_file(config_file: Path) -> Tuple[Dict[str, List['Module']], bool
                     "premapping": [],
                     "mapping": [],
                     "analyses": []}  # type: Dict[str, List['Module']]
-    config = yaml.load(config_file.open('r'))
+    config = yaml.safe_load(config_file.open('r'))
     if "preprocessing" in config:
         if "module" in config["preprocessing"]:
             if not isinstance(config["preprocessing"]["module"], str):
@@ -164,7 +164,7 @@ def load_module(category: str, module_name: str, settings: Dict[str, str], confi
     loaded_module = Module(module_name)
     module_yaml_file = SNAKEFILES_LIBRARY / category / module_name / (module_name + '.yaml')
     if module_yaml_file.is_file():
-        module_yaml = yaml.load(module_yaml_file.open('r'))
+        module_yaml = yaml.safe_load(module_yaml_file.open('r'))
         if 'required_settings' in module_yaml:
             for setting_name, properties in module_yaml['required_settings'].items():
                 if setting_name not in settings:
