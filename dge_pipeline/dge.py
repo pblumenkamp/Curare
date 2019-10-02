@@ -96,61 +96,76 @@ def load_config_file(config_file: Path) -> Tuple[Dict[str, List['Module']], bool
                     "mapping": [],
                     "analyses": []}  # type: Dict[str, List['Module']]
     config = yaml.safe_load(config_file.open('r'))
+
     if "preprocessing" in config:
         if "module" in config["preprocessing"]:
-            if not isinstance(config["preprocessing"]["module"], str):
-                raise InvalidConfigFileError("preprocessing: Only one module as a string is allowed")
-            elif config["preprocessing"]["module"] == '':
-                modules["preprocessing"].append('none')
+            config_module = config["preprocessing"]["module"]
+            if isinstance(config_module, str):
+                if config_module:
+                    modules["preprocessing"].append(config_module)
+                else:
+                    modules["preprocessing"].append('none')  # Add "None" module
+            elif isinstance(config_module, list):
+                if len(config_module) > 1:
+                    raise InvalidConfigFileError("preprocessing: Too many preprocessing modules are selected (max 1)")
+                if config_module:
+                    modules["preprocessing"].append(config_module[0])
+                else:
+                    modules["preprocessing"].append('none')  # Add "None" module
             else:
-                modules["preprocessing"].append(config["preprocessing"]["module"])
+                raise InvalidConfigFileError("preprocessing: Modules must be a list or a string containing the module")
         else:
-            modules["preprocessing"].append('none')
+            modules["preprocessing"].append('none')  # Add "None" module
     else:
-        modules["preprocessing"].append('none')
+        modules["preprocessing"].append('none')  # Add "None" module
+
     if "premapping" in config:
+        config_module = config["premapping"]["modules"]
         if "modules" in config["premapping"]:
-            if "module" in config["premapping"]:
-                raise InvalidConfigFileError('premapping: Please use either "module" or "modules"')
-            if not isinstance(config["premapping"]["modules"], list):
-                raise InvalidConfigFileError("premapping: modules must be a LIST of modules")
-            else:
-                for module in config["premapping"]["modules"]:
+            if isinstance(config_module, list):
+                for module in config_module:
                     modules["premapping"].append(module)
-        elif "module" in config["premapping"]:
-            if not isinstance(config["premapping"]["modules"], str):
-                raise InvalidConfigFileError('premapping: Only one module as a string is allowed. For multiple modules use "modules"')
+            elif isinstance(config_module, str):
+                modules["premapping"].append(config_module)
             else:
-                modules["premapping"].append(config["premapping"]["module"])
+                raise InvalidConfigFileError("premapping: Modules must be a list or a string containing the module")
+
     if "mapping" in config:
+        config_module = config["mapping"]["module"]
         if "module" in config["mapping"]:
-            if not isinstance(config["mapping"]["module"], str):
-                raise InvalidConfigFileError("mapping: Only one module as a string is allowed")
+            if isinstance(config_module, list):
+                if len(config_module) != 1:
+                    raise InvalidConfigFileError("mapping: Exactly one mapping module must be selected")
+                modules["mapping"].append(config_module[0])
+            elif isinstance(config_module, str):
+                modules["mapping"].append(config_module)
             else:
-                modules["mapping"].append(config["mapping"]["module"])
+                raise InvalidConfigFileError("mapping: Modules must be a list or a string containing the module")
+    else:
+        raise InvalidConfigFileError("mapping: No mapping module found")
+
     if "analyses" in config:
+        config_module = config["analyses"]["modules"]
         if "modules" in config["analyses"]:
-            if "module" in config["analyses"]:
-                raise InvalidConfigFileError('analyses: Please use either "module" or "modules"')
-            if not isinstance(config["analyses"]["modules"], list):
-                raise InvalidConfigFileError("analyses: modules must be a LIST of modules")
-            else:
-                for module in config["analyses"]["modules"]:
+            if isinstance(config_module, list):
+                for module in config_module:
                     modules["analyses"].append(module)
-        elif "module" in config["analyses"]:
-            if not isinstance(config["analyses"]["modules"], str):
-                raise InvalidConfigFileError('analyses: Only one module as a string is allowed. For multiple modules use "modules"')
+            elif isinstance(config_module, str):
+                modules["mapping"].append(config_module)
             else:
-                modules["analyses"].append(config["analyses"]["module"])
+                raise InvalidConfigFileError("analyses: Modules must be a list or a string containing the module")
+
     if "pipeline" in config:
         if "paired_end" in config["pipeline"]:
-            if not isinstance(config["pipeline"]["paired_end"], bool) and not (
-                    config["pipeline"]["paired_end"] == 'True' or config["pipeline"]["paired_end"] == 'False'):
-                raise InvalidConfigFileError('Pipeline: paired_end value must be "True" or "False"')
+            config_paired_end = config["pipeline"]["paired_end"]
+            if isinstance(config_paired_end, bool) or (config_paired_end.upper() in ['TRUE', 'FALSE']):
+                paired_end = config_paired_end
             else:
-                paired_end = config["pipeline"]["paired_end"]
+                raise InvalidConfigFileError('Pipeline: paired_end value must either be "True" or "False"')
         else:
             raise InvalidConfigFileError('Pipeline: Option "paired_end" must be set')
+    else:
+        raise InvalidConfigFileError('Pipeline: Option "paired_end" must be set')
 
     for category in modules:
         for module_name in modules[category]:
@@ -160,92 +175,77 @@ def load_config_file(config_file: Path) -> Tuple[Dict[str, List['Module']], bool
     return used_modules, paired_end
 
 
-def load_module(category: str, module_name: str, settings: Dict[str, str], config_file_path: Path, paired_end: bool) -> 'Module':
+def get_setting(setting_name, setting_properties, user_settings, config_file_path):
+    setting_type = setting_properties['type']
+    if setting_type == 'file':
+        if user_settings[setting_name].startswith('/'):
+            setting = user_settings[setting_name]
+        else:
+            setting = str((config_file_path.parent / user_settings[setting_name]).resolve())
+    elif setting_type == 'enum':
+        setting = setting_properties['choices'][user_settings[setting_name]]
+    else:
+        setting = user_settings[setting_name]
+
+    return setting
+
+
+def load_module(category: str, module_name: str, user_settings: Dict[str, str], config_file_path: Path, paired_end: bool) -> 'Module':
     loaded_module = Module(module_name)
     module_yaml_file = SNAKEFILES_LIBRARY / category / module_name / (module_name + '.yaml')
     if module_yaml_file.is_file():
         module_yaml = yaml.safe_load(module_yaml_file.open('r'))
         if 'required_settings' in module_yaml:
-            for setting_name, properties in module_yaml['required_settings'].items():
-                if setting_name not in settings:
-                    raise InvalidConfigFileError(category.capitalize() + ': Required setting "' + setting_name + '" is missing')
+            for setting_name, setting_properties in module_yaml['required_settings'].items():
+                if setting_name in user_settings:
+                    loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, config_file_path))
                 else:
-                    if properties['type'] == 'file' and not settings[setting_name].startswith('/'):
-                        loaded_module.add_setting(setting_name, str((config_file_path.parent / settings[setting_name]).resolve()))
-                    elif properties['type'] == 'enum':
-                        loaded_module.add_setting(setting_name, properties['choices'][settings[setting_name]])
-                    else:
-                        loaded_module.add_setting(setting_name, settings[setting_name])
+                    raise InvalidConfigFileError(module_name.capitalize() + ': Required setting "' + setting_name + '" is missing')
         if 'optional_settings' in module_yaml:
-            for setting_name, properties in module_yaml['optional_settings'].items():
-                if setting_name not in settings:
-                    loaded_module.add_setting(setting_name, '')
+            for setting_name, setting_properties in module_yaml['optional_settings'].items():
+                if setting_name in user_settings:
+                    loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, config_file_path))
                 else:
-                    if properties['type'] == 'file' and not settings[setting_name].startswith('/'):
-                        loaded_module.add_setting(setting_name, str((config_file_path.parent / settings[setting_name]).resolve()))
-                    elif properties['type'] == 'enum':
-                        loaded_module.add_setting(setting_name, properties['choices'][settings[setting_name]])
-                    else:
-                        loaded_module.add_setting(setting_name, settings[setting_name])
+                    loaded_module.add_setting(setting_name, '')
         if 'columns' in module_yaml:
-            for column_name, properties in module_yaml['columns'].items():
-                loaded_module.add_column(column_name, ColumnProperties(properties['type'], properties['description']))
+            for column_name, column_properties in module_yaml['columns'].items():
+                loaded_module.add_column(column_name, ColumnProperties(column_properties['type'], column_properties['description']))
 
         if paired_end:
             loaded_module.snakefile = SNAKEFILES_LIBRARY / category / module_name / module_yaml['paired_end']['snakefile']
             if 'required_settings' in module_yaml['paired_end']:
-                for setting_name, properties in module_yaml['paired_end']['required_settings'].items():
-                    if setting_name not in settings:
-                        raise InvalidConfigFileError(category.capitalize() + ': Required setting "' + setting_name + '" is missing')
+                for setting_name, setting_properties in module_yaml['paired_end']['required_settings'].items():
+                    if setting_name in user_settings:
+                        loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, config_file_path))
                     else:
-                        if properties['type'] == 'file' and not settings[setting_name].startswith('/'):
-                            loaded_module.add_setting(setting_name, str((config_file_path.parent / settings[setting_name]).resolve()))
-                        elif properties['type'] == 'enum':
-                            loaded_module.add_setting(setting_name, properties['choices'][settings[setting_name]])
-                        else:
-                            loaded_module.add_setting(setting_name, settings[setting_name])
+                        raise InvalidConfigFileError(module_name.capitalize() + ': Required setting "' + setting_name + '" is missing')
             if 'optional_settings' in module_yaml['paired_end']:
-                for setting_name, properties in module_yaml['paired_end']['optional_settings'].items():
-                    if setting_name not in settings:
-                        loaded_module.add_setting(setting_name, "")
+                for setting_name, setting_properties in module_yaml['optional_settings'].items():
+                    if setting_name in user_settings:
+                        loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, config_file_path))
                     else:
-                        if properties['type'] == 'file' and not settings[setting_name].startswith('/'):
-                            loaded_module.add_setting(setting_name, str((config_file_path.parent / settings[setting_name]).resolve()))
-                        elif properties['type'] == 'enum':
-                            loaded_module.add_setting(setting_name, properties['choices'][settings[setting_name]])
-                        else:
-                            loaded_module.add_setting(setting_name, settings[setting_name])
+                        loaded_module.add_setting(setting_name, '')
             if 'columns' in module_yaml['paired_end']:
-                for column_name, properties in module_yaml['paired_end']['columns'].items():
-                    loaded_module.add_column(column_name, ColumnProperties(properties['type'], properties['description']))
+                for column_name, column_properties in module_yaml['paired_end']['columns'].items():
+                    loaded_module.add_column(column_name, ColumnProperties(column_properties['type'], column_properties['description']))
 
         else:
             loaded_module.snakefile = SNAKEFILES_LIBRARY / category / module_name / module_yaml['single_end']['snakefile']
             if 'required_settings' in module_yaml['single_end']:
-                for setting_name, properties in module_yaml['single_end']['required_settings'].items():
-                    if setting_name not in settings:
-                        raise InvalidConfigFileError(category.capitalize() + ': Required setting "' + setting_name + '" is missing')
+                for setting_name, setting_properties in module_yaml['paired_end']['required_settings'].items():
+                    if setting_name in user_settings:
+                        loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, config_file_path))
                     else:
-                        if properties['type'] == 'file' and not settings[setting_name].startswith('/'):
-                            loaded_module.add_setting(setting_name, str((config_file_path.parent / settings[setting_name]).resolve()))
-                        elif properties['type'] == 'enum':
-                            loaded_module.add_setting(setting_name, properties['choices'][settings[setting_name]])
-                        else:
-                            loaded_module.add_setting(setting_name, settings[setting_name])
+                        raise InvalidConfigFileError(module_name.capitalize() + ': Required setting "' + setting_name + '" is missing')
             if 'optional_settings' in module_yaml['single_end']:
-                for setting_name, properties in module_yaml['single_end']['optional_settings'].items():
-                    if setting_name not in settings:
-                        loaded_module.add_setting(setting_name, "")
+                for setting_name, setting_properties in module_yaml['optional_settings'].items():
+                    if setting_name in user_settings:
+                        loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, config_file_path))
                     else:
-                        if properties['type'] == 'file' and not settings[setting_name].startswith('/'):
-                            loaded_module.add_setting(setting_name, str((config_file_path.parent / settings[setting_name]).resolve()))
-                        elif properties['type'] == 'enum':
-                            loaded_module.add_setting(setting_name, properties['choices'][settings[setting_name]])
-                        else:
-                            loaded_module.add_setting(setting_name, settings[setting_name])
+                        loaded_module.add_setting(setting_name, '')
             if 'columns' in module_yaml['single_end']:
-                for column_name, properties in module_yaml['single_end']['columns'].items():
-                    loaded_module.add_column(column_name, ColumnProperties(properties['type'], properties['description']))
+                for column_name, column_properties in module_yaml['single_end']['columns'].items():
+                    loaded_module.add_column(column_name, ColumnProperties(column_properties['type'], column_properties['description']))
 
     else:
         raise InvalidConfigFileError(category.capitalize() + ': Unknown module "' + module_name + '"')
