@@ -1,13 +1,14 @@
 import argparse
 import errno
-import os
-import shutil
 import filecmp
+import os
 import re
+import shutil
+import sys
+import yaml
+
 from pathlib import Path
 from typing import Dict, List, Tuple, Any
-
-import yaml
 from snakemake import snakemake
 
 import metadata
@@ -184,6 +185,27 @@ def get_setting(setting_name, setting_properties, user_settings, config_file_pat
             setting = str((config_file_path.parent / user_settings[setting_name]).resolve())
     elif setting_type == 'enum':
         setting = setting_properties['choices'][user_settings[setting_name]]
+    elif setting_type == 'number':
+        value = user_settings[setting_name]
+        number_type = setting_properties['number_type']
+        min_value = setting_properties['range']['min']
+        max_value = setting_properties['range']['max']
+        if number_type == 'integer':
+            try:
+                value = int(value)
+            except ValueError:
+                raise InvalidNumberTypeError("{} - \"{}\" cannot be converted into integer".format(setting_name, value))
+        elif number_type == 'float':
+            try:
+                value = float(value)
+            except ValueError:
+                raise InvalidNumberTypeError("{} - \"{}\" cannot be converted into float".format(setting_name, value))
+        else:
+            raise InvalidConfigFileError("{} - Unknown number type".format(setting_name))
+        if min_value < value < max_value:
+            setting = str(value)
+        else:
+            raise OutOfBondError('Parameter: {} - Used value: {} - Range: {}-{}'.format(setting_name, user_settings[setting_name], min_value, max_value))
     else:
         setting = user_settings[setting_name]
 
@@ -193,62 +215,76 @@ def get_setting(setting_name, setting_properties, user_settings, config_file_pat
 def load_module(category: str, module_name: str, user_settings: Dict[str, str], config_file_path: Path, paired_end: bool) -> 'Module':
     loaded_module = Module(module_name)
     module_yaml_file = SNAKEFILES_LIBRARY / category / module_name / (module_name + '.yaml')
-    if module_yaml_file.is_file():
-        module_yaml = yaml.safe_load(module_yaml_file.open('r'))
-        if 'required_settings' in module_yaml:
-            for setting_name, setting_properties in module_yaml['required_settings'].items():
-                if setting_name in user_settings:
-                    loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, config_file_path))
-                else:
-                    raise InvalidConfigFileError(module_name.capitalize() + ': Required setting "' + setting_name + '" is missing')
-        if 'optional_settings' in module_yaml:
-            for setting_name, setting_properties in module_yaml['optional_settings'].items():
-                if setting_name in user_settings:
-                    loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, config_file_path))
-                else:
-                    loaded_module.add_setting(setting_name, '')
-        if 'columns' in module_yaml:
-            for column_name, column_properties in module_yaml['columns'].items():
-                loaded_module.add_column(column_name, ColumnProperties(column_properties['type'], column_properties['description']))
-
-        if paired_end:
-            loaded_module.snakefile = SNAKEFILES_LIBRARY / category / module_name / module_yaml['paired_end']['snakefile']
-            if 'required_settings' in module_yaml['paired_end']:
-                for setting_name, setting_properties in module_yaml['paired_end']['required_settings'].items():
+    try:
+        if module_yaml_file.is_file():
+            module_yaml = yaml.safe_load(module_yaml_file.open('r'))
+            if 'required_settings' in module_yaml:
+                for setting_name, setting_properties in module_yaml['required_settings'].items():
                     if setting_name in user_settings:
                         loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, config_file_path))
                     else:
-                        raise InvalidConfigFileError(module_name.capitalize() + ': Required setting "' + setting_name + '" is missing')
-            if 'optional_settings' in module_yaml['paired_end']:
+                        raise InvalidConfigFileError(module_name.capitalize() + ': Required parameter "' + setting_name + '" is missing')
+            if 'optional_settings' in module_yaml:
                 for setting_name, setting_properties in module_yaml['optional_settings'].items():
                     if setting_name in user_settings:
                         loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, config_file_path))
                     else:
                         loaded_module.add_setting(setting_name, '')
-            if 'columns' in module_yaml['paired_end']:
-                for column_name, column_properties in module_yaml['paired_end']['columns'].items():
+            if 'columns' in module_yaml:
+                for column_name, column_properties in module_yaml['columns'].items():
                     loaded_module.add_column(column_name, ColumnProperties(column_properties['type'], column_properties['description']))
+
+            if paired_end:
+                loaded_module.snakefile = SNAKEFILES_LIBRARY / category / module_name / module_yaml['paired_end']['snakefile']
+                if 'required_settings' in module_yaml['paired_end']:
+                    for setting_name, setting_properties in module_yaml['paired_end']['required_settings'].items():
+                        if setting_name in user_settings:
+                            loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, config_file_path))
+                        else:
+                            raise InvalidConfigFileError(module_name.capitalize() + ': Required parameter "' + setting_name + '" is missing')
+                if 'optional_settings' in module_yaml['paired_end']:
+                    for setting_name, setting_properties in module_yaml['optional_settings'].items():
+                        if setting_name in user_settings:
+                            loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, config_file_path))
+                        else:
+                            loaded_module.add_setting(setting_name, '')
+                if 'columns' in module_yaml['paired_end']:
+                    for column_name, column_properties in module_yaml['paired_end']['columns'].items():
+                        loaded_module.add_column(column_name, ColumnProperties(column_properties['type'], column_properties['description']))
+
+            else:
+                loaded_module.snakefile = SNAKEFILES_LIBRARY / category / module_name / module_yaml['single_end']['snakefile']
+                if 'required_settings' in module_yaml['single_end']:
+                    for setting_name, setting_properties in module_yaml['paired_end']['required_settings'].items():
+                        if setting_name in user_settings:
+                            loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, config_file_path))
+                        else:
+                            raise InvalidConfigFileError(module_name.capitalize() + ': Required parameter "' + setting_name + '" is missing')
+                if 'optional_settings' in module_yaml['single_end']:
+                    for setting_name, setting_properties in module_yaml['optional_settings'].items():
+                        if setting_name in user_settings:
+                            loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, config_file_path))
+                        else:
+                            loaded_module.add_setting(setting_name, '')
+                if 'columns' in module_yaml['single_end']:
+                    for column_name, column_properties in module_yaml['single_end']['columns'].items():
+                        loaded_module.add_column(column_name, ColumnProperties(column_properties['type'], column_properties['description']))
 
         else:
-            loaded_module.snakefile = SNAKEFILES_LIBRARY / category / module_name / module_yaml['single_end']['snakefile']
-            if 'required_settings' in module_yaml['single_end']:
-                for setting_name, setting_properties in module_yaml['paired_end']['required_settings'].items():
-                    if setting_name in user_settings:
-                        loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, config_file_path))
-                    else:
-                        raise InvalidConfigFileError(module_name.capitalize() + ': Required setting "' + setting_name + '" is missing')
-            if 'optional_settings' in module_yaml['single_end']:
-                for setting_name, setting_properties in module_yaml['optional_settings'].items():
-                    if setting_name in user_settings:
-                        loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, config_file_path))
-                    else:
-                        loaded_module.add_setting(setting_name, '')
-            if 'columns' in module_yaml['single_end']:
-                for column_name, column_properties in module_yaml['single_end']['columns'].items():
-                    loaded_module.add_column(column_name, ColumnProperties(column_properties['type'], column_properties['description']))
-
-    else:
-        raise InvalidConfigFileError(category.capitalize() + ': Unknown module "' + module_name + '"')
+            raise InvalidConfigFileError(category.capitalize() + ': Unknown module "' + module_name + '"')
+    except InvalidConfigFileError as e:
+        print(e, file=sys.stderr)
+        sys.exit(1)
+    except InvalidNumberTypeError as e:
+        print("{}: {}".format(module_name, e), file=sys.stderr)
+        sys.exit(2)
+    except OutOfBondError as e:
+        print("{}: Value out of bond. ({})".format(module_name, e), file=sys.stderr)
+        sys.exit(2)
+    except Exception as e:
+        print(e, file=sys.stderr)
+        raise e
+        sys.exit(999)
 
     return loaded_module
 
@@ -391,14 +427,29 @@ class Module:
 
     """
 
-    def __init__(self, name: str, snakefile_path: Path = None):
+    def __init__(self, name: str, snakefile_path: Path = None, user_settings: Dict[str, Any] = None, columns: Dict[str, 'ColumnProperties'] = None):
         self.name = name  # type: str
-        if snakefile_path is not None:
-            self.snakefile = snakefile_path.resolve()  # type: Path
+
+        if snakefile_path is None:
+            self.snakefile = None
         else:
-            self.snakefile = snakefile_path
-        self.settings = {}  # type: Dict[str, Any]
-        self.columns = {}  # type: Dict[str, 'ColumnProperties']
+            self.snakefile = snakefile_path.resolve()  # type: Path
+
+        if user_settings is None:
+            self.settings = {}  # type: Dict[str, Any]
+        else:
+            self.settings = user_settings
+
+        if columns is None:
+            self.columns = {}  # type: Dict[str, 'ColumnProperties']
+        else:
+            self.columns = columns
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return "Module(name={}, snakefile_path={})".format(self.name, self.snakefile)
 
     def add_setting(self, name: str, value: str):
         self.settings[name] = value
@@ -443,6 +494,28 @@ class InvalidConfigFileError(Exception):
 
     def __init__(self, message: str):
         super(InvalidConfigFileError, self).__init__(message)
+
+
+class OutOfBondError(Exception):
+    """Exception raised for a value out of bond.
+
+        Attributes:
+            message -- message displayed
+    """
+
+    def __init__(self, message: str):
+        super(OutOfBondError, self).__init__(message)
+
+class InvalidNumberTypeError(Exception):
+    """Exception raised for an invalid number type.
+
+        Attributes:
+            message -- message displayed
+    """
+
+    def __init__(self, message: str):
+        super(InvalidNumberTypeError, self).__init__(message)
+
 
 
 if __name__ == '__main__':
