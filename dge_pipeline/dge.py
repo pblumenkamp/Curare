@@ -229,7 +229,7 @@ def load_module(category: str, module_name: str, user_settings: Dict[str, str], 
                     if setting_name in user_settings:
                         loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, config_file_path))
                     else:
-                        loaded_module.add_setting(setting_name, '')
+                        loaded_module.add_setting(setting_name, setting_properties['default'])
             if 'columns' in module_yaml:
                 for column_name, column_properties in module_yaml['columns'].items():
                     loaded_module.add_column(column_name, ColumnProperties(column_properties['type'], column_properties['description']))
@@ -247,7 +247,7 @@ def load_module(category: str, module_name: str, user_settings: Dict[str, str], 
                         if setting_name in user_settings:
                             loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, config_file_path))
                         else:
-                            loaded_module.add_setting(setting_name, '')
+                            loaded_module.add_setting(setting_name, setting_properties['default'])
                 if 'columns' in module_yaml['paired_end']:
                     for column_name, column_properties in module_yaml['paired_end']['columns'].items():
                         loaded_module.add_column(column_name, ColumnProperties(column_properties['type'], column_properties['description']))
@@ -265,7 +265,7 @@ def load_module(category: str, module_name: str, user_settings: Dict[str, str], 
                         if setting_name in user_settings:
                             loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, config_file_path))
                         else:
-                            loaded_module.add_setting(setting_name, '')
+                            loaded_module.add_setting(setting_name, setting_properties['default'])
                 if 'columns' in module_yaml['single_end']:
                     for column_name, column_properties in module_yaml['single_end']['columns'].items():
                         loaded_module.add_column(column_name, ColumnProperties(column_properties['type'], column_properties['description']))
