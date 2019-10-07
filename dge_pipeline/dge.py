@@ -1,6 +1,7 @@
 import argparse
 import errno
 import filecmp
+import math
 import os
 import re
 import shutil
@@ -188,8 +189,8 @@ def get_setting(setting_name, setting_properties, user_settings, config_file_pat
     elif setting_type == 'number':
         value = user_settings[setting_name]
         number_type = setting_properties['number_type']
-        min_value = setting_properties['range']['min']
-        max_value = setting_properties['range']['max']
+        min_value = -math.inf if setting_properties['range']['min'] == "-Inf" else setting_properties['range']['min']
+        max_value = math.inf if setting_properties['range']['max'] == "Inf" else setting_properties['range']['max']
         if number_type == 'integer':
             try:
                 value = int(value)
@@ -206,6 +207,8 @@ def get_setting(setting_name, setting_properties, user_settings, config_file_pat
             setting = str(value)
         else:
             raise OutOfBondError('Parameter: {} - Used value: {} - Range: {}-{}'.format(setting_name, user_settings[setting_name], min_value, max_value))
+    elif setting_type == 'string':
+        setting = user_settings[setting_name]
     else:
         setting = user_settings[setting_name]
 
@@ -243,7 +246,7 @@ def load_module(category: str, module_name: str, user_settings: Dict[str, str], 
                         else:
                             raise InvalidConfigFileError(module_name.capitalize() + ': Required parameter "' + setting_name + '" is missing')
                 if 'optional_settings' in module_yaml['paired_end']:
-                    for setting_name, setting_properties in module_yaml['optional_settings'].items():
+                    for setting_name, setting_properties in module_yaml['paired_end']['optional_settings'].items():
                         if setting_name in user_settings:
                             loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, config_file_path))
                         else:
@@ -255,13 +258,13 @@ def load_module(category: str, module_name: str, user_settings: Dict[str, str], 
             else:
                 loaded_module.snakefile = SNAKEFILES_LIBRARY / category / module_name / module_yaml['single_end']['snakefile']
                 if 'required_settings' in module_yaml['single_end']:
-                    for setting_name, setting_properties in module_yaml['paired_end']['required_settings'].items():
+                    for setting_name, setting_properties in module_yaml['single_end']['required_settings'].items():
                         if setting_name in user_settings:
                             loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, config_file_path))
                         else:
                             raise InvalidConfigFileError(module_name.capitalize() + ': Required parameter "' + setting_name + '" is missing')
                 if 'optional_settings' in module_yaml['single_end']:
-                    for setting_name, setting_properties in module_yaml['optional_settings'].items():
+                    for setting_name, setting_properties in module_yaml['single_end']['optional_settings'].items():
                         if setting_name in user_settings:
                             loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, config_file_path))
                         else:
