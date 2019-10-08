@@ -1,0 +1,54 @@
+from os import listdir
+from os.path import isfile, dirname
+
+def getSampleName(file_name):
+    for sample_name, seqRun in config['entries'].items():
+        if file_name in os.path.basename(seqRun['main']['forward_reads']) or file_name in os.path.basename(seqRun['main']['reverse_reads']):
+            return sample_name
+    print('Cannot find {} in groups file'.format(file_name))
+
+def isForward(file_name):
+    for sample_name, seqRun in config['entries'].items():
+        if file_name in os.path.basename(seqRun['main']['forward_reads']):
+            return True
+    return False
+
+def getSymlinkPath(file_name, basedir):
+    read_direction_number = ("1" if isForward(file_name) else "2")
+    return (os.path.join(basedir, "{sample_name}_R{direction}_val_{direction}.fq".format(sample_name=getSampleName(file_name), direction=read_direction_number)))
+
+rule all:
+    input:
+        "mapping/stats/mapping_stats.xlsx",
+        expand("mapping/{A}.bam", A=sorted(config['entries'].keys()))
+
+
+rule trimgalore:
+    input:
+        forward=lambda wildcard: config['entries'][wildcard.sample]['main']['forward_reads'],
+        reverse=lambda wildcard: config['entries'][wildcard.sample]['main']['reverse_reads'],
+    output:
+        trim_galore_stats="preprocessing/trim_galore/trimming_stats/{sample}.txt"
+    params:
+        output_dir="preprocessing/trim_galore/"
+    group:
+        "trim_galore"
+    log:
+        "preprocessing/trim_galore/trimming_stats/{sample}.txt"
+    threads:
+        4
+    shell:
+        "trim_galore %%ADDITIONAL_PARAMETER%% --paired --retain_unpaired --quality %%QUALITY_THRESHOLD%% %%PHRED_SCORE_TYPE%% --length %%MIN_LENGTH%% --adapter %%ADAPTER_FORWARD%% "
+        "--adapter2 %%ADAPTER_REVERSE%% --cores {threads} --dont_gzip --basename {wildcards.sample} --output_dir {params.output_dir} {input.forward} {input.reverse} 2>&1 |"
+        "tee {log}"
+
+
+rule collect_paired_reads:
+    input:
+        trim_galore_stats=lambda wildcard: os.path.join("preprocessing", "trim_galore", "trimming_stats", getSampleName(wildcard.file) + ".txt")
+    output:
+        "preprocessing/{file}.fastq"
+    params:
+        symlink_path=lambda wildcard: getSymlinkPath(wildcard.file, os.path.join("trim_galore"))
+    shell:
+        "ln -s {params.symlink_path} {output}"
