@@ -118,13 +118,13 @@ rule bwa_backtrack_align_forward:
     input:
         genome="%%GENOME_FASTA%%",
         genome_index=expand("%%GENOME_FASTA%%.{SUFFIX}", SUFFIX=["amb", "ann", "bwt", "pac", "sa"]),
-        reads=lambda wildcards: os.path.join('preprocessing', os.path.basename(config['entries'][wildcards.name]['main']['forward_reads'])).strip('.gz')
+        reads="preprocessing/{sample}_R1.fastq"
     output:
-        sai_forward=temp("mapping/sam/{name}.forward.sai")
+        sai_forward=temp("mapping/sam/{sample}.forward.sai")
     group:
         "bwa_mapping"
     log:
-        "mapping/logs/bwa_mem_mapping.{name}.log"
+        "mapping/logs/bwa_mem_mapping.{sample}.log"
     threads:
         1
     shell:
@@ -136,13 +136,13 @@ rule bwa_backtrack_align_reverse:
     input:
         genome="%%GENOME_FASTA%%",
         genome_index=expand("%%GENOME_FASTA%%.{SUFFIX}", SUFFIX=["amb", "ann", "bwt", "pac", "sa"]),
-        reads=lambda wildcards: os.path.join('preprocessing', os.path.basename(config['entries'][wildcards.name]['main']['reverse_reads'])).strip('.gz')
+        reads="preprocessing/{sample}_R2.fastq"
     output:
-        sai_forward=temp("mapping/sam/{name}.reverse.sai")
+        sai_forward=temp("mapping/sam/{sample}.reverse.sai")
     group:
         "bwa_mapping"
     log:
-        "mapping/logs/bwa_mem_mapping.{name}.log"
+        "mapping/logs/bwa_mem_mapping.{sample}.log"
     threads:
         1
     shell:
@@ -154,16 +154,16 @@ rule bwa_backtrack_samse:
     input:
         genome="%%GENOME_FASTA%%",
         genome_index=expand("%%GENOME_FASTA%%.{SUFFIX}", SUFFIX=["amb", "ann", "bwt", "pac", "sa"]),
-        reads=lambda wildcards: os.path.join('preprocessing', os.path.basename(config['entries'][wildcards.name]['main']['forward_reads'])).strip('.gz'),
-        reads_reverse=lambda wildcards: os.path.join('preprocessing', os.path.basename(config['entries'][wildcards.name]['main']['reverse_reads'])).strip('.gz'),
-        sai="mapping/sam/{name}.forward.sai",
-        sai_reverse="mapping/sam/{name}.reverse.sai"
+        reads="preprocessing/{sample}_R1.fastq",
+        reads_reverse="preprocessing/{sample}_R2.fastq",
+        sai="mapping/sam/{sample}.forward.sai",
+        sai_reverse="mapping/sam/{sample}.reverse.sai"
     output:
-        temp("mapping/sam/{name}.sam")
+        temp("mapping/sam/{sample}.sam")
     group:
         "bwa_mapping"
     log:
-        "mapping/logs/bwa_mem_mapping.{name}.log"
+        "mapping/logs/bwa_mem_mapping.{sample}.log"
     threads:
         1
     shell:

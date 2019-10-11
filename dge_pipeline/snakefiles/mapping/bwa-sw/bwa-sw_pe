@@ -118,14 +118,14 @@ rule bwa_sw_mapping:
     input:
         genome="%%GENOME_FASTA%%",
         genome_index=expand("%%GENOME_FASTA%%.{SUFFIX}", SUFFIX=["amb", "ann", "bwt", "pac", "sa"]),
-        reads=lambda wildcards: os.path.join('preprocessing', os.path.basename(config['entries'][wildcards.name]['main']['forward_reads'])).strip('.gz'),
-        reads_reverse=lambda wildcards: os.path.join('preprocessing', os.path.basename(config['entries'][wildcards.name]['main']['reverse_reads'])).strip('.gz')
+        reads="preprocessing/{sample}_R1.fastq",
+        reads_reverse="preprocessing/{sample}_R2.fastq"
     output:
-        temp("mapping/sam/{name}.sam")
+        temp("mapping/sam/{sample}.sam")
     group:
         "bwa_mapping"
     log:
-        "mapping/logs/bwa_mem_mapping.{name}.log"
+        "mapping/logs/bwa_mem_mapping.{sample}.log"
     threads:
         1
     shell:

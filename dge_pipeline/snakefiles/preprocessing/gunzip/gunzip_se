@@ -1,19 +1,9 @@
-from os import listdir
-from os.path import isfile, splitext
-import sys
-
-def getPath(file_name):
-    for seqRun in config['entries'].values():
-            if os.path.basename(seqRun['main']['reads']) == file_name:
-                return seqRun['main']['reads']
-    print('Cannot find {} in groups file'.format(file_name), file=sys.stderr)
-
 localrules: gunzip__extract
 
 rule extract:
     input:
-        lambda wildcards: getPath(wildcards.name + '.fastq.gz')
+        lambda wildcards: config['entries'][wildcards.sample]['main']['reads']
     output:
-        "preprocessing/{name}.fastq"
+        "preprocessing/{sample}.fastq"
     shell:
         "gunzip -ck {input} > {output}"

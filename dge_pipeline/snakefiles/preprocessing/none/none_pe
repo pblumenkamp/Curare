@@ -2,21 +2,20 @@ from os import listdir
 from os.path import isfile, dirname
 
 def getPath(file_name):
-    for seqRun in config['entries'].values():
-        if os.path.basename(seqRun['main']['forward_reads']) == file_name:
-            return seqRun['main']['forward_reads']
-    for seqRun in config['entries'].values():
-        if os.path.basename(seqRun['main']['reverse_reads']) == file_name:
-            return seqRun['main']['reverse_reads']
-    print('Cannot find {} in groups file'.format(file_name))
+    if file_name.endswith('_R1'):
+        return config['entries'][file_name[:-3]]['main']['forward_reads']
+    elif file_name.endswith('_R2'):
+        return config['entries'][file_name[:-3]]['main']['reverse_reads']
+    else:
+        print('Cannot find {} in groups file'.format(file_name), file=sys.stderr)
 
 localrules: none__create_symlink
 
 rule create_symlink:
     input:
-        lambda wildcards: getPath(wildcards.name)
+        lambda wildcards: getPath(wildcards.sample)
     output:
-        "preprocessing/{name}"
+        "preprocessing/{sample}.fastq"
     threads:
         1
     shell:

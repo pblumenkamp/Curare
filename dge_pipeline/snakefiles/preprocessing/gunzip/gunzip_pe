@@ -3,20 +3,19 @@ from os.path import isfile, splitext
 import sys
 
 def getPath(file_name):
-    for seqRun in config['entries'].values():
-        if os.path.basename(seqRun['main']['forward_reads']) == file_name:
-            return seqRun['main']['forward_reads']
-    for seqRun in config['entries'].values():
-        if os.path.basename(seqRun['main']['reverse_reads']) == file_name:
-            return seqRun['main']['reverse_reads']
-    print('Cannot find {} in groups file'.format(file_name), file=sys.stderr)
+    if file_name.endswith('_R1'):
+        return config['entries'][file_name[:-3]]['main']['forward_reads']
+    elif file_name.endswith('_R2'):
+        return config['entries'][file_name[:-3]]['main']['reverse_reads']
+    else:
+        print('Cannot find {} in groups file'.format(file_name), file=sys.stderr)
 
 localrules: gunzip__extract
 
 rule extract:
     input:
-        lambda wildcards: getPath(wildcards.name + '.fastq.gz')
+        lambda wildcards: getPath(wildcards.sample)
     output:
-        "preprocessing/{name}.fastq"
+        "preprocessing/{sample}.fastq"
     shell:
         "gunzip -ck {input} > {output}"

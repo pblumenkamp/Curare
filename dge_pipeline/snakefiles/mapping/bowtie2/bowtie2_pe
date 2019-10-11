@@ -68,14 +68,14 @@ rule bowtie2_mapping:
     input:
         genome="%%GENOME_FASTA%%",
 	    genome_index=splitext("%%GENOME_FASTA%%")[0] + ".1.bt2",
-	    reads=lambda wildcards: os.path.join('preprocessing', os.path.basename(config['entries'][wildcards.name]['main']['forward_reads'])).strip('.gz'),
-	    reads_reverse=lambda wildcards: os.path.join('preprocessing', os.path.basename(config['entries'][wildcards.name]['main']['reverse_reads'])).strip('.gz')
+	    reads="preprocessing/{sample}_R1.fastq",
+	    reads_reverse="preprocessing/{sample}_R2.fastq"
     output:
-        temp("mapping/sam/{name}.sam")
+        temp("mapping/sam/{sample}.sam")
     group:
         "bowtie2_mapping"
     log:
-        "mapping/logs/bowtie2_mapping.{name}.log"
+        "mapping/logs/bowtie2_mapping.{sample}.log"
     threads:
         2
     shell:
