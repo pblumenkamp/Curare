@@ -1,0 +1,10 @@
+channels:
+  - conda-forge
+  - bioconda
+  - anaconda
+  - defaults
+dependencies:
+  - subread>=1.6.1
+  - pandas>=0.23
+  - xlsxwriter>=1.0.5
+  - python>=3.6
