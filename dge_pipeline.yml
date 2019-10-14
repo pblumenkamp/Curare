@@ -5,11 +5,12 @@ channels:
 - anaconda
 - defaults
 dependencies:
+- trim-galore
 - bowtie2=2.3.4.1
 - bwa>=0.7.17
+#- segemehl>=0.3.4
 - samtools>=1.8
 - ncurses
-- snakemake>=5
 - subread>=1.6.1
 - python>=3.6
 - yaml>=0.1.7
@@ -17,8 +18,7 @@ dependencies:
 - multiqc>=1.5
 - pandas>=0.23
 - xlsxwriter>=1.0.5
-- trim-galore
-- segemehl
+- snakemake>=5
   #- bioconductor-deseq2
   #- r-ggplot2
   #- r-reshape
