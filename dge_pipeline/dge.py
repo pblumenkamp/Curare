@@ -421,42 +421,6 @@ def parse_arguments():
         args["--cluster-config-file"] = Path(args["--cluster-config-file"]).resolve()
     return args
 
-
-# def parse_arguments() -> argparse.Namespace:
-#     parser = argparse.ArgumentParser(prog=metadata.__program_name__, add_help=False)
-#
-#     required = parser.add_argument_group('Required arguments')
-#     required.add_argument('--groups', dest='groups_file', required=True)
-#     required.add_argument('--config', dest='config_file', required=True)
-#     required.add_argument('--output', dest='output_folder', required=True)
-#
-#     other = parser.add_argument_group('Other arguments')
-#     other.add_argument('--cluster-command', dest='cluster_command', default=None, type=str,
-#                        help="Command for cluster execution. , e.g. 'qsub'. For resource requests use also --cluster-config")
-#     other.add_argument('--cluster-config-file', dest='cluster_config_file', default=None, type=str,
-#                        help="Path to cluster config file. "
-#                             "See also: https://snakemake.readthedocs.io/en/stable/snakefiles/configuration.html#cluster-configuration")
-#     other.add_argument('-t', '--cores', dest='cores', default=1, type=int,
-#                        help="Number of threads/cores [Default: 1]. Defines locales cores in cluster mode")
-#     other.add_argument('--cluster-nodes', dest='cluster_nodes', default=1, type=int,
-#                        help="Maximal number of parallel jobs send to the cluster [Default: 1]. Only used in cluster mode is used.")
-#     other.add_argument('--latency-wait', dest='latency', default=3, type=int,
-#                        help="Seconds to wait before checking if all files of a rule were created [Default: 3]. Should be increased if using cluster mode.")
-#     other.add_argument('-v', '--version', action='version', version='%(prog)s \nVersion: {}'.format(metadata.__version__),
-#                        help="Show program's version number and exit")
-#     other.add_argument('--verbose', dest='verbose', action="store_true", help="Print debugging output")
-#     other.add_argument('-h', '--help', action="help", help="Show this help message and exit")
-#
-#     args = parser.parse_args()
-#     args.groups_file = Path(args.groups_file).resolve()
-#     args.output_folder = Path(args.output_folder)
-#     args.config_file = Path(args.config_file).resolve()
-#     if args.cluster_config_file is not None:
-#         args.cluster_config_file = Path(args.cluster_config_file).resolve()
-#
-#     return args
-
-
 class Module:
     """Structure class for used modules
 
