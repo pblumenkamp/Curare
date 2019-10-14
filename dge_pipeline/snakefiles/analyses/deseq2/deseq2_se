@@ -18,6 +18,8 @@ rule summary_tsv_to_xslx:
         'analyses/deseq2/summary/{COND}.tsv'
     output:
         'analyses/deseq2/summary/{COND}.xlsx'
+    conda:
+        "../lib/conda_env.yaml"
     params:
         number_conditions = len(getConditions())-1
     group:
@@ -32,6 +34,8 @@ rule count_reads:
     output:
         counts = "analyses/deseq2/counts.txt",
         summary = "analyses/deseq2/counts.txt.summary"
+    conda:
+        "../lib/conda_env.yaml"
     group:
         "count_reads"
     threads:
@@ -62,6 +66,8 @@ rule deseq2:
         assignment_statistics="analyses/deseq2/counts_assignment.pdf",
         summary=expand('analyses/deseq2/summary/{COND}.tsv', COND=getConditions()),
         comparisons=directory("analyses/deseq2/deseq2_comparisons")
+    conda:
+        "../lib/conda_env.yaml"
     group:
         "deseq2"
     params:

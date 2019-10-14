@@ -11,6 +11,8 @@ rule fastqc:
     output:
         "premapping/multiqc/fastqc/{A}_fastqc.html",
         "premapping/multiqc/fastqc/{A}_fastqc.zip"
+    conda:
+        "../lib/conda_env.yaml"
     group:
         "multiqc"
     threads:
@@ -23,6 +25,8 @@ rule multiqc:
         expand("premapping/multiqc/fastqc/{A}_fastqc.html", A=[splitext(basename(seqRun['main']['reads']))[0] for seqRun in config['entries'].values()])
     output:
         "premapping/multiqc/multiqc_report.html"
+    conda:
+        "../lib/conda_env.yaml"
     params:
         input_dir="premapping/multiqc/fastqc"
     group:
