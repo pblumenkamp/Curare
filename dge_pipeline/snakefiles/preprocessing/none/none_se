@@ -1,19 +1,13 @@
 from os import listdir
 from os.path import isfile, dirname
 
-def getPath(file_name):
-    for seqRun in config['entries'].values():
-            if os.path.basename(seqRun['main']['reads']) == file_name:
-                return seqRun['main']['reads']
-    print('Cannot find {} in groups file'.format(file_name))
-
 localrules: none__create_symlink
 
 rule create_symlink:
     input:
-        lambda wildcards: getPath(wildcards.name)
+        lambda wildcards: config['entries'][wildcards.sample]['main']['reads']
     output:
-        "preprocessing/{name}"
+        "preprocessing/{sample}.fastq"
     threads:
         1
     shell:

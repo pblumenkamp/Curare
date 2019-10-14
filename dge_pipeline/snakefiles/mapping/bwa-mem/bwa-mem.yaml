@@ -10,6 +10,7 @@ optional_settings:
   additional_bwa_options:
     description: "Additional options to use in shell command"
     type: "string"
+    default: ''
 
 
 single_end:

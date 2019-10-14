@@ -1,0 +1,49 @@
+from os import listdir
+from os.path import isfile, dirname, basename, relpath
+
+def getFilePath(sample_name, forward=True):
+    if forward:
+        path = config['entries'][sample_name]['main']['forward_reads']
+    else:
+        path = config['entries'][sample_name]['main']['reverse_reads']
+    return path
+
+rule all:
+    input:
+        "mapping/stats/mapping_stats.xlsx",
+        expand("mapping/{A}.bam", A=sorted(config['entries'].keys()))
+
+rule trimgalore:
+    input:
+        reads_forward=lambda wildcard: getFilePath(wildcard.sample, True),
+        reads_reverse=lambda wildcard: getFilePath(wildcard.sample, False)
+    output:
+        reads_forward="preprocessing/trim_galore/{sample}_val_1.fq",
+        reads_reverse="preprocessing/trim_galore/{sample}_val_2.fq"
+    params:
+        output_dir="preprocessing/trim_galore/"
+    group:
+        "trim_galore"
+    log:
+        "preprocessing/trim_galore/trimming_stats/{sample}.txt"
+    threads:
+        4
+    shell:
+        "trim_galore %%ADDITIONAL_PARAMETER%% --paired --retain_unpaired --quality %%QUALITY_THRESHOLD%% %%PHRED_SCORE_TYPE%% --length %%MIN_LENGTH%% --adapter %%ADAPTER_FORWARD%% "
+        "--adapter2 %%ADAPTER_REVERSE%% --cores {threads} --basename {wildcards.sample} --dont_gzip --output_dir {params.output_dir} {input.reads_forward} {input.reads_reverse} 2>&1 |"
+        "tee {log} && "
+        "if [[ -f \"preprocessing/trim_galore/{wildcards.sample}_R1_val_1.fq\" ]]; then mv \"preprocessing/trim_galore/{wildcards.sample}_R1_val_1.fq\" \"preprocessing/trim_galore/{wildcards.sample}_val_1.fq\"; fi && "
+        "if [[ -f \"preprocessing/trim_galore/{wildcards.sample}_R2_val_2.fq\" ]]; then mv \"preprocessing/trim_galore/{wildcards.sample}_R2_val_2.fq\" \"preprocessing/trim_galore/{wildcards.sample}_val_2.fq\"; fi;"
+
+rule collect_paired_reads:
+    input:
+        reads_forward=lambda wildcards: os.path.join('preprocessing', 'trim_galore', wildcards.sample + "_val_1.fq"),
+        reads_reverse=lambda wildcards: os.path.join('preprocessing', 'trim_galore', wildcards.sample + "_val_2.fq")
+    output:
+        reads_forward="preprocessing/{sample, [^/]*}_R1.fastq",
+        reads_reverse="preprocessing/{sample, [^/]*}_R2.fastq"
+    params:
+        symlink_path_forward=lambda wildcard, input, output: os.path.relpath(input.reads_forward, os.path.dirname(output.reads_forward)),
+        symlink_path_reverse=lambda wildcard, input, output: os.path.relpath(input.reads_reverse, os.path.dirname(output.reads_reverse))
+    shell:
+        "ln -s {params.symlink_path_forward} {output.reads_forward} && ln -s {params.symlink_path_reverse} {output.reads_reverse}"

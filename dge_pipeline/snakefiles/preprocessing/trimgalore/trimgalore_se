@@ -1,0 +1,46 @@
+from os import listdir
+from os.path import isfile, dirname
+
+def getSampleName(file_name):
+    for sample_name, seqRun in config['entries'].items():
+        if file_name in os.path.basename(seqRun['main']['reads']):
+            return sample_name
+    print('Cannot find {} in groups file'.format(file_name))
+
+def getSymlinkPath(file_name, basedir):
+    return (os.path.join(basedir, "{sample_name}_trimmed.fq".format(sample_name=getSampleName(file_name))))
+
+rule all:
+    input:
+        "mapping/stats/mapping_stats.xlsx",
+        expand("mapping/{A}.bam", A=sorted(config['entries'].keys()))
+
+
+rule trimgalore:
+    input:
+        reads=lambda wildcard: config['entries'][wildcard.sample]['main']['reads']
+    output:
+        trim_galore_stats="preprocessing/trim_galore/trimming_stats/{sample}.txt"
+    params:
+        output_dir="preprocessing/trim_galore/"
+    group:
+        "trim_galore"
+    log:
+        "preprocessing/trim_galore/trimming_stats/{sample}.txt"
+    threads:
+        4
+    shell:
+        "trim_galore %%ADDITIONAL_PARAMETER%% --quality %%QUALITY_THRESHOLD%% %%PHRED_SCORE_TYPE%% --length %%MIN_LENGTH%% --adapter %%ADAPTER%% "
+        "--cores {threads} --dont_gzip --basename {wildcards.sample} --output_dir {params.output_dir} {input.reads} 2>&1 |"
+        "tee {log}"
+
+
+rule collect_paired_reads:
+    input:
+        trim_galore_stats=lambda wildcard: os.path.join("preprocessing", "trim_galore", "trimming_stats", getSampleName(wildcard.file) + ".txt")
+    output:
+        "preprocessing/{file}.fastq"
+    params:
+        symlink_path=lambda wildcard: getSymlinkPath(wildcard.file, os.path.join("trim_galore"))
+    shell:
+        "ln -s {params.symlink_path} {output}"

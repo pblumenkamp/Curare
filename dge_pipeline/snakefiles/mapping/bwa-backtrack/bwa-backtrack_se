@@ -89,13 +89,13 @@ rule bwa_backtrack_align:
     input:
         genome="%%GENOME_FASTA%%",
         genome_index=expand("%%GENOME_FASTA%%.{SUFFIX}", SUFFIX=["amb", "ann", "bwt", "pac", "sa"]),
-        reads=lambda wildcards: os.path.join('preprocessing', os.path.basename(config['entries'][wildcards.name]['main']['reads'])).strip('.gz')
+        reads="preprocessing/{sample}.fastq"
     output:
-        temp("mapping/sam/{name}.sai")
+        temp("mapping/sam/{sample}.sai")
     group:
         "bwa_mapping"
     log:
-        "mapping/logs/bwa_mem_mapping.{name}.log"
+        "mapping/logs/bwa_mem_mapping.{sample}.log"
     threads:
         1
     shell:
@@ -107,14 +107,14 @@ rule bwa_backtrack_samse:
     input:
         genome="%%GENOME_FASTA%%",
         genome_index=expand("%%GENOME_FASTA%%.{SUFFIX}", SUFFIX=["amb", "ann", "bwt", "pac", "sa"]),
-        reads=lambda wildcards: os.path.join('preprocessing', os.path.basename(config['entries'][wildcards.name]['main']['reads'])).strip('.gz'),
-        sai="mapping/sam/{name}.sai"
+        reads="preprocessing/{sample}.fastq",
+        sai="mapping/sam/{sample}.sai"
     output:
-        temp("mapping/sam/{name}.sam")
+        temp("mapping/sam/{sample}.sam")
     group:
         "bwa_mapping"
     log:
-        "mapping/logs/bwa_mem_mapping.{name}.log"
+        "mapping/logs/bwa_mem_mapping.{sample}.log"
     threads:
         1
     shell:

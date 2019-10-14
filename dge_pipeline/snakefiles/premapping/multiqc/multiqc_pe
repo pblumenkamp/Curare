@@ -7,10 +7,10 @@ rule all:
 
 rule fastqc:
     input:
-        "preprocessing/{A}.fastq"
+        "preprocessing/{sample}.fastq"
     output:
-        "premapping/multiqc/fastqc/{A}_fastqc.html",
-        "premapping/multiqc/fastqc/{A}_fastqc.zip"
+        "premapping/multiqc/fastqc/{sample}_fastqc.html",
+        "premapping/multiqc/fastqc/{sample}_fastqc.zip"
     group:
         "multiqc"
     threads:
@@ -20,7 +20,7 @@ rule fastqc:
 
 rule multiqc:
     input:
-        expand("premapping/multiqc/fastqc/{A}_fastqc.html", A=[splitext(basename(seqRun['main'][column_name]))[0] for seqRun in config['entries'].values() for column_name in seqRun['main'].keys() if column_name in ('forward_reads', 'reverse_reads')])
+        expand("premapping/multiqc/fastqc/{SAMPLE}_R{DIRECTION}_fastqc.html", SAMPLE=config['entries'].keys(), DIRECTION=[1,2])
     output:
         "premapping/multiqc/multiqc_report.html"
     params:
