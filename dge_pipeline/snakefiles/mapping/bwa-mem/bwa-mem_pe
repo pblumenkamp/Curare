@@ -95,6 +95,8 @@ rule samtools_flagstat:
         "mapping/sam/{name}.sam"
     output:
         "mapping/statistics/{name}_flagstat.txt"
+    conda:
+        "../lib/conda_env.yaml"
     group:
         "bwa_mapping"
     shell:
@@ -106,6 +108,8 @@ rule bwa_index:
         genome="%%GENOME_FASTA%%"
     output:
         expand("%%GENOME_FASTA%%.{SUFFIX}", SUFFIX=["amb", "ann", "bwt", "pac", "sa"])
+    conda:
+        "../lib/conda_env.yaml"
     group:
         "bwa_index"
     log:
@@ -122,6 +126,8 @@ rule bwa_mem_mapping:
 	    reads_reverse=lambda wildcards: os.path.join('preprocessing', os.path.basename(config['entries'][wildcards.name]['main']['reverse_reads'])).strip('.gz')
     output:
         temp("mapping/sam/{name}.sam")
+    conda:
+        "../lib/conda_env.yaml"
     group:
         "bwa_mapping"
     log:
@@ -140,6 +146,8 @@ rule sam_to_bam:
         bam="mapping/{sample}.bam",
         bai="mapping/{sample}.bam.bai",
         bam_unmapped="mapping/unmapped/{sample}_unmapped.bam"
+    conda:
+        "../lib/conda_env.yaml"
     group:
         "bwa_mapping"
     threads:
