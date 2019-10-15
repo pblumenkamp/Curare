@@ -4,4 +4,4 @@ channels:
   - anaconda
   - defaults
 dependencies:
-  - subread>=1.6.1
+  - subread>=1.6

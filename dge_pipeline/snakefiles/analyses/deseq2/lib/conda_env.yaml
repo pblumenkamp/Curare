@@ -4,7 +4,11 @@ channels:
   - anaconda
   - defaults
 dependencies:
-  - subread>=1.6.1
-  - pandas>=0.23
-  - xlsxwriter>=1.0.5
-  - python>=3.6
+  - subread>=1.6
+  #- pandas>=0.23
+  #- xlsxwriter>=1.0.5
+  - bioconductor-deseq2
+  - r-ggplot2
+  - r-reshape
+  - r-pheatmap
+  - r-gplots

@@ -4,8 +4,7 @@ channels:
   - anaconda
   - defaults
 dependencies:
-  - bowtie2=2.3.4.1
+  - bowtie2>=2.3
   - samtools>=1.8
   - pandas>=0.23
   - xlsxwriter>=1.0.5
-  - python>=3.6
