@@ -1,4 +1,5 @@
 name: "none"
+label: "None"
 
 single_end:
   snakefile: "none_se"

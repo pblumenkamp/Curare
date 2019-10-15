@@ -1,4 +1,5 @@
 name: 'gunzip'
+label: 'Gunzip'
 
 single_end:
   snakefile: "gunzip_se"

@@ -1,4 +1,5 @@
 name: "fastqc"
+Label: "FastQC"
 
 single_end:
   snakefile: "fastqc_se"

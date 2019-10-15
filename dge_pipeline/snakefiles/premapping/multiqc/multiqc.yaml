@@ -1,4 +1,5 @@
 name: "multiqc"
+label: "MultiQC"
 
 single_end:
   snakefile: "multiqc_se"

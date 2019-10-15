@@ -1,25 +1,30 @@
 name: count_table
+label: "Count Table"
 
 required_settings:
 
   gff_feature_type:
-    description: Used feature type, e.g. gene or exon
-    type: string
+    label: "GFF Feature Type"
+    description: "Used feature type, e.g. gene or exon"
+    type: "string"
 
   gff_feature_name:
-    description: Descriptor for gene name, e.g. ID or gene_id
-    type: string
+    label: "GFF Feature Name"
+    description: "Descriptor for gene name, e.g. ID or gene_id"
+    type: "string"
 
   gff_path:
-    description: File path to gff file
-    type: file
+    label: "GFF File Path"
+    description: "File path to gff file"
+    type: "file"
 
 
 optional_settings:
 
   additional_options:
-    description: Additional options to use in shell command
-    type: string
+    label: "Additional FeatureCounts Options"
+    description: "Additional options to use in shell command"
+    type: "string"
     default: ''
 
 

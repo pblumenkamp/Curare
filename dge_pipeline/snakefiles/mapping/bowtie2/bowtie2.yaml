@@ -1,12 +1,15 @@
 name: 'bowtie2'
+label: 'Bowtie2'
 
 required_settings:
 
   genome_fasta:
-    description: 'Path to genome fasta file'
+    label: 'Reference Genome'
+    description: 'Path to reference genome fasta file'
     type: 'file'
 
   alignment_type:
+    label: 'Alignment Type'
     description: 'Choose local or end-to-end alignment'
     type: 'enum'
     choices:
@@ -15,6 +18,7 @@ required_settings:
 
 optional_settings:
   additional_bowtie2_options:
+    label: 'Additional Bowtie2 Options'
     description: "Additional options to use in shell command"
     type: "string"
     default: ''

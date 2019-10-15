@@ -1,13 +1,16 @@
-name: readxplorer
+name: "readxplorer"
+label: "ReadXplorer"
 
 required_settings:
 
   readxplorer_cli_path:
-    description: Path to ReadXplorer-CLI execution path
+    label: "ReadXplorer CLI Path"
+    description: "Path to ReadXplorer CLI executable"
     type: file
 
   reference_genome:
-    description: Path to reference genome to use
+    label: "Reference Genome"
+    description: "Path to reference genome sequence"
     type: file
 
 single_end:
