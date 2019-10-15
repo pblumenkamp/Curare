@@ -1,11 +1,11 @@
 """
-DGE pipeline generator.
+Customizable and Reproducible Analysis Pipeline for RNA-Seq Experiments (CURARE).
 
 Usage:
-    dge.py start --groups <groups_file> --config <config_file> --output <output_folder>
+    curare.py start --groups <groups_file> --config <config_file> --output <output_folder>
                  [--cluster-command <cluster_command>] [--cluster-config-file <config_file>] [--cluster-nodes <nodes>]
                  [--cores <cores>] [--latency-wait <seconds>] [--verbose]
-    dge.py (--version | --help)
+    curare.py (--version | --help)
 
 Options:
     -h --help               Show this help message and exit
