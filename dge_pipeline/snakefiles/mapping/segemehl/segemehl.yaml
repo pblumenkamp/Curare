@@ -1,0 +1,31 @@
+name: 'segemehl'
+label: 'Segemehl'
+
+required_settings:
+
+  genome_fasta:
+    label: 'Reference Genome'
+    description: 'Path to reference genome fasta file'
+    type: 'file'
+
+#  alignment_type:
+#    label: 'Alignment Type'
+#    description: 'Choose local or end-to-end alignment'
+#    type: 'enum'
+#    choices:
+#      local: '--very-sensitive-local'
+#      end-to-end: '--very-sensitive'
+
+optional_settings:
+  additional_segemehl_options:
+    label: 'Additional Segemehl Options'
+    description: "Additional options to use in shell command"
+    type: "string"
+    default: ''
+
+
+single_end:
+  snakefile: 'segemehl_se'
+
+paired_end:
+  snakefile: 'segemehl_pe'
