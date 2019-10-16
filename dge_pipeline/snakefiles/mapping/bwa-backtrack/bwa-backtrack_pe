@@ -167,13 +167,9 @@ rule bwa_backtrack_samse:
         sai="mapping/sam/{sample}.forward.sai",
         sai_reverse="mapping/sam/{sample}.reverse.sai"
     output:
-<<<<<<< HEAD
         temp("mapping/sam/{sample}.sam")
-=======
-        temp("mapping/sam/{name}.sam")
     conda:
         "../lib/conda_env.yaml"
->>>>>>> conda_integration
     group:
         "bwa_mapping"
     log:
