@@ -12,6 +12,8 @@ rule mapping_stats_xlsx:
         "mapping/stats/mapping_stats.tsv"
     output:
         "mapping/stats/mapping_stats.xlsx"
+    conda:
+        "../lib/conda_env.yaml"
     group:
         "bowtie2_statistics"
     shell:
@@ -46,6 +48,8 @@ rule bowtie2_index:
         genome="%%GENOME_FASTA%%"
     output:
         splitext("%%GENOME_FASTA%%")[0] + ".1.bt2"
+    conda:
+        "../lib/conda_env.yaml"
     group:
         "bowtie2_index"
     log:
@@ -66,6 +70,8 @@ rule bowtie2_mapping:
         reads="preprocessing/{name}.fastq"
     output:
         temp("mapping/sam/{name}.sam")
+    conda:
+        "../lib/conda_env.yaml"
     group:
         "bowtie2_mapping"
     log:
@@ -84,6 +90,8 @@ rule sam_to_bam:
         bam="mapping/{sample}.bam",
         bai="mapping/{sample}.bam.bai",
         bam_unmapped="mapping/unmapped/{sample}_unmapped.bam"
+    conda:
+        "../lib/conda_env.yaml"
     group:
         "bowtie2_mapping"
     threads:

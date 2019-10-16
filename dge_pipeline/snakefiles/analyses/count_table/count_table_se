@@ -10,6 +10,8 @@ rule count_reads:
         expand("mapping/{A}.bam", A=config['entries'].keys())
     output:
         "analyses/count_table/counts.txt"
+    conda:
+        "../lib/conda_env.yaml"
     group:
         "count_reads"
     log:

@@ -11,6 +11,8 @@ rule fastqc:
     output:
         "premapping/fastqc/{sample}_fastqc.html",
         "premapping/fastqc/{sample}_fastqc.zip"
+    conda:
+        "../lib/conda_env.yaml"
     group:
         "fastqc"
     threads:

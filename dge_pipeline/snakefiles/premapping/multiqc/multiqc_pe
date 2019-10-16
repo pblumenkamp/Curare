@@ -11,6 +11,8 @@ rule fastqc:
     output:
         "premapping/multiqc/fastqc/{sample}_fastqc.html",
         "premapping/multiqc/fastqc/{sample}_fastqc.zip"
+    conda:
+        "../lib/conda_env.yaml"
     group:
         "multiqc"
     threads:
@@ -23,6 +25,8 @@ rule multiqc:
         expand("premapping/multiqc/fastqc/{SAMPLE}_R{DIRECTION}_fastqc.html", SAMPLE=config['entries'].keys(), DIRECTION=[1,2])
     output:
         "premapping/multiqc/multiqc_report.html"
+    conda:
+        "../lib/conda_env.yaml"
     params:
         input_dir="premapping/multiqc/fastqc"
     group:
