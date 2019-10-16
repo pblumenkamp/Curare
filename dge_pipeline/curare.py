@@ -26,7 +26,6 @@ Options:
 """
 
 
-import argparse
 import errno
 import filecmp
 import math
