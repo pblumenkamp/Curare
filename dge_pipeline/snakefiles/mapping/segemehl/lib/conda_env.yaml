@@ -6,3 +6,5 @@ channels:
 dependencies:
   - segemehl>=0.3.4
   - samtools>=1.8
+  - pandas>=0.23
+  - xlsxwriter>=1.0.5

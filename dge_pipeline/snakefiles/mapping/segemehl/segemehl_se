@@ -12,6 +12,8 @@ rule mapping_stats_xlsx:
         "mapping/stats/mapping_stats.tsv"
     output:
         "mapping/stats/mapping_stats.xlsx"
+    conda:
+        "../lib/conda_env.yaml"
     group:
         "segemehl_statistics"
     shell:
@@ -33,7 +35,8 @@ rule mapping_stats_tsv:
             sample=${{sample%*.log}};
             sample=${{sample#segemehl_mapping.}};
             sed '24q;d' $i | \
-            sed -r -e "s/^(all)(.*)/$sample \(\\1\\)\\2/" >> {output}
+            sed -r -e "s/^(all)(.*)/$sample \(\\1\\)\\2/" \
+            -e "s/%//g" >> {output}
         done;
         """
 
