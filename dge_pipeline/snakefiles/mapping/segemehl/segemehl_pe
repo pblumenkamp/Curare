@@ -27,19 +27,15 @@ rule mapping_stats_tsv:
         "segemehl_statistics"
     shell:
         """
-        echo "sample	reads	reads[%]	aligned_conc_0_times	aligned_conc_0_times[%]	aligned_conc_1_time	aligned_conc_1_time[%]	aligned_conc_more_than_1_times	aligned_conc_more_than_1_times[%]		aligned_disconc_1_time	aligned_disconc_1_time[%]		pairs_aligned_0_times_conc_or_disconc	in_mates	mates_aligned_0_times	mates_aligned_0_times[%]	mates_aligned_1_time	mates_aligned_1_time[%]	mates_aligned_more_than_1_times	mates_aligned_more_than_1_times[%]	overall_alignment_rate" > {output}
+        echo "sample\ttotal\tmapped\t(%)\tunique\t(%)\tmulti\t(%)\tsplit\t(%)"  > {output}
         for i in {input}; do
             sample=$(basename $i);
             sample=${{sample%*.log}};
             sample=${{sample#segemehl_mapping.}};
-            echo -n $sample"	" >> {output};
-            tail -n+2 $i | \
-            sed -e '6d' -e 's/^[^0-9]*\([0-9]\{{1,\}}\) (\([0-9.]\{{1,\}}\)%).*/\\1\t\\2/' \
-            -e 's/^[^0-9]*\([0-9]\{{1,\}}\) pairs.*/\\1/' \
-            -e 's/^\(.*\)%.*$/\\1/' -e 's/^[^0-9]*\([0-9]\{{1,\}}\) mates.*/\\1/' -e 's/^.*----.*$//' | \
-            tr '\n' '\t' | \
-            sed -e 's/\t$//' >> {output}
-            echo >> {output};
+            tail -n 5 $i | \
+            head -n 2 | \
+            sed -r -e "s/^(all)(.*)/$sample \(\\1\\)\\2/" \
+            -e "s/^(pair)(.*)/$sample \(\\1\\)\\2/" >> {output}
         done;
         """
 
@@ -65,20 +61,20 @@ rule segemehl_mapping:
         genome="%%GENOME_FASTA%%",
         genome_index=splitext("%%GENOME_FASTA%%")[0] + ".idx",
         reads="preprocessing/{sample}_R1.fastq",
-	    reads_reverse="preprocessing/{sample}_R2.fastq"
-	output:
-	    temp("mapping/sam/{sample}.sam")
-	conda:
-	    "../lib/conda_env.yaml"
-	group:
-	    "segemehl_mapping"
-	log:
-	    "mapping/logs/segemehl_mapping.{sample}.log"
-	threads:
-	    2
-	shell:
-	    "segemehl.x -t {threads} -o {output} -i {input.genome_index} -d {input.genome} -q {input.reads} -p {input.reads_reverse} 2>&1 |"
-	    "tee {log}"
+        reads_reverse="preprocessing/{sample}_R2.fastq"
+    output:
+        temp("mapping/sam/{sample}.sam")
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "segemehl_mapping"
+    log:
+        "mapping/logs/segemehl_mapping.{sample}.log"
+    threads:
+        2
+    shell:
+        "segemehl.x -t {threads} -o {output} -i {input.genome_index} -d {input.genome} -q {input.reads} -p {input.reads_reverse} 2>&1 |"
+        "tee {log}"
 
 
 rule index_bam:
