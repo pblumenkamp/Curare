@@ -29,14 +29,21 @@ rule mapping_stats_tsv:
         "segemehl_statistics"
     shell:
         """
-        echo "sample\ttotal\tmapped\t(%)\tunique\t(%)\tmulti\t(%)\tsplit\t(%)"  > {output}
+        echo "sample\ttotal\tunmapped\t(%)\tunique\t(%)\tmulti\t(%)\tsplit\t(%)"  > {output}
         for i in {input}; do
             sample=$(basename $i);
             sample=${{sample%*.log}};
             sample=${{sample#segemehl_mapping.}};
             sed '24q;d' $i | \
             sed -r -e "s/^(all)(.*)/$sample \(\\1\\)\\2/" \
-            -e "s/%//g" >> {output}
+            -e "s/%//g" |
+            awk -F'\t' '
+                BEGIN {{ OFS = FS }}
+                {{
+                    $3 = $2 - $3
+                    $4 = sprintf("%.2f", 100 / $2 * $3)
+                    print $0
+                }}' >> {output}
         done;
         """
 
