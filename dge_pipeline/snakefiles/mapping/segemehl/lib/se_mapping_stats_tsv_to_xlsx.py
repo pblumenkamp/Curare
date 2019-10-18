@@ -73,10 +73,10 @@ def main():
     worksheet.write(5, columns + 2, "bad", super_bad)
 
     # conditional formatting
-    worksheet.conditional_format(1, columns, rows - 1, columns, format_w2c(max_color='#FFFFFF', min_color="#FF0000"))
-    worksheet.conditional_format(1, columns - 1, rows - 1, columns - 1, format_w2c(min_color='#FFFFFF', max_color="#FF0000"))
-    worksheet.conditional_format(1, columns - 3, rows - 1, columns - 3, format_w2c(max_color='#FFFFFF', min_color="#FF0000"))
-    worksheet.conditional_format(1, columns - 5, rows - 1, columns - 5, format_w2c(min_color='#FFFFFF', max_color="#FF0000"))
+    worksheet.conditional_format(1, columns, rows - 1, columns, format_w2c(min_color='#FFFFFF', max_color="#FF0000"))
+    worksheet.conditional_format(1, columns - 2, rows - 1, columns - 2, format_w2c(min_color='#FFFFFF', max_color="#FF0000"))
+    worksheet.conditional_format(1, columns - 4, rows - 1, columns - 4, format_w2c(max_color='#FFFFFF', min_color="#FF0000"))
+    worksheet.conditional_format(1, columns - 6, rows - 1, columns - 6, format_w2c(min_color='#FFFFFF', max_color="#FF0000"))
     worksheet.conditional_format(1, columns - 8, rows - 1, columns - 8, {'type': 'data_bar', 'bar_color': "#BBCFDA", 'bar_solid': True})
 
     writer.save()
