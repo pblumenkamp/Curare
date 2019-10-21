@@ -10,6 +10,16 @@ required_settings:
 
 
 optional_settings:
+  accuracy:
+    label : 'Accuracy'
+    description: 'All reads with a best alignment below this threshold (in percent) will be discarded.'
+    type: 'number'
+    number_type: 'float'
+    default: '0.8'
+    range:
+      min: 0.0
+      max: 1.0
+
   additional_segemehl_options:
     label: 'Additional Segemehl Options'
     description: "Additional options to use in shell command"
