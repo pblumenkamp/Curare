@@ -4,7 +4,7 @@ import pandas as pd
 
 
 def get_col_widths(df):
-    return [max(y) for y in [[len(col)] + [len(x) for x in df[col]] for col in df.columns]]
+    return [max(y) for y in [[len(col) if col is not None else 0] + [len(x) for x in df[col] if x is not None] for col in df.columns]]
 
 
 # function for lazy programmers. Only works for cells with values between 0 and 100: make a format white 2 black. You can change the colors (see below)

@@ -24,12 +24,13 @@ rule mapping_stats_tsv:
     input:
         expand("mapping/logs/segemehl_mapping.{name}.log", name=config['entries'].keys())
     output:
-        "mapping/stats/mapping_stats.tsv"
+        tsv="mapping/stats/mapping_stats.tsv",
+        tmp=temp("mapping/stats/mapping_stats.tsv.tmp")
     group:
         "segemehl_statistics"
     shell:
         """
-        echo "sample\ttotal\tunmapped\t(%)\tunique\t(%)\tmulti\t(%)\tsplit\t(%)"  > {output}
+        echo "sample\ttotal\tunmapped\t(%)\tunique\t(%)\tmulti\t(%)\tsplit\t(%)"  > {output.tmp}
         for i in {input}; do
             sample=$(basename $i);
             sample=${{sample%*.log}};
@@ -45,8 +46,15 @@ rule mapping_stats_tsv:
                     $3 = $2 - $3
                     $4 = sprintf("%.2f", 100 / $2 * $3)
                     print $0
-                }}' >> {output}
+                }}' >> {output.tmp}
         done;
+        awk '
+            BEGIN {{ delay = "" }}
+            NR == 1 {{ print $0 }}
+            /.*\(all\).*/ {{ print $0 }}
+            /.*\(pair\).*/ {{ delay = delay$0"\\n" }}
+            END {{ print "\\n\\n"delay }}' {output.tmp} | \
+        sed -e 's/\\n$//' > {output.tsv}
         """
 
 
