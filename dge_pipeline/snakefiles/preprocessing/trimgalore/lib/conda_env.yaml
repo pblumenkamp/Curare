@@ -1,0 +1,8 @@
+# module: trim-galore
+channels:
+  - conda-forge
+  - bioconda
+  - anaconda
+  - defaults
+dependencies:
+  - trim-galore
