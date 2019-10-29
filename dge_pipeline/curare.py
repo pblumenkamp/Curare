@@ -39,6 +39,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple, Any
 from snakemake import snakemake
 from docopt import docopt
+from distutils.dir_util import copy_tree
 
 import metadata
 
@@ -53,7 +54,7 @@ def main():
     validate_argsfiles(args["--groups"], args["--config"])
     groups = parse_groups_file(args["--groups"], used_modules, paired_end)
     create_output_directory(args["--output"])
-    snakefile = create_snakefile(args["--output"], groups, used_modules)
+    snakefile = create_snakefile(args["--output"], groups, used_modules, args["--use-conda"])
     if not snakemake(str(snakefile), cores=int(args["--cores"]), local_cores=int(args["--cores"]), nodes=int(args["--cluster-nodes"]), workdir=str(args["--output"]),
                      verbose=args["--verbose"], printshellcmds=True, cluster=args["--cluster-command"],
                      cluster_config=str(args["--cluster-config-file"]) if args["--cluster-config-file"] is not None else None,
@@ -340,7 +341,7 @@ def create_output_directory(output_path: Path):
         raise NotADirectoryError(filename=snakefiles_target_directory)
 
 
-def create_snakefile(output_folder: Path, groups: Dict[str, Dict[str, Dict[str, Any]]], modules: Dict[str, List['Module']]) -> Path:
+def create_snakefile(output_folder: Path, groups: Dict[str, Dict[str, Dict[str, Any]]], modules: Dict[str, List['Module']], use_conda: bool) -> Path:
     config_file = create_snakemake_config_file(output_folder, groups)
     # find every rule name
     re_rule_name = re.compile('^rule (?P<rule_name>.*):$', re.MULTILINE)
@@ -386,6 +387,23 @@ def create_snakefile(output_folder: Path, groups: Dict[str, Dict[str, Dict[str, 
         for module in [module for (category, module_list) in modules.items() for module in module_list if
                        category in ('premapping', 'analyses', 'mapping')]:
             snakefile.write('        rules.{module_name}__all.input,\n'.format(module_name=module.name.lower().replace('-', '_')))
+
+        # copy parse_versions snakefile to parse conda versions for report.
+        if use_conda:
+            # copy parse_versions.py script
+            global_lib_dir = Path(sys.path[0]) / 'lib'
+            global_scripts_dir = output_folder / SNAKEFILES_TARGET_DIRECTORY / 'global_scripts'
+            copy_tree(str(global_lib_dir), str(global_scripts_dir), preserve_symlinks=True)
+            with open(SNAKEFILES_LIBRARY / 'misc' / 'parse_versions', 'r') as versions_snakefile:
+                lines = []
+                for line in versions_snakefile:
+                    lines.append(line)
+                    if 'output:' in line:
+                        next_line = next(versions_snakefile)
+                        lines.append(next_line)
+                        snakefile.write('        {},\n'.format(next_line.strip()))
+                        snakefile.write('\n')
+                snakefile.writelines(lines)
 
     return snakefile_main_path
 

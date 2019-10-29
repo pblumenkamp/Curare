@@ -1,3 +1,4 @@
+# module: count_table
 channels:
   - conda-forge
   - bioconda
