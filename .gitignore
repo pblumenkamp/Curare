@@ -10,6 +10,7 @@ __pycache__/
 # Ignore test run results
 /dge_pipeline/tests/ressources/reference/*.bt2
 /dge_pipeline/tests/ressources/reference/*.fai
+/dge_pipeline/tests/ressources/reference/*.idx
 /dge_pipeline/tests/ressources/**/output_dir*/
 
 #bwa index files

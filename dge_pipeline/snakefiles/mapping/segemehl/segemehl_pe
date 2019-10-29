@@ -1,0 +1,113 @@
+from os import listdir
+from os.path import isfile, splitext
+
+rule all:
+    input:
+        "mapping/stats/mapping_stats.xlsx",
+        expand("mapping/{A}.bam", A=sorted(config['entries'].keys()))
+
+
+rule mapping_stats_xlsx:
+    input:
+        "mapping/stats/mapping_stats.tsv"
+    output:
+        "mapping/stats/mapping_stats.xlsx"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "segemehl_statistics"
+    shell:
+        "python3 lib/pe_mapping_stats_tsv_to_xlsx.py {input} {output}"
+
+
+rule mapping_stats_tsv:
+    input:
+        expand("mapping/logs/segemehl_mapping.{name}.log", name=config['entries'].keys())
+    output:
+        tsv="mapping/stats/mapping_stats.tsv",
+        tmp=temp("mapping/stats/mapping_stats.tsv.tmp")
+    group:
+        "segemehl_statistics"
+    shell:
+        """
+        echo "sample\ttotal\tunmapped\t(%)\tunique\t(%)\tmulti\t(%)\tsplit\t(%)"  > {output.tmp}
+        for i in {input}; do
+            sample=$(basename $i);
+            sample=${{sample%*.log}};
+            sample=${{sample#segemehl_mapping.}};
+            tail -n 5 $i | \
+            head -n 2 | \
+            sed -r -e "s/^(all)(.*)/$sample \(\\1\\)\\2/" \
+            -e "s/^(pair)(.*)/$sample \(\\1\\)\\2/" \
+            -e "s/%//g" |
+            awk -F'\t' '
+                BEGIN {{ OFS = FS }}
+                {{
+                    $3 = $2 - $3
+                    $4 = sprintf("%.2f", 100 / $2 * $3)
+                    print $0
+                }}' >> {output.tmp}
+        done;
+        awk '
+            BEGIN {{ delay = "" }}
+            NR == 1 {{ print $0 }}
+            /.*\(all\).*/ {{ print $0 }}
+            /.*\(pair\).*/ {{ delay = delay$0"\\n" }}
+            END {{ print "\\n\\n"delay }}' {output.tmp} | \
+        sed -e 's/\\n$//' > {output.tsv}
+        """
+
+
+rule segemehl_index:
+    input:
+        genome="%%GENOME_FASTA%%"
+    output:
+        splitext("%%GENOME_FASTA%%")[0] + ".idx"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "segemehl_index"
+    log:
+        "mapping/logs/segemehl_index.log"
+    shell:
+        "segemehl.x -x {output} -d {input.genome} 2>&1 |"
+        "tee {log}"
+
+
+rule segemehl_mapping:
+    input:
+        genome="%%GENOME_FASTA%%",
+        genome_index=splitext("%%GENOME_FASTA%%")[0] + ".idx",
+        reads="preprocessing/{sample}_R1.fastq",
+        reads_reverse="preprocessing/{sample}_R2.fastq"
+    output:
+        temp("mapping/sam/{sample}.sam")
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "segemehl_mapping"
+    log:
+        "mapping/logs/segemehl_mapping.{sample}.log"
+    threads:
+        2
+    shell:
+        "segemehl.x -t {threads} -o {output} -i {input.genome_index} -d {input.genome} -q {input.reads} -p {input.reads_reverse} 2>&1 |"
+        "tee {log}"
+
+
+rule index_bam:
+    input:
+        "mapping/sam/{sample}.sam"
+    output:
+        bam="mapping/{sample}.bam",
+        bai="mapping/{sample}.bam.bai",
+        bam_unmapped="mapping/unmapped/{sample}_unmapped.bam"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "segemehl_mapping"
+    threads:
+        2
+    shell:
+        "samtools view -F 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam} - && samtools index {output.bam};"
+        "samtools view -f 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam_unmapped} -"
