@@ -1,3 +1,4 @@
+# module: multiqc
 channels:
   - conda-forge
   - bioconda

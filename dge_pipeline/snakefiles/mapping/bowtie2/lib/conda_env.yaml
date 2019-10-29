@@ -1,3 +1,4 @@
+# module: bowtie2
 channels:
   - conda-forge
   - bioconda
