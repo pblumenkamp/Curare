@@ -1,0 +1,3288 @@
+<!DOCTYPE HTML>
+<html style="z-index: -2">
+	<head>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <script id="jsonData" type="text/javascript" src="jsonData.js"></script>
+	</head>
+  <body class="bodyClass">
+    <div class="headlineDiv">
+      <h1 style="margin: 0;"> CURARE wizard </h1>
+    </div>
+
+    <div class="appWrapper">
+      <div id="app">
+
+        <!-- subpages START -->
+        <div class="pX-pageDiv" v-show="page0">
+
+          <div class="wrapper">
+            <div class="navigationDiv">
+            </div>
+
+            <div class="contentDiv">
+
+              <div class="textDiv">
+                Decide for module(s) in every step and drag the desired modules from the pool fields into their corresponding selection fields.<br>
+                If the selection field contains the allowed amount of modules, it changes its color to blue. Else, the color is red.<br>
+                If <i> every single selection field </i> reaches the allowed amount of modules, the user can proceed.<br>
+              </div>
+              <div class="pX-CONTENTCELL">
+                <div id="page0" align="center">
+
+                  <table class="p0-contentTable">
+                    <tr>
+                      <td colspan="6">
+
+                      </td>
+                    </tr>
+                    <tr class="p0-selectionRow">
+                      <td class="p0-preprocessingColumn p0-mainRowCell p0-preprocessingCell"
+                          v-bind:class="{'p0-backgroundPipelineTrue': this.page0Acceptability, 'p0-backgroundPipelineFalse': !this.page0Acceptability}">
+                        <div id="selection--0" ondrop="dropSection(event, id)" ondragover="allowDrop(event)"
+                             class="selection moduleField moduleWellShadow well well-sm"
+                             v-bind:class="{'selectionTrue': this.dynamicGroupList[0].selectionAcceptability, 'selectionFalse': !this.dynamicGroupList[0].selectionAcceptability,
+                                 'p0-sectionChosen': dynamicGroupList[0].groupHovered}"
+                             @mouseover="dynamicGroupList[0].groupHovered = true"
+                             @mouseleave="dynamicGroupList[0].groupHovered = false">
+                          <div id="titleDiv--0" class="p0-titleRow">preprocessing</div>
+
+                          <!-- module button START -->
+                          <template v-for="module in this.dynamicGroupList[0].modules.moduleList">
+                            <template v-if="module !== 'none'">
+                              <div draggable="true"
+                                   ondragstart="drag(event)"
+                                   ondragend="dragEnd(event)"
+                                   @click="chooseModulePerClick(module, 0)"
+                                   :id="dynamicGroupList[0].modules.moduleDicts[module].id"
+                                   class="p0-moduleButton"
+                                   v-bind:class="{'installed': dynamicGroupList[0].modules.moduleDicts[module].installed,
+                                                'noninstalled': !dynamicGroupList[0].modules.moduleDicts[module].installed,
+                                                'p0-moduleButtonNoDisplay': !dynamicGroupList[0].modules.moduleDicts[module].inSelectionField}">
+
+                                <a class="has-popUp">
+                                  <table class="p0-moduleButtonTable">
+                                    <tr>
+                                      <td class="p0-moduleButtonTitle">
+
+                                        <div v-if="dynamicGroupList[0].modules.moduleDicts[module].description || !dynamicGroupList[0].modules.moduleDicts[module].installed" class="pX-emptyPopUpDiv" style="text-align: right;">
+                                        <span class="popUp-wrapper">
+                                          <span class="popUp" style="z-index:999">
+                                            <template v-if="dynamicGroupList[0].modules.moduleDicts[module].description">
+                                              {{ dynamicGroupList[0].modules.moduleDicts[module].description }}
+                                            </template>
+                                            <template v-if="dynamicGroupList[0].modules.moduleDicts[module].description && !dynamicGroupList[0].modules.moduleDicts[module].installed">
+                                              <br>
+                                              <br>
+                                            </template>
+                                            <template v-if="!dynamicGroupList[0].modules.moduleDicts[module].installed">
+                                              module not installed
+                                            </template>
+                                          </span>
+                                        </span>
+                                        </div>
+
+                                        <div class="p0-titleWrapper">
+                                          <div style="position: absolute; z-index: 1; width: 100%;">
+                                            {{ module }}
+                                          </div>
+                                          <div v-if="!dynamicGroupList[0].modules.moduleDicts[module].installed" style="position: absolute; z-index: 2; width: 100%; height: 100%; text-align: right;">
+                                            <i class="fas fa-exclamation-triangle"></i>&nbsp;
+                                          </div>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                    <template v-if="!module.inSelectionField && module.description">
+                                      <tr>
+                                        <td class="p0-moduleButtonDescription">
+                                          <div class="p0-moduleWell well well-sm">
+                                            {{ module.description }}
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    </template>
+                                  </table>
+
+                                </a>
+                              </div>
+                            </template>
+                          </template>
+                          <!-- module button END -->
+
+                        </div>
+                      </td>
+
+                      <td class="p0-premappingColumn p0-arrowCell p0-mainRowCell"
+                          v-bind:class="{'p0-backgroundPipelineTrue': this.page0Acceptability, 'p0-backgroundPipelineFalse': !this.page0Acceptability}">
+                        <div class="p0-arrowSymbol">&#129106;</div>
+                      </td>
+                      <td class="p0-arrowCell p0-backgroundPipeline">
+                      </td>
+
+                      <td class="p0-mappingColumn p0-mainRowCell"
+                          v-bind:class="{'p0-backgroundPipelineTrue': this.page0Acceptability, 'p0-backgroundPipelineFalse': !this.page0Acceptability}">
+                        <div id="selection--2" ondrop="dropSection(event, id)" ondragover="allowDrop(event)"
+                             class="selection moduleField moduleWellShadow well well-sm"
+                             v-bind:class="{'selectionTrue': this.dynamicGroupList[2].selectionAcceptability, 'selectionFalse': !this.dynamicGroupList[2].selectionAcceptability,
+                                 'p0-sectionChosen': dynamicGroupList[2].groupHovered}"
+                             @mouseover="dynamicGroupList[2].groupHovered = true"
+                             @mouseleave="dynamicGroupList[2].groupHovered = false">
+                          <div id="titleDiv--2" class="p0-titleRow">mapping</div>
+
+                          <!-- module button START -->
+                          <div v-for="module in this.dynamicGroupList[2].modules.moduleList"
+                               draggable="true"
+                               ondragstart="drag(event)"
+                               ondragend="dragEnd(event)"
+                               @click="chooseModulePerClick(module, 2)"
+                               :id="dynamicGroupList[2].modules.moduleDicts[module].id"
+                               class="p0-moduleButton"
+                               v-bind:class="{'installed': dynamicGroupList[2].modules.moduleDicts[module].installed,
+                                                'noninstalled': !dynamicGroupList[2].modules.moduleDicts[module].installed,
+                                                'p0-moduleButtonNoDisplay': !dynamicGroupList[2].modules.moduleDicts[module].inSelectionField}">
+
+                            <a class="has-popUp">
+                              <table class="p0-moduleButtonTable">
+                                <tr>
+                                  <td class="p0-moduleButtonTitle">
+
+                                    <div v-if="dynamicGroupList[2].modules.moduleDicts[module].description || !dynamicGroupList[2].modules.moduleDicts[module].installed" class="pX-emptyPopUpDiv" style="text-align: right;">
+                                        <span class="popUp-wrapper">
+                                          <span class="popUp" style="z-index:999">
+                                            <template v-if="dynamicGroupList[2].modules.moduleDicts[module].description">
+                                              {{ dynamicGroupList[2].modules.moduleDicts[module].description }}
+                                            </template>
+                                            <template v-if="dynamicGroupList[2].modules.moduleDicts[module].description && !dynamicGroupList[2].modules.moduleDicts[module].installed">
+                                              <br>
+                                              <br>
+                                            </template>
+                                            <template v-if="!dynamicGroupList[2].modules.moduleDicts[module].installed">
+                                              module not installed
+                                            </template>
+                                          </span>
+                                        </span>
+                                    </div>
+
+                                    <div class="p0-titleWrapper">
+                                      <div style="position: absolute; z-index: 1; width: 100%;">
+                                        {{ module }}
+                                      </div>
+                                      <div v-if="!dynamicGroupList[2].modules.moduleDicts[module].installed" style="position: absolute; z-index: 2; width: 100%; height: 100%; text-align: right;">
+                                        <i class="fas fa-exclamation-triangle"></i>&nbsp;
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
+                                <template v-if="!module.inSelectionField && module.description">
+                                  <tr>
+                                    <td class="p0-moduleButtonDescription">
+                                      <div class="p0-moduleWell well well-sm">
+                                        {{ module.description }}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                </template>
+                              </table>
+
+                            </a>
+                          </div>
+                          <!-- module button END -->
+
+                        </div>
+                      </td>
+                      <td class="p0-arrowCell p0-mainRowCell"
+                          v-bind:class="{'p0-backgroundPipelineTrue': this.page0Acceptability, 'p0-backgroundPipelineFalse': !this.page0Acceptability}">
+                        <div class="p0-arrowSymbol">&#129106;</div>
+                      </td>
+
+                      <td class="p0-analysisColumn p0-mainRowCell p0-analysisCell"
+                          v-bind:class="{'p0-backgroundPipelineTrue': this.page0Acceptability, 'p0-backgroundPipelineFalse': !this.page0Acceptability}">
+                        <div id="selection--3" ondrop="dropSection(event, id)" ondragover="allowDrop(event)"
+                             class="selection moduleField moduleWellShadow well well-sm"
+                             v-bind:class="{'selectionTrue': this.dynamicGroupList[3].selectionAcceptability, 'selectionFalse': !this.dynamicGroupList[3].selectionAcceptability,
+                                 'p0-sectionChosen': dynamicGroupList[3].groupHovered}"
+                             @mouseover="dynamicGroupList[3].groupHovered = true"
+                             @mouseleave="dynamicGroupList[3].groupHovered = false">
+
+                          <div id="titleDiv--3" class="p0-titleRow">analysis</div>
+
+                          <!-- module button START -->
+                          <div v-for="module in this.dynamicGroupList[3].modules.moduleList"
+                               draggable="true" ondragstart="drag(event)"
+                               ondragend="dragEnd(event)"
+                               @click="chooseModulePerClick(module, 3)"
+                               :id="dynamicGroupList[3].modules.moduleDicts[module].id"
+                               class="p0-moduleButton"
+                               v-bind:class="{'installed': dynamicGroupList[3].modules.moduleDicts[module].installed,
+                                                'noninstalled': !dynamicGroupList[3].modules.moduleDicts[module].installed,
+                                                'p0-moduleButtonNoDisplay': !dynamicGroupList[3].modules.moduleDicts[module].inSelectionField}">
+
+                            <a class="has-popUp">
+                              <table class="p0-moduleButtonTable">
+                                <tr>
+                                  <td class="p0-moduleButtonTitle">
+
+                                    <div v-if="dynamicGroupList[3].modules.moduleDicts[module].description || !dynamicGroupList[3].modules.moduleDicts[module].installed" class="pX-emptyPopUpDiv" style="text-align: right;">
+                                        <span class="popUp-wrapper">
+                                          <span class="popUp" style="z-index:999">
+                                            <template v-if="dynamicGroupList[3].modules.moduleDicts[module].description">
+                                              {{ dynamicGroupList[3].modules.moduleDicts[module].description }}
+                                            </template>
+                                            <template v-if="dynamicGroupList[3].modules.moduleDicts[module].description && !dynamicGroupList[3].modules.moduleDicts[module].installed">
+                                              <br>
+                                              <br>
+                                            </template>
+                                            <template v-if="!dynamicGroupList[3].modules.moduleDicts[module].installed">
+                                              module not installed
+                                            </template>
+                                          </span>
+                                        </span>
+                                    </div>
+
+                                    <div class="p0-titleWrapper">
+                                      <div style="position: absolute; z-index: 1; width: 100%;">
+                                        {{ module }}
+                                      </div>
+                                      <div v-if="!dynamicGroupList[3].modules.moduleDicts[module].installed" style="position: absolute; z-index: 2; width: 100%; height: 100%; text-align: right;">
+                                        <i class="fas fa-exclamation-triangle"></i>&nbsp;
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
+                                <template v-if="!module.inSelectionField && module.description">
+                                  <tr>
+                                    <td class="p0-moduleButtonDescription">
+                                      <div class="p0-moduleWell well well-sm">
+                                        {{ module.description }}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                </template>
+                              </table>
+
+                            </a>
+                          </div>
+                          <!-- module button END -->
+
+                        </div>
+                      </td>
+                    </tr>
+                    <tr class="p0-spanRow">
+                      <td v-bind:class="{'p0-backgroundPipelineTrue': this.page0Acceptability, 'p0-backgroundPipelineFalse': !this.page0Acceptability}"></td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                    </tr>
+                    <tr class="p0-preMappingRow">
+                      <td class="p0-preprocessingColumn p0-backgroundPipelinePremappingCurve"
+                          v-bind:class="{'p0-backgroundPipelineTrue': this.page0Acceptability, 'p0-backgroundPipelineFalse': !this.page0Acceptability}">
+                        <div class="p0-arrowSymbol p0-premappingArrowSymbol">&#10548;</div>
+                      </td>
+                      <td class="p0-premappingColumn p0-premappingCell"
+                          v-bind:class="{'p0-backgroundPipelineTrue': this.page0Acceptability, 'p0-backgroundPipelineFalse': !this.page0Acceptability}">
+                        <div id="selection--1"
+                             ondrop="dropSection(event, id)"
+                             ondragover="allowDrop(event)"
+                             class="selection moduleField moduleWellShadow well well-sm"
+                             v-bind:class="{'selectionTrue': this.dynamicGroupList[1].selectionAcceptability, 'selectionFalse': !this.dynamicGroupList[1].selectionAcceptability,
+                                 'p0-sectionChosen': dynamicGroupList[1].groupHovered}"
+                             @mouseover="dynamicGroupList[1].groupHovered = true"
+                             @mouseleave="dynamicGroupList[1].groupHovered = false">
+                          <div id="titleDiv--1" class="p0-titleRow">premapping</div>
+
+                          <!-- module button START -->
+                          <div style="z-index: 9999" v-for="module in this.dynamicGroupList[1].modules.moduleList"
+                               draggable="true"
+                               ondragstart="drag(event)"
+                               ondragend="dragEnd(event)"
+                               @click="chooseModulePerClick(module, 1)"
+                               :id="dynamicGroupList[1].modules.moduleDicts[module].id"
+                               class="p0-moduleButton"
+                               v-bind:class="{'installed': dynamicGroupList[1].modules.moduleDicts[module].installed,
+                                                'noninstalled': !dynamicGroupList[1].modules.moduleDicts[module].installed,
+                                                'p0-moduleButtonNoDisplay': !dynamicGroupList[1].modules.moduleDicts[module].inSelectionField}">
+
+                            <a class="has-popUp" style="z-index: 999">
+                              <table class="p0-moduleButtonTable">
+                                <tr>
+                                  <td class="p0-moduleButtonTitle">
+
+                                    <div v-if="dynamicGroupList[1].modules.moduleDicts[module].description || !dynamicGroupList[1].modules.moduleDicts[module].installed" class="pX-emptyPopUpDiv" style="text-align: right;">
+                                        <span class="popUp-wrapper">
+                                          <span class="popUp" style="z-index:999">
+                                            <template v-if="dynamicGroupList[1].modules.moduleDicts[module].description">
+                                              {{ dynamicGroupList[1].modules.moduleDicts[module].description }}
+                                            </template>
+                                            <template v-if="dynamicGroupList[1].modules.moduleDicts[module].description && !dynamicGroupList[1].modules.moduleDicts[module].installed">
+                                              <br>
+                                              <br>
+                                            </template>
+                                            <template v-if="!dynamicGroupList[1].modules.moduleDicts[module].installed">
+                                              module not installed
+                                            </template>
+                                          </span>
+                                        </span>
+                                    </div>
+
+                                    <div class="p0-titleWrapper">
+                                      <div style="position: absolute; z-index: 1; width: 100%;">
+                                        {{ module }}
+                                      </div>
+                                      <div v-if="!dynamicGroupList[1].modules.moduleDicts[module].installed" style="position: absolute; z-index: 2; width: 100%; height: 100%; text-align: right;">
+                                        <i class="fas fa-exclamation-triangle"></i>&nbsp;
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
+                                <template v-if="!module.inSelectionField && module.description">
+                                  <tr>
+                                    <td class="p0-moduleButtonDescription">
+                                      <div class="p0-moduleWell well well-sm">
+                                        {{ module.description }}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                </template>
+                              </table>
+
+                            </a>
+                          </div>
+                          <!-- module button END -->
+
+                        </div>
+                      </td>
+                      <td class="p0-arrowCell"></td>
+                      <td class="p0-mappingColumn"></td>
+                      <td class="p0-arrowCell"></td>
+                      <td class="p0AnalysisColumn"></td>
+                    </tr>
+
+                    <!-- Selection Rows ending-->
+
+                    <!-- Pool Row starting-->
+
+                    <tr class="p0-poolRow">
+                      <td class="p0-PreprocessingColumn p0-poolCell">
+                        <div id="pool--0" class="pool moduleField well well-sm p0-scrollbar" ondrop="dropSection(event, id)" ondragover="allowDrop(event)"
+                             v-bind:class="{'p0-poolChosen': dynamicGroupList[0].groupHovered}"
+                             @mouseover ="dynamicGroupList[0].groupHovered = true"
+                             @mouseleave="dynamicGroupList[0].groupHovered = false">
+
+                          <!-- module button START -->
+                          <template v-for="module in this.dynamicGroupList[0].modules.moduleList" class="has-popUp">
+                            <template v-if="module !== 'none'">
+                              <div draggable="true"
+                                   ondragstart="drag(event)"
+                                   ondragend="dragEnd(event)"
+                                   @click="chooseModulePerClick(module, 0)"
+                                   :id="dynamicGroupList[0].modules.moduleDicts[module].id"
+                                   class="p0-moduleButton"
+                                   v-bind:class="{'installed': dynamicGroupList[0].modules.moduleDicts[module].installed,
+                                                    'noninstalled': !dynamicGroupList[0].modules.moduleDicts[module].installed,
+                                                    'p0-moduleButtonNoDisplay': dynamicGroupList[0].modules.moduleDicts[module].inSelectionField}">
+
+                                <table class="p0-moduleButtonTable">
+                                  <tr>
+                                    <td class="p0-moduleButtonTitle">
+                                      <div class="pX-emptyPopUpDiv" style="text-align: right;">
+                                        <template v-if="!dynamicGroupList[0].modules.moduleDicts[module].installed" style="z-index: 9999">
+                                            <span class="popUp-wrapper">
+                                              <span class="popUp" style="z-index:1000">
+                                                module not installed
+                                              </span>
+                                            </span>
+                                        </template>
+                                      </div>
+
+                                      <div class="p0-titleWrapper">
+
+                                        <div v-if="!dynamicGroupList[0].modules.moduleDicts[module].installed" style="position: absolute; z-index: 999; width: 100%; height: 100%; text-align: right;">
+                                          <i class="fas fa-exclamation-triangle"></i>&nbsp;
+                                        </div>
+                                        <div style="position: absolute; z-index: 1; width: 100%;">
+                                          {{ module }}
+                                        </div>
+
+                                      </div>
+                                    </td>
+                                  </tr>
+                                  <template v-if="dynamicGroupList[0].modules.moduleDicts[module].description">
+                                    <tr>
+                                      <td class="p0-moduleButtonDescription">
+                                        <div class="p0-moduleWell well well-sm">
+                                          {{ dynamicGroupList[0].modules.moduleDicts[module].description }}
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  </template>
+                                </table>
+
+                              </div>
+                            </template>
+                          </template>
+                          <!-- module button END -->
+
+                          <div class="force-overflow"></div>
+
+                        </div>
+                      </td>
+                      <td class="p0-PremappingColumn p0-poolCell">
+                        <div id="pool--1" class="pool moduleField well well-sm p0-scrollbar" ondrop="dropSection(event, id)" ondragover="allowDrop(event)"
+                             v-bind:class="{'p0-poolChosen': dynamicGroupList[1].groupHovered}"
+                             @mouseover ="dynamicGroupList[1].groupHovered = true"
+                             @mouseleave="dynamicGroupList[1].groupHovered = false">
+
+                          <!-- module button START -->
+                          <a v-for="module in this.dynamicGroupList[1].modules.moduleList" class="has-popUp">
+                            <div draggable="true"
+                                 ondragstart="drag(event)"
+                                 ondragend="dragEnd(event)"
+                                 @click="chooseModulePerClick(module, 1)"
+                                 :id="dynamicGroupList[1].modules.moduleDicts[module].id"
+                                 class="p0-moduleButton"
+                                 v-bind:class="{'installed': dynamicGroupList[1].modules.moduleDicts[module].installed,
+                                                    'noninstalled': !dynamicGroupList[1].modules.moduleDicts[module].installed,
+                                                    'p0-moduleButtonNoDisplay': dynamicGroupList[1].modules.moduleDicts[module].inSelectionField}">
+
+                              <table class="p0-moduleButtonTable">
+                                <tr>
+                                  <td class="p0-moduleButtonTitle">
+                                    <div class="pX-emptyPopUpDiv" style="text-align: right;">
+                                      <template v-if="!dynamicGroupList[1].modules.moduleDicts[module].installed" style="z-index: 9999">
+                                            <span class="popUp-wrapper">
+                                              <span class="popUp" style="z-index:1000">
+                                                module not installed
+                                              </span>
+                                            </span>
+                                      </template>
+                                    </div>
+
+                                    <div class="p0-titleWrapper">
+
+                                      <div v-if="!dynamicGroupList[1].modules.moduleDicts[module].installed" style="position: absolute; z-index: 999; width: 100%; height: 100%; text-align: right;">
+                                        <i class="fas fa-exclamation-triangle"></i>&nbsp;
+                                      </div>
+                                      <div style="position: absolute; z-index: 1; width: 100%;">
+                                        {{ module }}
+                                      </div>
+
+                                    </div>
+                                  </td>
+                                </tr>
+                                <template v-if="dynamicGroupList[1].modules.moduleDicts[module].description">
+                                  <tr>
+                                    <td class="p0-moduleButtonDescription">
+                                      <div class="p0-moduleWell well well-sm">
+                                        {{ dynamicGroupList[1].modules.moduleDicts[module].description }}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                </template>
+                              </table>
+
+                            </div>
+                          </a>
+                          <!-- module button END -->
+
+                          <div class="force-overflow"></div>
+
+                        </div>
+                      </td>
+                      <td></td>
+                      <td class="p0-MappingColumn p0-poolCell">
+                        <div id="pool--2" class="pool moduleField well well-sm p0-scrollbar" ondrop="dropSection(event, id)" ondragover="allowDrop(event)"
+                             v-bind:class="{'p0-poolChosen': dynamicGroupList[2].groupHovered}"
+                             @mouseover="dynamicGroupList[2].groupHovered = true"
+                             @mouseleave="dynamicGroupList[2].groupHovered = false">
+
+                          <!-- module button START -->
+                          <a v-for="module in this.dynamicGroupList[2].modules.moduleList" class="has-popUp">
+                            <div draggable="true"
+                                 ondragstart="drag(event)"
+                                 ondragend="dragEnd(event)"
+                                 @click="chooseModulePerClick(module, 2)"
+                                 :id="dynamicGroupList[2].modules.moduleDicts[module].id"
+                                 class="p0-moduleButton"
+                                 v-bind:class="{'installed': dynamicGroupList[2].modules.moduleDicts[module].installed,
+                                                    'noninstalled': !dynamicGroupList[2].modules.moduleDicts[module].installed,
+                                                    'p0-moduleButtonNoDisplay': dynamicGroupList[2].modules.moduleDicts[module].inSelectionField}">
+
+                              <table class="p0-moduleButtonTable">
+                                <tr>
+                                  <td class="p0-moduleButtonTitle">
+                                    <div class="pX-emptyPopUpDiv" style="text-align: right;">
+                                      <template v-if="!dynamicGroupList[2].modules.moduleDicts[module].installed" style="z-index: 9999">
+                                            <span class="popUp-wrapper">
+                                              <span class="popUp" style="z-index:1000">
+                                                module not installed
+                                              </span>
+                                            </span>
+                                      </template>
+                                    </div>
+
+                                    <div class="p0-titleWrapper">
+
+                                      <div v-if="!dynamicGroupList[2].modules.moduleDicts[module].installed" style="position: absolute; z-index: 999; width: 100%; height: 100%; text-align: right;">
+                                        <i class="fas fa-exclamation-triangle"></i>&nbsp;
+                                      </div>
+                                      <div style="position: absolute; z-index: 1; width: 100%;">
+                                        {{ module }}
+                                      </div>
+
+                                    </div>
+                                  </td>
+                                </tr>
+                                <template v-if="dynamicGroupList[2].modules.moduleDicts[module].description">
+                                  <tr>
+                                    <td class="p0-moduleButtonDescription">
+                                      <div class="p0-moduleWell well well-sm">
+                                        {{ dynamicGroupList[2].modules.moduleDicts[module].description }}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                </template>
+                              </table>
+
+                            </div>
+                          </a>
+                          <!-- module button END -->
+
+                          <div class="force-overflow"></div>
+
+                        </div>
+                      </td>
+                      <td></td>
+                      <td class="p0-AnalysisColumn p0-poolCell">
+                        <div id="pool--3" class="pool well well-sm" ondrop="dropSection(event, id)" ondragover="allowDrop(event)"
+                             v-bind:class="{'p0-poolChosen': dynamicGroupList[3].groupHovered}"
+                             @mouseover ="dynamicGroupList[3].groupHovered = true"
+                             @mouseleave="dynamicGroupList[3].groupHovered = false">
+
+                          <!-- module button START -->
+                          <a v-for="module in this.dynamicGroupList[3].modules.moduleList" class="has-popUp">
+                            <div draggable="true"
+                                 ondragstart="drag(event)"
+                                 ondragend="dragEnd(event)"
+                                 @click="chooseModulePerClick(module, 3)"
+                                 :id="dynamicGroupList[3].modules.moduleDicts[module].id"
+                                 class="p0-moduleButton"
+                                 v-bind:class="{'installed': dynamicGroupList[3].modules.moduleDicts[module].installed,
+                                                    'noninstalled': !dynamicGroupList[3].modules.moduleDicts[module].installed,
+                                                    'p0-moduleButtonNoDisplay': dynamicGroupList[3].modules.moduleDicts[module].inSelectionField}">
+
+                              <table class="p0-moduleButtonTable">
+                                <tr>
+                                  <td class="p0-moduleButtonTitle">
+                                    <div class="pX-emptyPopUpDiv" style="text-align: right;">
+                                      <template v-if="!dynamicGroupList[3].modules.moduleDicts[module].installed" style="z-index: 9999">
+                                            <span class="popUp-wrapper">
+                                              <span class="popUp" style="z-index:1000">
+                                                module not installed
+                                              </span>
+                                            </span>
+                                      </template>
+                                    </div>
+
+                                    <div class="p0-titleWrapper">
+
+                                      <div v-if="!dynamicGroupList[3].modules.moduleDicts[module].installed" style="position: absolute; z-index: 999; width: 100%; height: 100%; text-align: right;">
+                                        <i class="fas fa-exclamation-triangle"></i>&nbsp;
+                                      </div>
+                                      <div style="position: absolute; z-index: 1; width: 100%;">
+                                        {{ module }}
+                                      </div>
+
+                                    </div>
+                                  </td>
+                                </tr>
+                                <template v-if="dynamicGroupList[3].modules.moduleDicts[module].description">
+                                  <tr>
+                                    <td class="p0-moduleButtonDescription">
+                                      <div class="p0-moduleWell well well-sm">
+                                        {{ dynamicGroupList[3].modules.moduleDicts[module].description }}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                </template>
+                              </table>
+
+                            </div>
+                          </a>
+                          <!-- module button END -->
+
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+
+                </div>
+              </div>
+
+            </div>
+
+            <div class="navigationDiv">
+              <div class="navigationButtonWrapper">
+
+                <button :disabled="!this.page0Acceptability" type="button" class="btn btn-basic button navigationButton" @click="collectModules(), switchPage('page1'), rebuildFileLists()">
+                  <b> select files </b>
+                  <i class="fas fa-arrow-circle-right"></i>
+                </button>
+
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="pX-pageDiv" v-show="page1">
+
+          <div class="wrapper">
+            <div class="navigationDiv">
+              <div class="navigationButtonWrapper">
+
+                <button :disabled="!this.page0Acceptability" type="button" class="btn btn-basic button navigationButton" @click="switchPage('page0')">
+                  <i class="fas fa-arrow-circle-left"></i>
+                  <b> module selection </b>
+                </button><p></p>
+
+              </div>
+            </div>
+            <div class="contentDiv">
+
+              <div class="textDiv">
+<!--                <p>Some different text for page 1 <br></p>-->
+              </div>
+              <div id="page1" class="pX-contentDiv pX-classicContentBackground">
+
+                <div>
+
+                  <!-- The Paired-End-Single-End switch table -->
+                  <table align="center">
+                    <tr
+                      class="SPEInternalRow">
+                      <td>
+                        Single End
+                      </td>
+                      <td>
+                        <label class="switch">
+                          <input type="checkbox" @click="changeEnd()">
+                          <span class="slider round"></span>
+                        </label>
+                      </td>
+                      <td>
+                        Paired End
+                      </td>
+                    </tr>
+                  </table>
+                  <!-- Table END -->
+
+                </div>
+
+                <div style="width: inherit">
+                  <div style="display: flex; padding: 0.5rem;">
+
+                    <div style="flex: 1">
+                      <!--- wrapped uploader --->
+                      <div class="p1-uploadButtonWrapper">
+                        <button id="p1-uploadButton" class="p1-buttonFamilyMember p1-uploadButton">
+                          <div>
+                            Choose files
+                            <i class="fas fa-upload"></i>
+                          </div>
+                        </button>
+                        <input style="width: 100%; height: 100%;" id="p1-fileUploader" type="file" multiple @change="readFilePaths()">
+                      </div>
+                      <!--- wrapped uploader END --->
+                    </div>
+                    <div style="flex: 1">
+                      <div class="p1-fileAmountWell p1-buttonFamilyMember moduleWellShadow">
+                        {{ storedFiles.length }} files uploaded
+                      </div>
+                    </div>
+                    <div style="flex: 1">
+                      <div class="p1-smallSubGroup">
+                        <div class="p1-smallButtonWrapper">
+                          <button class="p1-smallButton p1-uploadButton" @click="clearFileLists()">
+                            reset lists
+                          </button>
+                        </div>
+                        <div class="p1-smallButtonWrapper">
+                          <button class="p1-smallButton p1-uploadButton" @click="rebuildFileLists()">
+                            undo changes
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div style="flex: 1">
+                      <button class="p1-buttonFamilyMember p1-clearButton" @click="clearFileList">
+                        <div style="font-size: 2rem;">
+                          clear lists
+                          <i class="fas fa-trash-alt"></i>
+                        </div>
+                      </button>
+                    </div>
+
+                  </div>
+
+                  <div style="padding: 0.5rem;">
+                    <div class="p1-fileListWellWrapper">
+                      <div class="p1-fileListWell">
+                        <table class="p1-fileReadsDisplayTable">
+
+                          <tr>
+                            <td class="p1-fileDisplayCell p1-tableHeaderCell p1-deleteCell"></td>
+                            <td class="p1-fileDisplayCell p1-numberCell p1-tableHeaderCell">
+                              no.
+                            </td>
+                            <td class="p1-fileDisplayCell p1-nameCell p1-tableHeaderCell">
+                              | name
+                            </td>
+
+                            <template v-if="!this.pairedEnd">
+                              <td class="p1-fileDisplayCell p1-readsCell p1-readsCellSE p1-tableHeaderCell">
+                                | reads
+                              </td>
+                            </template>
+                            <template v-else>
+                              <td class="p1-fileDisplayCell p1-readsCell p1-forwardReadsCell p1-tableHeaderCell">
+                                | forward_reads
+                              </td>
+                              <td class="p1-fileDisplayCell p1-readsCell p1-reverseReadsCell p1-tableHeaderCell">
+                                | reverse_reads
+                              </td>
+                            </template>
+
+                            <td v-for="(column, index) in storedColumns" class="p1-tableHeaderCell">
+                              {{ column.name }}
+                            </td>
+
+                          </tr>
+                          <template v-if="!this.pairedEnd">
+                            <template v-for="(singleDict, index) in storedFileSingles">
+                              <tr class="p1-fileDisplayRow">
+                                <td class="p1-fileDisplayRow p1-deleteCell">
+
+                                  <button class="p1-deleteEntryButton" @click="deleteFileEntry('single', index)">
+                                    <b>x</b>
+                                  </button>
+
+                                </td>
+                                <td class="p1-fileDisplayCell p1-numberCell">
+                                  {{ index+1 }}
+                                </td>
+                                <td class="p1-fileDisplayCell p1-nameCell">
+                                  <input v-model="singleDict.label" type="text">
+                                </td>
+
+                                <td v-show="!this.pairedEnd" class="p1-fileDisplayCell p1-readsCellSE">
+
+                                  <select v-model="singleDict.pathLabel" @change="testFunction('TEST')">
+                                    <option>
+                                      <!--empty option-->
+                                    </option>
+                                    <template v-for="(dict, index) in storedFiles">
+                                      <option :title="dict.path">
+                                        {{ dict.pathLabel }}
+                                      </option>
+                                    </template>
+                                  </select>
+
+                                </td>
+
+                                <td v-for="(column, index) in storedColumns">
+                                  <input v-model="singleDict[column.name]" type="text">
+                                </td>
+
+                              </tr>
+                            </template>
+                          </template>
+                          <template v-else>
+                            <template v-for="(dict, index) in storedFilePairings">
+                              <tr class="p1-fileDisplayRow">
+                                <td class="p1-fileDisplayRow p1-deleteCell">
+
+                                  <button class="p1-deleteEntryButton" @click="deleteFileEntry('paired', index)">
+                                    <b>x</b>
+                                  </button>
+
+                                </td>
+                                <td class="p1-fileDisplayCell p1-numberCell">
+                                  {{ index+1 }}
+                                </td>
+                                <td class="p1-fileDisplayCell p1-nameCell">
+                                  <input v-model="dict.label" type="text">
+                                </td>
+
+                                <td class="p1-fileDisplayCell p1-forwardReadsCell">
+
+                                  <select v-model="dict.pathR1Label">
+                                    <option>
+                                      <!--empty option-->
+                                    </option>
+                                    <template v-for="(dict, index) in storedFiles">
+                                      <option :title="dict.path">
+                                        {{ dict.pathLabel }}
+                                      </option>
+                                    </template>
+                                    </option>
+                                  </select>
+
+                                </td>
+                                <td class="p1-fileDisplayCell p1-backwardReadsCell">
+
+                                  <select v-model="dict.pathR2Label">
+                                    <option>
+                                      <!--empty option-->
+                                    </option>
+                                    <template v-for="(dict, index) in storedFiles">
+                                      <option :title="dict.path">
+                                        {{ dict.pathLabel }}
+                                      </option>
+                                    </template>
+                                  </select>
+
+                                </td>
+
+                                <td v-for="(column, index) in storedColumns">
+                                  <input v-model="dict[column.name]" type="text">
+                                </td>
+
+                              </tr>
+                            </template>
+                          </template>
+
+                        </table>
+
+                        <template v-if="!this.pairedEnd && storedFileSingles.length > 0">
+                          <div style="padding: 0.5rem; width: 100%; text-align: center;">
+                            <button class="p1-addEntryButton" title="add empty entry" @click="addEntry('single')">
+                              +
+                            </button>
+                          </div>
+                        </template>
+                        <template v-if="this.pairedEnd && storedFilePairings.length > 0">
+                          <div style="padding: 0.5rem; width: 100%; text-align: center;">
+                            <button class="p1-addEntryButton" title="add empty entry" @click="addEntry('pairing')">
+                              +
+                            </button>
+                          </div>
+                        </template>
+
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+            <div class="navigationDiv">
+              <div class="navigationButtonWrapper">
+
+                <button type="button" class="btn btn-basic button navigationButton" @click="switchPage('page2');">
+                  <b> module options </b>
+                  <i class="fas fa-arrow-circle-right"></i>
+                </button>
+
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="pX-pageDiv" v-show="page2">
+
+
+          <div class="wrapper">
+            <div class="navigationDiv">
+              <div class="navigationButtonWrapper">
+
+                <button :disabled="!this.page0Acceptability" type="button" class="btn btn-basic button navigationButton" @click="switchPage('page1')">
+                  <i class="fas fa-arrow-circle-left"></i>
+                  <b> module selection </b>
+                </button><p></p>
+
+              </div>
+            </div>
+            <div class="contentDiv">
+
+              <div class="textDiv">
+<!--                TEXT FOR PAGE 3-->
+              </div>
+              <div id="page2" align="center">
+
+                <template v-for="(group, gIndex) in collectedModules">
+                  <template v-if="group.moduleAmount > 0">
+                    <div style="display:flex; border-radius: 5px; background-color: #a5aeb4; margin-top: 2rem; margin-bottom: 2rem">
+                      <div style="flex: 1; font-style: italic; text-align: right;">
+                        <div style="padding: 1rem; font-size: 3rem;">
+                          {{ group.groupName }}
+                        </div>
+                      </div>
+                      <div style="flex: 4">
+                        <template v-for="(module, mIndex) in group.modules">
+
+                          <table class="p2-moduleTable"
+                                 v-bind:id="'p2-' + module.id">
+                            <tr class="p2-moduleTitle"
+                                v-bind:class="{'p2-moduleTitleFalse': !module.Acceptability, 'p2-moduleTitleTrue': module.Acceptability}">
+                              <td>
+                                {{ module.name }}
+                              </td>
+                            </tr>
+                            <template v-if="module.settings">
+
+                              <tr
+                                v-bind:class="{'p2-moduleTableFalse': !module.Acceptability, 'p2-moduleTableTrue': module.Acceptability}">
+                                <td align="center">
+
+                                  <div align="center" class="p2-moduleTableDivWrapper well well-sm">
+
+                                    <table class="p2-moduleOptionsTable">
+
+                                      <template class="p2-requiredArea" v-if="module.settings.required">
+                                        <tr>
+                                          <td colspan="3" class="p2-settingsTypeTitle p2-typeRequiredTitle">
+                                            <div>required settings</div>
+                                          </td>
+                                        </tr>
+                                        <template v-for="(roption, oIndex) in module.settings.required">
+                                          <tr class="p2-settingRow p2-requiredRow p2-settingRowType">
+                                            <td class="p2-moduleCell p2-settingsNameCol p2-requiredNameCell">
+                                              <div v-if="roption.label">{{ roption.label }}</div>
+                                              <div v-else>{{ roption.name }}</div>
+                                            </td>
+                                            <td class="p2-moduleCell p2-settingsInputCol p2-requiredInputCell">
+                                              <div v-if="roption.type === 'string'">
+                                                <input v-model="roption.value" type="text" class="p2-settingsInput">
+                                              </div>
+                                              <div v-if="roption.type === 'file'">
+                                                <div style="display: flex">
+                                                  <div style="flex: 1;">
+
+                                                    <div class="p2-uploadButtonWrapper">
+                                                      <button class="p2-uploadButton">
+                                                        <input style="width: 100%; height: 100%;"
+                                                               type="file"
+                                                               :id="'p2-fileUploader' + gIndex + mIndex + oIndex"
+                                                               @change="getFilePathForSetting('p2-fileUploader' + gIndex + mIndex + oIndex, [gIndex, mIndex, oIndex])">
+                                                        <div>
+                                                          Choose files
+                                                          <i class="fas fa-upload"></i>
+                                                        </div>
+                                                      </button>
+                                                    </div>
+
+                                                  </div>
+                                                  <div style="flex: 4;">
+
+                                                    <input style="width: 100%; height: 100%;" v-model="roption.value" type="text">
+
+                                                  </div>
+                                                </div>
+                                              </div>
+                                              <div v-if="roption.type === 'enum'">
+                                                <select v-model="roption.value" class="p2-settingsInput">
+                                                  <option v-for="(choice, cIndex) in roption.choices" :value="choice">{{ cIndex }}</option>
+                                                </select>
+                                              </div>
+                                              <div v-if="roption.type === 'number'">
+                                                <input v-model="roption.value" type="number" min="roption.range.min" max="roption.range.max" class="p2-settingsInput">
+                                              </div>
+                                            </td>
+                                            <td class="p2-moduleCell p2-settingsDescriptionCol p2-requiredDescriptionCell">
+                                              <template v-if="roption.description">
+
+                                                <a class="has-popUp">
+                                                  <i class="fas fa-question-circle p2-descriptionSymbol"></i>
+                                                  <span class="popUp-wrapper">
+                                                          <span class="popUp" style="z-index:1000">
+                                                            {{ roption.description }}
+                                                          </span>
+                                                        </span>
+                                                </a>
+
+                                              </template>
+                                            </td>
+                                          </tr>
+                                        </template>
+                                      </template>
+                                      <template class="p2-optionalArea" v-if="module.settings.optional">
+                                        <tr>
+                                          <td colspan="3" class="p2-settingsTypeTitle p2-typeOptionalTitle">
+                                            <button class="p2-optionalSettingsButton" @click="changeShowOptionalSettings(module)">
+                                              <template v-if="module.showOptionalSettings === true">
+                                                <div>optional settings <i class='fas'>&#xf106;</i></div>
+                                              </template>
+                                              <template v-else>
+                                                <div>optional settings <i class='fas'>&#xf107;</i></div>
+                                              </template>
+                                            </button>
+                                          </td>
+                                        </tr>
+                                        <template v-if="module.showOptionalSettings">
+                                          <template v-for="(ooption, index) in module.settings.optional">
+                                            <tr class="p2-settingRow p2-optionalRow p2-settingRowType">
+                                              <td class="p2-moduleCell p2-settingsNameCol p2-optionalNameCell">
+                                                <div v-if="ooption.label">{{ ooption.label }}</div>
+                                                <div v-else>{{ ooption.name }}</div>
+                                              </td>
+                                              <td class="p2-moduleCell p2-settingsInputCol p2-optionalInputCell">
+                                                <div v-if="ooption.type === 'string'">
+                                                  <input v-model="ooption.value" type="text" class="p2-settingsInput">
+                                                </div>
+                                                <div v-if="ooption.type === 'file'">
+                                                  <input :id="'p2-fileUploader' + gIndex + mIndex + oIndex" type="file" class="p2-settingsInput" @change="getFilePathForSetting('p2-fileUploader' + gIndex + mIndex + oIndex, [gIndex, mIndex, oIndex])">
+                                                  <input v-model="ooption.value" class="p2-settingsInput" type="text" placeholder="file path">
+                                                </div>
+                                                <div v-if="ooption.type === 'enum'">
+                                                  <select v-model="ooption.value" class="p2-settingsInput">
+                                                    <option v-for="(choice, index) in ooption.choices" :value="choice">{{ index }}</option>
+                                                  </select>
+                                                </div>
+                                                <div v-if="ooption.type === 'number'">
+                                                  <input v-model="ooption.value" type="number" :min="ooption.range.min" :max="ooption.range.max" class="p2-settingsInput">
+                                                </div>
+                                              </td>
+                                              <td class="p2-moduleCell p2-settingsDescriptionCol p2-optionalDescriptionCell">
+                                                <template v-if="ooption.description">
+
+                                                  <a class="has-popUp">
+                                                    <i class="fas fa-question-circle p2-descriptionSymbol"></i>
+
+                                                    <span class="popUp-wrapper">
+                                                            <span class="popUp" style="z-index:1000">
+                                                              {{ ooption.description }}
+                                                            </span>
+                                                          </span>
+                                                  </a>
+
+                                                </template>
+                                              </td>
+                                            </tr>
+                                          </template>
+                                        </template>
+                                      </template>
+
+                                    </table>
+
+                                  </div>
+
+                                </td>
+                              </tr>
+
+                            </template>
+                          </table>
+
+                        </template>
+                      </div>
+                    </div>
+                  </template>
+                </template>
+
+              </div>
+
+            </div>
+            <div class="navigationDiv">
+              <div class="navigationButtonWrapper">
+
+                <button type="button" class="btn btn-basic button navigationButton" @click="moduleOptionsCheck(); prepareFinalYaml()">
+                  <b> final yaml </b>
+                  <i class="fas fa-arrow-circle-right"></i>
+                </button>
+
+              </div>
+            </div>
+          </div>
+
+
+        </div>
+
+        <div class="pX-pageDiv" v-show="page3">
+
+
+          <div class="wrapper">
+            <div class="navigationDiv">
+              <div class="navigationButtonWrapper">
+
+                <button :disabled="!this.page0Acceptability" type="button" class="btn btn-basic button navigationButton" @click="switchPage('page2')">
+                  <i class="fas fa-arrow-circle-left"></i>
+                  <b> module options </b>
+                </button><p></p>
+
+              </div>
+            </div>
+            <div class="contentDiv">
+
+              <div class="textDiv">
+<!--                TEXT FOR PAGE 4-->
+              </div>
+              <div id="page3"class="pX-contentDiv pX-classicContentBackground" align="center">
+                <table class="p3-mainTable">
+                  <tr>
+                    <td class="p3-mainTableCell">
+                      <div class="p3-mainTableCellWrapper">
+                        <div id="groupTextWell">
+                          <template v-if="!pairedEnd">
+
+                                <pre class="well well-sm p3-finalContentWell clickForHighlighting"><span>name	reads</span><template v-for="(column, index) in storedColumns">	{{ column.name }}</template>
+<template v-for="(dict, index) in storedFileSingles"><span>{{ dict.label }}	{{ dict.path }}</span><template v-for="(column, index) in storedColumns">	{{ dict[column.name] }}</template><br></template></pre>
+
+                          </template>
+                          <template v-else>
+
+                                <pre class="well well-sm p3-finalContentWell clickForHighlighting"><span>name	forward_reads	reverse_reads</span><template v-for="(column, index) in storedColumns">	{{ column.name }}</template>
+<template v-for="(dict, index) in storedFilePairings"><template v-if="dict.pathR1 !== '' && dict.pathR2 !== ''"><span>{{ dict.label }}	{{ dict.pathR1 }}	{{ dict.pathR2 }}</span><template v-for="(column, index) in storedColumns"><span>	{{ dict[column.name] }}</span></template><br></template></template></pre>
+
+                          </template>
+                        </div>
+                      </div>
+                      <button type="button" class="p3-wellButtonFamilyMember p3-downloadButton" onclick="download('groupTextWell', 'groups.txt', 'txt')">
+                        <i class="fas fa-file-download"></i>
+                        <b> download </b>
+                      </button>
+                      <button type="button" class="p3-wellButtonFamilyMember p3-clipboardCopyButton" onclick="copyToClipboard('groupTextWell')">
+                        <b>copy to clipboard</b>
+                      </button>
+                    </td>
+                    <td class="p3-mainTableCell">
+                      <div class="p3-mainTableCellWrapper">
+                        <div id="yamlTextWell" class="well well-sm p3-finalContentWell clickForHighlighting">
+                          <template v-for="(groupValues, groupKey, index) in this.finalYaml">
+
+                            <template v-if="groupValues['modules'] && groupValues['modules'].length === 0 && checked">
+                              <!--                                    display nothing -->
+                            </template>
+                            <template v-else>
+                              {{ groupKey }} <br>
+                              <template v-if="groupKey === 'pipeline'">
+                                <template v-for="(groupDictValue, groupDictKey, index) in groupValues">
+                                  &nbsp;&nbsp;{{ groupDictKey }}: {{ groupDictValue }} <br><br>
+                                </template>
+                              </template>
+                              <template v-else>
+                                <template v-for="(groupDictValue, groupDictKey, index) in groupValues">
+
+                                  <template v-if="groupDictKey === 'modules' || groupDictKey === 'module'">
+                                    <template v-if="groupKey == 'analyses'">
+                                      <template v-if="groupDictValue.length === 0">
+                                        &nbsp;&nbsp;{{ 'modules' }}: "" <br>
+                                      </template>
+                                      <template v-else>
+                                        &nbsp;&nbsp;{{ 'modules' }}: {{ groupDictValue }} <br>
+                                      </template>
+                                    </template>
+                                    <template v-else>
+                                      <template v-if="groupDictValue.length === 0">
+                                        &nbsp;&nbsp;{{ 'module' }}: "" <br>
+                                      </template>
+                                      <template v-else-if="groupDictValue.length === 1">
+                                        &nbsp;&nbsp;{{ 'module' }}: "{{ groupDictValue[0] }}" <br>
+                                      </template>
+                                      <template v-else>
+                                        &nbsp;&nbsp;{{ 'modules' }}: {{ groupDictValue }} <br>
+                                      </template>
+                                    </template>
+                                    <br>
+                                  </template>
+                                  <template v-else>
+                                    <template v-if="Object.keys(groupDictValue).length > 0">
+                                      &nbsp;&nbsp;{{ groupDictKey }}<br>
+                                      <template v-for="(VALUE, KEY, INDEX) in groupDictValue">
+                                        &nbsp;&nbsp;&nbsp;&nbsp;{{ KEY }}: "{{ VALUE }}" <br>
+                                      </template>
+                                      <br>
+                                    </template>
+                                  </template>
+
+                                </template>
+                              </template>
+                            </template>
+
+                          </template>
+                        </div>
+                      </div>
+                      <button type="button" class="p3-wellButtonFamilyMember p3-downloadButton" onclick="download('yamlTextWell', 'pipeline.yaml', 'yaml')">
+                        <i class="fas fa-file-download"></i>
+                        <b> download </b>
+                      </button>
+                      <button type="button" class="p3-wellButtonFamilyMember p3-clipboardCopyButton" onclick="copyToClipboard('yamlTextWell')">
+                        <b>Copy to Clipboard</b>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colspan="2">
+
+                      <div class="p3-terminalWrapper">
+                        <div class="p3-buttonWell">
+                          <div class="p3-buttonDivWrapper">
+                            <button class="p1-uploadButton" style="padding: 1rem; border: 1px solid dimgrey; border-radius: 10px;">
+                              <div style="font-size: 2rem;" @click="startPipeline()">
+                                <i class="fas fa-play-circle"></i>
+                                START PIPELINE
+                              </div>
+                            </button>
+                          </div>
+                        </div>
+                        <div class="p3-terminalWell">
+                          <template v-for="(element, index) in this.storedTerminalInOutput">
+                            <a> {{ element }} </a><br>
+                          </template>
+                        </div>
+                      </div>
+
+                      <div style="display: flex;">
+                        <div style="flex: 1; padding: 0.75rem;">
+
+                        </div>
+                        <div style="flex: 2; padding: 2rem;">
+                          <div id="testdiv">
+                            <input style="width: 100%" v-model="bashCommand">
+                          </div>
+                        </div>
+                      </div>
+
+                    </td>
+                  </tr>
+                </table>
+              </div>
+
+            </div>
+            <div class="navigationDiv">
+              <div class="navigationButtonWrapper">
+
+              </div>
+            </div>
+          </div>
+
+
+        </div>
+        <!-- subpages END -->
+
+      </div>
+    </div>
+
+  </body>
+</html>
+
+<style>
+  /* ----------------------- */
+  /* basic and global styles */
+  /* ----------------------- */
+
+  :root {
+    --page-size: 125rem;
+  }
+  .pX-CONTENTCELL {
+    width: var(--page-size);
+  }
+  html {
+    /* changed design */
+    /*background-image: linear-gradient(to bottom right, white, white, #d0e9fc);*/
+    background-color: #e3e2de;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+
+    height: 100%;
+    width: 100%;
+    overflow: -moz-scrollbars-vertical;
+    overflow-y: scroll;
+    scroll-behavior: smooth;
+  }
+  .bodyClass {
+    height: 100%;
+    background-color: transparent;
+  }
+  .pageTable {
+    width: 100%;
+    height: 100%;
+    text-align: center;
+  }
+  .pageCenterColumn {
+    width: 100%;
+    vertical-align: top;
+    display: inline-block;
+  }
+  .headlineDiv {
+    /* changed design */
+    background-color: #343338;
+
+    color: white;
+    text-align: center;
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+  .pX-contentDiv {
+    width: inherit;
+
+    vertical-align: center;
+    text-align: center;
+  }
+  .pX-clearBlue {
+    background-color: #cee0ed;
+  }
+  .pX-classicContentBackground {
+    /* changed desing */
+    /*background-image: linear-gradient(to bottom, #cee0ed, rgba(0,0,0,0));*/
+    background-color: #a5aeb4;
+    border-radius: 10px;
+  }
+  .pX-gradientToRight {
+    background-image: linear-gradient(to right, #cee0ed, rgba(0,0,0,0));
+  }
+  .pX-contentTable {
+    /*background: indianred;*/
+    width: 185rem;
+
+    margin: 0 auto;
+  }
+  .titleRow {
+    height: 6rem;
+    background-color: darkgrey;
+    text-align: left;
+  }
+  .btn {
+    /*margin: 1px;*/
+  }
+  .button {
+    /* nothing yet */
+  }
+  .navigationButton {
+    z-index: -1;
+
+    font-size: 2rem;
+    background-color: darkgrey;
+  }
+  .navigationButton:disabled {
+    /* nothing yet */
+  }
+  .navigationButton:enabled {
+    background-color: #343338;
+
+    /*font-*/color: white;
+    font-size: 2rem;
+  }
+  .navigationButton:hover:enabled {
+    background-color: #76737f;
+  }
+  .pX-navigationTopRow {
+    text-align: left;
+    height: 14rem;
+  }
+  .pX-navigationCol {
+    /*border: 10px solid blueviolet;*/
+    min-width: 22rem;
+
+    text-align: left;
+    vertical-align: top;
+
+    padding-left: 5rem;
+    padding-top: 15rem;
+  }
+  .moduleWellShadow {
+    box-shadow: inset 0 0 5px #000000;
+  }
+  @-webkit-keyframes glowButton {
+    100% { box-shadow: 0 0 10px #fff, 0 0 20px #d8ecff, 0 0 30px #2f87ff }
+  }
+  .appWrapper {
+    /*background-color: cadetblue;*/
+  }
+  .wrapper {
+    display: flex;
+  }
+  .textDiv {
+    margin: auto;
+    width: 87%;
+  }
+  .navigationDiv {
+    flex: 1;
+
+    min-width: 25rem;
+    /*background-color: darkolivegreen;*/
+    /*border: 1px solid lawngreen;*/
+    text-align: center;
+
+    padding-top: 20rem;
+  }
+  .contentDiv {
+    flex: 1;
+    min-width: 125rem;
+  }
+  .navigationButtonWrapper {
+    margin: 1rem;
+  }
+  @media (max-width: 85rem) {
+    .appWrapper {
+      /*background-color: indianred;*/
+    }
+    .wrapper {
+      flex-wrap: wrap
+    }
+    .navigationDiv {
+      /*padding-top: 1rem;*/
+      padding: 1rem;
+    }
+    .navigationButtonWrapper {
+      width: 20rem;
+
+      margin: 0 auto;
+    }
+  }
+</style>
+<style>
+  /* ------------- */
+  /* Page 0 Styles */
+  /* ------------- */
+
+  :root {
+    /*CORR = corresponding*/
+    --corners-radius: 15px;
+    --module-fontsize: 1.8rem;
+    --CORR-modulesize: calc(var(--module-fontsize) * 1.45)
+  }
+  .p0-contentTable {
+    margin: 1rem;
+  }
+  .p0-titleRow {
+    font-size: 2.5rem;
+    text-align: right;
+    font-style: italic;
+    font-weight: bold;
+  }
+  .p0-spanRow {
+    height: 2rem;
+  }
+  .p0-selectionRow {
+    height: 9rem;
+    vertical-align: middle;
+    text-align: center;
+  }
+  .p0-mainRowCell {
+    text-align: center;
+    vertical-align: middle;
+  }
+  .p0-preMappingRow {
+    vertical-align: middle;
+    text-align: center;
+  }
+  .p0-poolRow {
+    vertical-align: top;
+  }
+  .p0-poolCell {
+    text-align: center;
+  }
+  .moduleField {
+    margin: 1rem auto;
+  }
+  .p0-arrowCell {
+    vertical-align: middle;
+    text-align: center;
+  }
+  .p0-arrowSymbol {
+    color: #4f4f4f;
+    font-size: 10rem;
+  }
+  .p0-premappingArrowSymbol {
+    transform: rotate(90deg);
+  }
+  .p0-backgroundPipelineFalse {
+    /* changed design */
+    transition: background-color 0.3s;
+    background-color: #b4a4a0;
+  }
+  .p0-backgroundPipelineTrue {
+    /* changed design */
+    transition: background-color 0.3s;
+    background-color: #a5aeb4;
+  }
+  .p0-backgroundPipelinePremappingCurve {
+    border-bottom-left-radius: var(--corners-radius);
+    text-align: center;
+  }
+  .p0-premappingColumn {
+    /* */
+  }
+  .p0-preprocessingCell {
+    border-top-left-radius: var(--corners-radius);
+  }
+  .p0-premappingCell {
+    border-top-right-radius: var(--corners-radius);
+    border-bottom-right-radius: var(--corners-radius);
+  }
+  .p0-analysisCell {
+    border-top-right-radius: var(--corners-radius);
+    border-bottom-right-radius: var(--corners-radius);
+  }
+  .selection {
+    z-index: 0;
+    position: relative;
+
+    /* changed design */
+    border: 1px solid dimgrey;
+    width: 24rem;
+    min-height: 20rem;
+
+    margin: 2rem auto;
+  }
+  .selectionFalse {
+    /*background: rgba(229,135,107,0.2);*/
+    background-image: linear-gradient(to bottom right, lightgrey, #e59479);
+    /*background-color: #e56640;*/
+  }
+  .selectionTrue {
+    /*background: rgba(140,189,234,0.2);*/
+    background-image: linear-gradient(to bottom right, lightgrey, #BAD5E8);
+    /*background-color: #d2e5a2; !*4fd998; 4fd953*!*/
+  }
+  .p0-scrollbar
+  {
+    /*overflow-y: scroll;*/
+
+    margin-left: 30px;
+    float: left;
+    height: 300px;
+    width: 65px;
+    background: #F5F5F5;
+    margin-bottom: 25px;
+  }
+  .pool::-webkit-scrollbar-track
+  {
+    /*-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);*/
+    border-radius: 10px;
+    /*background-color: #F5F5F5;*/
+    background-color: transparent;
+  }
+
+  .pool::-webkit-scrollbar
+  {
+    width: 12px;
+    /*background-color: #F5F5F5;*/
+    background-color: transparent;
+  }
+
+  .pool::-webkit-scrollbar-thumb
+  {
+    border-radius: 10px;
+    /*-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);*/
+    background-color: #555;
+  }
+  .pool {
+    margin: 1rem 1rem;
+
+    width: 26rem;
+    height: 36rem;
+
+    /* changed design */
+    background-color: #d0d0d0;
+    border-color: lightgrey;
+
+    /*background-color: rgba(220, 220, 220);*/
+
+    /*overflow: -moz-scrollbars-vertical;*/
+    overflow-y: scroll;
+    /*margin: 1rem;*/
+  }
+  /* changed design */
+  /*.pool:hover {*/
+  /*  background-image: linear-gradient(to bottom right, lightgrey, #ffffff, #acacac)*/
+  /*}*/
+  .p0-moduleButton {
+
+    /*! color see class: .installed // .noninstalled*/
+
+    width: 90%;
+    border: 1px solid grey;
+    border-radius: 5px;
+    box-shadow: 0 4px 4px 0 rgba(0,0,0,0.2), 0 6px 4px 0 rgba(0,0,0,0.19);
+    font-size: 1.5rem;
+
+    margin: 0.5rem auto;
+    cursor: pointer;
+
+    /*transition: all 0.2s;*/
+  }
+  .p0-moduleButtonNoDisplay {
+    display: none;
+  }
+  .p0-moduleButtonTable {
+    width: 100%;
+  }
+  .p0-titleWrapper {
+    width: inherit;
+    height: var(--CORR-modulesize);
+    position: relative;
+  }
+  .p0-moduleButtonTitle {
+    text-align: center;
+    font-size: var(--module-fontsize);
+    font-weight: bold;
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+  }
+  .p0-moduleButtonDescription {
+    font-size: 1.4rem;
+  }
+  .p0-moduleWell {
+    margin: 0rem 0.5rem 0.5rem;
+  }
+  .installed {
+    background-image: linear-gradient(to right bottom, #e4e4e4, #e4e4e4, #8496a4);
+  }
+  .installed:hover {
+    background-image: linear-gradient(to right bottom, #e4e4e4, #ffffff, #a4b8c7);
+  }
+  .noninstalled {
+    background-image: linear-gradient(to right bottom, #e4e4e4, #e4e4e4, #d8b657);
+  }
+  .noninstalled:hover {
+    background-image: linear-gradient(to right bottom, #e4e4e4, #ffffff, #edca5c);
+  }
+
+  @-webkit-keyframes glowSelection {
+    100% { box-shadow: inset 0 0 5px #000000, 0 0 10px #fff, 0 0 20px #e3efff, 0 0 30px #2f87ff
+    }
+  }
+  @-webkit-keyframes glowPool {
+    100% { box-shadow: inset 0 0 10px #fff, 0 0 15px #e3efff, 0 0 20px #2f87ff
+    }
+  }
+  /*@-webkit-keyframes scaleField {*/
+  /*  100% { transform: scale(1.2) }*/
+  /*}*/
+  /*@-webkit-keyframes scaleSection {*/
+  /*  100% { transform: scale(1.03) }*/
+  /*}*/
+</style>
+<style>
+  /* ------------- */
+  /* Page 1 Styles */
+  /* ------------- */
+
+
+  /* START Paired-End-Single-End Slider Entries */
+  .SPEInternalRow {
+    height: 7rem;
+    align: center;
+    font-size: 2rem;
+  }
+  .switch {
+    margin: 0.5rem;
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+  }
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #4b78cc;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  input:checked + .slider {
+    background-color: #e2b32d;
+  }
+
+  input:focus + .slider {
+    box-shadow: 0 0 1px #b3adb2;
+  }
+  input:checked + .slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+  }
+  .slider.round {
+    border-radius: 34px;
+  }
+
+  .slider.round:before {
+    border-radius: 50%;
+  }
+  .switcherLine {
+    font-size: 2rem;
+  }
+  /* END Paired-End-Single-End Slider Entries */
+
+  .p1-contentCellBackground {
+    width: inherit;
+
+    background-image: linear-gradient(to bottom, #cee0ed, rgba(0,0,0,0));
+
+    vertical-align: center;
+    text-align: center;
+  }
+  .p1-buttonFamilyMember {
+    width: 25rem;
+    font-size: 2rem;
+
+    /*margin: 1rem 1rem;*/
+  }
+  .p1-smallSubGroup {
+    display: flex;
+    height: 100%;
+  }
+  .p1-smallButtonWrapper {
+    height: 100%;
+    width: 100%;
+
+    flex: 1;
+    padding: 0.4rem;
+  }
+  .p1-smallButton {
+    height:100%;
+    width: 100%;
+    font-size: 1.5rem;
+  }
+  .p1-buttonFamilyMember, .p1-smallButton {
+    border: 1px solid gray;
+    padding: 8px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+  }
+  .p1-uploadButton {
+    background-image: linear-gradient(to bottom right, #f6f6f6, #BAD5E8);
+  }
+  .p1-uploadButton:hover {
+    background-image: linear-gradient(to bottom right, #ffffff, #d4f0ff);
+  }
+  .p1-uploadButtonWrapper {
+    position: relative;
+    display: inline-block;
+    font-size: 2rem;
+
+    animation: glowing 2500ms infinite;
+  }
+  @keyframes glowing {
+    0% { box-shadow: 0 0 -20px #ffffff; }
+    40% { box-shadow: 0 0 40px #ffffff; }
+    60% { box-shadow: 0 0 40px #ffffff; }
+    100% { box-shadow: 0 0 -20px #ffffff; }
+  }
+  .p1-uploadButtonWrapper:hover .p1-uploadButton {
+    background-image: linear-gradient(to bottom right, #ffffff, #d4f0ff);
+
+  }
+  .p1-uploadButtonWrapper input[type=file] {
+    background-color: red;
+
+    font-size: 100px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+  }
+  .p1-fileAmountWell {
+    display : flex;
+    align-items : center;
+    justify-content: center;
+
+    border-radius: 5px;
+    border: 1px solid dimgrey;
+    background-color: #e9e8e4;
+    font-size: 2rem;
+    color: dimgrey;
+
+    margin: auto;
+  }
+  .p1-clearButtonWrapper {
+    height: 100%;
+
+    padding: 1rem;
+  }
+  .p1-clearButton {
+    height: 100%;
+
+    border: 1px solid gray;
+    background-image: linear-gradient(to bottom right, lightgrey, #ec997d);
+    border-radius: 5px;
+    font-size: 2rem;
+
+    vertical-align: center;
+    margin: auto auto;
+  }
+  .p1-clearButton:hover {
+    background-image: linear-gradient(to bottom right, #ffffff, #ffbdaa);
+  }
+  /*.p1-clearButton:hover:enabled {*/
+  /*  animation: glowButton 0.1s ease-in-out;*/
+  /*  animation-fill-mode: forwards;*/
+  /*}*/
+
+
+
+  .p1-fileManagementTable {
+    width: 100%;
+    height: 100%;
+  }
+  .p1-fileManagementCell {
+    width: 60%;
+    max-width: 15rem;
+    vertical-align: top;
+  }
+  .p1-listWrapper {
+    padding: 2rem;
+  }
+  .p1-scrollbar
+  {
+    /*overflow-y: scroll;*/
+
+    margin-left: 30px;
+    float: left;
+    height: 300px;
+    width: 95%;
+    margin-bottom: 25px;
+  }
+  .p1-fileListWellWrapper {
+    width: 100%;
+  }
+  .p1-fileListWell {
+    max-width: 100%;
+    min-height: 40rem;
+
+    background-color: #e9e8e4;
+    border: 1px solid darkgrey;
+    border-radius: 5px;
+    white-space: nowrap;
+
+    text-align: left;
+
+    overflow-x: auto;
+    overflow-y: auto;
+
+    margin: 1rem 1rem;
+  }
+  .p1-fileListWellFixedHeight {
+    height: 20rem;
+  }
+  .p1-fileListWell::-webkit-scrollbar-track
+  {
+    /*-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);*/
+    border-radius: 10px;
+    /*background-color: #F5F5F5;*/
+    background-color: transparent;
+  }
+
+  .p1-fileListWell::-webkit-scrollbar
+  {
+    width: 12px;
+    /*background-color: #F5F5F5;*/
+    background-color: transparent;
+  }
+
+  .p1-fileListWell::-webkit-scrollbar-thumb
+  {
+    border-radius: 10px;
+    /*-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);*/
+    background-color: #555;
+  }
+  .p1-fileListCell {
+    border-color: blue;
+    width: 80%;
+  }
+  .p1-fileListClearButtonCell {
+    width: 20%;
+    text-align: center;
+  }
+  .p1-fileReadsDisplayTable {
+    width: 100%;
+  }
+  .p1-tableHeaderCell {
+    background-color: #343338;
+
+    font-weight: bold;
+    color: white;
+  }
+  .p1-fileDisplayRow {
+    width: 100%;
+  }
+  .p1-fileDisplayRow:hover {
+    background-color: white;
+  }
+  .p1-fileDisplayCell {
+    padding: 0.5rem;
+    /*border: 2px solid orange;*/
+  }
+  .p1-numberCell {
+    width: 2rem;
+    text-align: right;
+
+    padding: 0.5rem;
+  }
+  .p1-nameCell {
+    width: 20rem;
+  }
+  .p1-deleteCell {
+    width: 2rem;
+    padding: 0.5rem;
+  }
+  .p1-deleteEntryButton, .p1-addEntryButton {
+    background-image: linear-gradient(to right bottom, #e4e4e4, #e4e4e4, #8496a4);
+    border: 1px solid dimgrey;
+    border-radius: 50%;
+
+    font-weight: bold;
+  }
+  .p1-deleteEntryButton {
+    width:  2rem;
+    height: 2rem;
+    font-size: 1.1rem;
+  }
+  .p1-addEntryButton {
+    width: 3.5rem;
+    height: 3.5rem;
+    font-size: 2rem;
+  }
+  .p1-addEntryButton:hover, .p1-deleteEntryButton:hover{
+    background-image: linear-gradient(to right bottom, #e4e4e4, #ffffff, #a4b8c7);
+  }
+</style>
+<style>
+  /* ------------- */
+  /* Page 2 Styles */
+  /* ------------- */
+
+  button:focus {
+    outline:none;
+  }
+  input:focus {
+    outline:none;
+  }
+  .p2-mainTable {
+    width: 100%;
+  }
+  .p2-groupTable {
+    width: 100%;
+    overflow-x: auto;
+    height: 1rem;
+  }
+  .p2-emptyGroupTable {
+    width: 100%;
+    border-color: darkgrey;
+  }
+  .p2-groupTableTitleRow {
+    /* nothing yet */
+  }
+  .p2-groupTableTitleCell {
+    height: 3rem;
+    font-size: 2rem;
+    text-align: center;
+  }
+  .p2-moduleTable {
+    width: 95%;
+
+    border: 1px solid dimgrey;
+    border-radius: 5px;
+    box-shadow: 0px 10px 10px grey;
+    margin: 2rem auto;
+  }
+  .p2-moduleTable.showGlow{
+    animation: glowButton 1s ease-in-out;
+    /*animation-fill-mode: forwards;*/
+  }
+  .p2-groupTableContentCell {
+    vertical-align: top;
+  }
+  .p2-spanRow {
+    height: 3rem;
+  }
+  .p2-moduleOptionsRow {
+    width: inherit;
+
+    background-image: linear-gradient(to right, #cee0ed, rgba(0,0,0,0));
+
+    vertical-align: center;
+    text-align: center;
+  }
+  .p2-moduleOptionsRow:hover {
+    /*transform: scale(1.1);*/
+  }
+  .p2-groupNameCol {
+    vertical-align: top;
+    padding-top: 2rem;
+    text-align: right;
+    font-size: 3rem;
+  }
+  .p2-groupContentCol {
+    /*padding: 1rem;*/
+  }
+  .p2-fakeWell {
+    border: 1px solid dimgrey;
+    min-height: 7rem;
+    margin: 1rem;
+    /*margin-bottom: 0rem;*/
+  }
+  @-webkit-keyframes glowButton {
+    100% { box-shadow: 0 0 10px #fff, 0 0 20px #d8ecff, 0 0 30px #2f87ff }
+  }
+  .p2-moduleTitle {
+    /*border-bottom: 1px solid dimgrey;*/
+    /*background-color: lightgrey;*/
+    height: 4.5rem;
+    text-align: center;
+    font-weight: bold;
+    font-size: 2rem;
+  }
+  :root {
+    --colorTrue: #BAD5E8;
+    --colorFalse: #ebaa95;
+    --transitiontime: 0.5s;
+  }
+  .p2-moduleTitleFalse {
+    /* settingsTypeTitleFalse (stt-false) */
+    transition: background-color var(--transitiontime);
+    background-color: var(--colorFalse);
+  }
+  .p2-moduleTitleTrue {
+    /* settingsTypeTitleTrue (stt-true) */
+    transition: background-color var(--transitiontime);
+    background-color: var(--colorTrue);
+  }
+  .p2-moduleTableFalse {
+    transition: background-color var(--transitiontime);
+    background-color: var(--colorFalse);
+  }
+  .p2-moduleTableTrue {
+    transition: background-color var(--transitiontime);
+    background-color: var(--colorTrue);
+  }
+  .p2-moduleTableDivWrapper {
+    width: 95%;
+    background-color: #dedede;
+
+    padding: 0rem;
+  }
+  .p2-moduleOptionsTable {
+    margin: 0rem;
+    width: 100%;
+  }
+  .p2-settingsTypeTitle {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    font-style: italic;
+  }
+  .p2-typeRequiredTitle {
+    color: black;
+  }
+  .p2-typeOptionalTitle {
+    /*color: dimgrey;*/
+  }
+  .p2-optionalSettingsButton {
+    border: 0px solid transparent;
+    background-color: transparent;
+    width: 100%;
+    height: 100%;
+
+    padding-top: 0.2rem;
+  }
+  .p2-settingRow {
+    height: 2rem;
+    width: 100%;
+    margin-top: 0.2rem;
+    margin-bottom: 0.2rem;
+    size: 1.4rem;
+  }
+  .p2-invisibleContent {
+    display: none;
+    color: dimgrey;
+  }
+  .p2-settingRowContent {
+
+  }
+  .p2-moduleCell {
+    padding: 0.3rem;
+  }
+  .p2-settingRowType {
+    /*background-color: darkgrey;*/
+  }
+  .p2-settingRowType:hover {
+    /*background-image: linear-gradient(to bottom right, darkgrey, #fffd7c)*/
+    background-color: whitesmoke;
+  }
+  .p2-settingsNameCol {
+    padding-left: 2rem;
+    font-weight: bold;
+    width: 25rem;
+  }
+  .p2-settingsInputCol {
+    /*width: 35rem;*/
+  }
+  .p2-uploadButtonWrapper {
+    position: relative;
+
+    width: 100%;
+    height: 100%;
+    font-size: 1.25rem;
+  }
+  .p2-uploadButtonWrapper input[type=file] {
+    background-color: red;
+
+    font-size: 100px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+  }
+  .p2-uploadButton {
+    width: 100%;
+    height: 100%;
+    border-bottom-left-radius: 5px;
+    border-top-left-radius: 5px;
+    border: 1px solid darkgrey;
+    border-right: none;
+    background-color: whitesmoke;
+  }
+  .p2-settingsDescriptionCol {
+    vertical-align: center;
+    width: 2.5rem;
+  }
+  .p2-optionalNameCell {
+    color: dimgrey;
+  }
+  .p2-settingsInput {
+    width: 100%;
+  }
+  .p2-descriptionSymbol:hover {
+    color: #2f87ff;
+  }
+</style>
+<style>
+  /* ------------- */
+  /* Page 3 Styles */
+  /* ------------- */
+
+  .p3-contentTableCell {
+    width: var(--page-size);
+  }
+  .page3Table {
+    min-width: 20rem;
+    max-width: 40rem;
+  }
+  .p3-clickForHighlighting {
+    user-select: all;
+  }
+  .p3-mainTableWell {
+    /*background-image: linear-gradient(to bottom, rgb(161, 190, 210), rgb(161, 190, 210), rgba(161, 190, 210, 0));*/
+    /*background-color: rgba(255, 255, 255, 0);*/
+    background-color: #BAD5E8;
+    border: rgba(255, 255, 255, 0);
+  }
+  .p3-mainTable {
+    width: 100%;
+  }
+  .p3-mainTableCell {
+    text-align: right;
+    vertical-align: top;
+
+    padding: 1.8rem;
+  }
+  .p3-mainTableCellWrapper {
+    margin: auto;
+  }
+
+  .p3-scrollbar
+  {
+    /*overflow-y: scroll;*/
+
+    margin-left: 30px;
+    float: left;
+    height: 300px;
+    width: 65px;
+    background: #F5F5F5;
+    margin-bottom: 25px;
+  }
+
+  .p3-finalContentWell::-webkit-scrollbar-track
+  {
+    /*-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);*/
+    border-radius: 10px;
+    /*background-color: #F5F5F5;*/
+    background-color: transparent;
+  }
+
+  .p3-finalContentWell::-webkit-scrollbar
+  {
+    width: 12px;
+    /*background-color: #F5F5F5;*/
+    background-color: transparent;
+  }
+
+  .p3-finalContentWell::-webkit-scrollbar-thumb
+  {
+    border-radius: 10px;
+    /*-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);*/
+    background-color: #555;
+  }
+  .p3-finalContentWell {
+    border: 1px solid darkgray;
+    border-radius: 5px 5px 0px 5px;
+    width: 59rem;
+    min-height: 45rem;
+
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 1.5rem;
+    text-align: left;
+
+    overflow-x: scroll;
+
+    margin: auto 0 auto auto;
+  }
+  .p3-buttonGroup {
+    padding-top: 15rem;
+  }
+  .p3-mainTableButtonCell {
+    text-align: center;
+    vertical-align: top;
+    padding-bottom: 2rem;
+  }
+  .p3-clipboardCopyButton {
+    border: 1px solid darkgray;
+    background-image: linear-gradient(to bottom right, #f6f6f6, #BAD5E8);
+  }
+  .p3-clipboardCopyButton:hover {
+    background-image: linear-gradient(to bottom right, #ffffff, #d4f0ff);
+  }
+  .p3-downloadButton {
+    border: 1px solid #919191;
+    background-image: linear-gradient(to bottom right, #f6f6f6, #438fe8);
+  }
+  .p3-downloadButton:hover {
+    background-image: linear-gradient(to bottom right, #f6f6f6, #71afff);
+  }
+  .p3-wellButtonFamilyMember {
+    border-top: none;
+    border-radius: 0 0 5px 5px;
+
+    font-size: 1.5rem;
+    font-weight: bold;
+
+    padding: 8px 20px;
+    margin: auto;
+  }
+  #groupTextWell {
+    /* none */
+  }
+  .p3-terminalWrapper {
+    text-align: left;
+    padding: 2rem;
+  }
+  .p3-buttonWell {
+    height: 9rem;
+    width: 100%;
+
+    /*border-top-left-radius: 10px;*/
+    border: 2px solid dimgrey;
+    border-top-right-radius: 10px;
+    background-color: dimgrey;
+
+    margin: auto;
+  }
+  .p3-buttonDivWrapper {
+    text-align: center;
+
+    margin: 2rem;
+  }
+  .p3-terminalWell {
+    height: 18rem;
+
+    background-color: #e3e2de;
+    border: 1px solid dimgrey;
+    overflow-y: scroll;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+
+    padding: 1rem;
+  }
+</style>
+
+<style>
+  /* ------------- */
+  /* pop up styles */
+  /* ------------- */
+
+  .pX-emptyPopUpDiv {
+    text-align: right;
+  }
+  .popUp-wrapper {
+    /*border: 2px solid red;*/
+    position: absolute;
+    visibility: hidden;
+    color: green;
+  }
+  .has-popUp {
+    /*position: relative;*/
+    color: #333333;
+    display: inline;
+  }
+  .has-popUp:hover {
+    color: #333333;
+    text-decoration: none;
+  }
+  .has-popUp:hover .popUp-wrapper {
+    visibility: visible;
+    opacity: 1;
+    /*top: 30px;*/
+    /*left: 50%;*/
+    /*margin-left: -76px;*/
+    /* z-index: 999; defined above with value of 5 */
+  }
+  .popUp {
+    display: inline-block;
+    position: relative;
+    /*top: 3em;*/
+    /*left: 12rem;*/
+    left: 0.75rem;
+    right: 100%;
+    width: 100%;
+    min-width: 14rem;
+    /*margin-left: -76px;*/
+    color: #ffffff;
+    background: #4b555d;
+    /*line-height: 55px;*/
+    text-align: center;
+    border-radius: 8px;
+    box-shadow: 4px 3px 10px #000000;
+    padding: 1rem;
+  }
+  .popUp:after {
+    content: "";
+    position: absolute;
+    top: 1.5rem;
+    right: 100%;
+    margin-top: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent #555 transparent transparent;
+  }
+
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script>
+  var app = new Vue({
+    el: '#app',
+    data: function () {
+      return {
+        testValue: true,
+
+        bashCommand: 'ls -l',
+
+        files: null,
+        checked: false,
+        noneDict: {'name': 'none', 'installed': true},
+        storedSelectionKeys: ['groupName', 'groupShowName', 'groupId', 'groupMax', 'groupMin', 'selectionAmount', 'selectionAcceptability'],
+        storedGroupsNames: ['preprocessing', 'premapping', 'mapping', 'analyses'],
+        storedModuleGroups: [
+          // order of dictionaries = order of groups on HTML page
+          // main storage for module group information
+          // ** add new module groups here **
+          {
+            groupName: 'preprocessing',
+            groupShowName: 'Preprocessing',
+            groupOptional: true,
+            groupMin: 0,
+            groupMax: 1
+          },
+          {
+            groupName: 'premapping',
+            groupShowName: 'Premapping',
+            groupOptional: true,
+            groupMin: 0,
+            groupMax: null
+          },
+          {
+            groupName: 'mapping',
+            groupShowName: 'Mapping',
+            groupOptional: false,
+            groupMin: 1,
+            groupMax: 1
+          },
+          {
+            groupName: 'analyses',
+            groupShowName: 'Analyses',
+            groupOptional: true,
+            groupMin: 0,
+            groupMax: null
+          }
+        ],
+
+        storedFiles: [],
+        storedColumns: [],
+        storedFileSingles: [],
+        storedFilePairings: [],
+        storedTerminalInOutput: [],
+
+        storedJsonList: jsonData,
+        collectedModules: null,
+        dynamicGroupList: null,
+        finalYaml: null,
+        pairedEnd: false,
+        page0: true,
+        page1: false,
+        page2: false,
+        page3: false,
+        page0Acceptability: false,
+        page1Acceptability: false,
+        page2Acceptability: false,
+        page3Acceptability: false
+      }
+    },
+    computed: {
+      filteredList() {
+        return this.postList.filter(post => {
+          return post.title.toLowerCase().includes(this.search.toLowerCase())
+        })
+      },
+    },
+    methods: {
+      chooseModulePerClick(name, gIndex) {
+        console.log('>>> chooseModulePerClick')
+
+        let inSelectionField = this.dynamicGroupList[gIndex].modules.moduleDicts[name].inSelectionField
+        let boolean = null;
+
+        if (inSelectionField) {
+          boolean = false;
+        } else {
+          boolean = true;
+        }
+        this.dynamicGroupList[gIndex].modules.moduleDicts[name].inSelectionField = boolean;
+        this.forceUpdate()
+      },
+      forceUpdate() {
+        this.$forceUpdate()
+      },
+      changeEnd () {
+        if (this.pairedEnd === true) {
+          this.pairedEnd = false
+        } else {
+          this.pairedEnd = true
+        }
+      },
+      generateId (type, index) {
+        let id = type + '--' + index;
+        return id
+      },
+      createDynamicGroupList () {
+        // Setting up the main storage for groups, their modules and information
+        let mainList = [];
+        let counter = 0;
+
+        for (let entry of this.storedModuleGroups) {
+          // group = analyses / mapping etc.
+          let tempDict = this.createTempDict(entry, counter);
+
+          mainList.push(tempDict);
+          counter = counter + 1
+        }
+
+        this.dynamicGroupList = mainList
+      },
+      createTempDict (entry, counter) {
+        // group = analyses / mapping etc.
+        let tempDict = {};
+        tempDict['groupName'] = entry.groupName;
+        tempDict['groupShowName'] = entry.groupShowName;
+        tempDict['groupId'] = entry.groupName + '--' + counter;
+        tempDict['groupIndex'] = counter;
+        tempDict['groupMax'] = entry.groupMax;
+        tempDict['groupMin'] = entry.groupMin;
+        tempDict['groupOptional'] = entry.groupOptional;
+        tempDict['groupHovered'] = false;
+        tempDict['groupChosen'] = false;
+        tempDict['selectionAcceptability'] = false;
+        tempDict['selectionAmount'] = 0;
+        // Inserting modules via refinedModules function
+        tempDict['modules'] = this.refinedModuleDict(entry, counter);
+        return (tempDict)
+      },
+      refinedModuleDict (entry, counter) {
+        console.log('>>> refinedModuleDict');
+
+        let mainDict = {};
+        mainDict['moduleList'] = [];
+        mainDict['moduleDicts'] = {};
+
+        let moduleList = this.storedJsonList[entry.groupName]['modules'];
+
+        for (let moduleDict of moduleList) {
+          mainDict['moduleList'].push(moduleDict['name']);
+
+          let tempDict = {};
+
+          moduleDict['id'] = moduleDict['name'] + '--' + counter;
+          moduleDict['groupName'] = entry.groupName;
+          moduleDict['groupIndex'] = counter;
+          moduleDict['inSelectionField'] = false;
+          moduleDict['showRequiredSettings'] = true;
+          moduleDict['showOptionalSettings'] = false;
+
+          mainDict['moduleDicts'][moduleDict['name']] = moduleDict
+        }
+
+        mainDict['moduleList'].sort();
+        return (mainDict)
+      },
+      checkGroupAcceptability() {
+        let mainList = this.dynamicGroupList;
+        for (let group of mainList) {
+          let moduleDicts = group.modules.moduleDicts;
+
+          let moduleAmount = 0;
+          for (let moduleKey in moduleDicts) {
+            let moduleValue = moduleDicts[moduleKey];
+            let chosenValue = moduleValue['inSelectionField'];
+            if (chosenValue === true) {
+              moduleAmount = moduleAmount + 1
+            }
+          }
+          group.selectionAmount = moduleAmount;
+
+          this.checkAmountRange(group)
+        }
+      },
+      checkAmountRange (entry) {
+        let focusedValue = 'selectionAcceptability';
+        if (entry.groupMax === null) {
+          if (entry.selectionAmount >= entry.groupMin) {
+            entry[focusedValue] = true
+          } else {
+            entry[focusedValue] = false
+          }
+        } else {
+          if (entry.selectionAmount >= entry.groupMin && entry.selectionAmount <= entry.groupMax) {
+            entry[focusedValue] = true
+          } else {
+            entry[focusedValue] = false
+          }
+        }
+      },
+      checkPage0Acceptability() {
+        this.checkSelectionAcceptability()
+      },
+      checkSelectionAcceptability() {
+        let mainList = this.dynamicGroupList;
+        let page0Acceptability = true;
+
+        for (let group of mainList) {
+          if (group.selectionAcceptability === false) {
+            page0Acceptability = false
+          }
+        }
+        this.page0Acceptability = page0Acceptability
+      },
+      readFilePaths() {
+        console.log('>>> readFilePaths');
+        // main function for reading the paths
+        // paths are read with 2 lines:
+
+        let fileInput = document.querySelector('input[type=file]');
+        let rawFileList = fileInput.files;
+
+        // clearing up the raw file list
+        // 1. adding a extension-less label, 2. check for doppelganger
+
+        let fileList = this.cleanUpList(rawFileList);
+
+        // storing files into the main storage
+        // distributing every file in any mode (SE / PE)
+
+        this.storeFiles(fileList);
+        this.createFileSinglesList(fileList);
+        this.createFilePairingsList(fileList);
+      },
+      cleanUpList(rawFileList) {
+        let returnList = [];
+
+        for (let rawEntry of rawFileList) {
+          let push = true;
+          // check for doppelganger by interating through the main storage
+          for (let refinedEntry of this.storedFiles) {
+            if (rawEntry.name === refinedEntry.name) {
+              push = false;
+              break
+            }
+          }
+          // if push is never set false, it's pushed into the list
+          // a label is added
+          if (push) {
+            rawEntry.label = this.cutOffExtension(rawEntry.name);
+            returnList.push(rawEntry)
+          }
+        }
+        return(returnList)
+      },
+      cutOffExtension(name) {
+        let returnValue = '';
+        let partList = name.split('.');
+
+        if (partList.length === 1) {
+          // for files with no extensions like "textfile"
+          returnValue = name
+        } else if (partList.length > 1) {
+          // for files with extensions like "textfile.txt"
+          // and additional points like "textfile.sequence.txt"
+          for (let step = 0; step < partList.length-1; step++) {
+            if (step === 0) {
+              returnValue = partList[step]
+            } else {
+              returnValue = returnValue + '.' + partList[step]
+            }
+          }
+        } else if (partList.length === 0) {
+          // for errors
+          returnValue = name
+        }
+
+        return(returnValue)
+      },
+      storeFiles(fileList) {
+        // after uploading files:
+        // filling the FILE MAIN STORAGE (= storedFiles)
+        console.log('>>> storeFiles');
+
+        for (let element of fileList) {
+          let newDict = {
+            'name':element.name,
+            'label':element.label,
+            'path':element.path,
+            'pathLabel':this.createPathLabel(element.path)
+            // 'pathLabel': element.path,
+          }
+          this.storedFiles.push(newDict);
+        }
+      },
+      createPathLabel(path) {
+        // creating the file path label:
+        // e.g. "source/folder1/.../folderN/file.xx"
+
+        console.log('>>> createPathLabel');
+
+        let splitElement = '/';
+
+        let pathLabel = '';
+        let list = path.split(splitElement);
+
+        let elementIndexFront = [0, 1, 2];
+        let elementIndexBack = [list.length-2, list.length-1];
+        let maxValue = elementIndexFront.length + elementIndexBack.length + 1;
+
+        if (list.length >= maxValue) {
+          for (let element of elementIndexFront) {
+            pathLabel = pathLabel + list[element] + splitElement
+          }
+          pathLabel = pathLabel + '...';
+          for (let element of elementIndexBack) {
+            pathLabel = pathLabel + splitElement + list[element];
+          }
+        } else {
+          pathLabel = path;
+        }
+
+        return(pathLabel)
+      },
+      createFileSinglesList(fileList) {
+        // creating the file storage when "Single End" is chosen.
+        console.log('>>> createFileSinglesList');
+
+        for (let element of fileList) {
+          console.log('createFileSinglesList, element.label: ' + element.label)
+          let newDict = {
+            'name':element.name,
+            'label':element.label,
+            'path':element.path,
+            'pathLabel':this.createPathLabel(element.path)
+            // 'pathLabel': element.path,
+          };
+          this.storedFileSingles.push(newDict)
+        }
+      },
+      createFilePairingsList() {
+        // creating the file storage when "Paired End" is chosen.
+        console.log('>>> createFilePairingsList');
+
+        let checkList = ["-R", "_R", ".R"]
+
+        for (let fileDict of this.storedFiles) {
+          let fileName = fileDict['name'];
+          let filePath = fileDict['path'];
+          let label = fileDict['label'];
+          let neutralName = null;
+          let r1Name = "";
+          let r2Name = "";
+          let r1Label = "";
+          let r2Label = "";
+
+          let beyondExpectations = false
+          for (let checkString of checkList) {
+            if (fileName.includes(checkString + 1)) {
+              beyondExpectations = true
+              neutralName = fileName.replace(checkString + 1, '');
+              label = label.replace(checkString + 1, '')
+              r1Name = filePath;
+              r1Label = this.createPathLabel(filePath);
+            } else if (fileName.includes(checkString + 2)) {
+              beyondExpectations = true
+              neutralName = fileName.replace(checkString + 2, '');
+              label = label.replace(checkString + 2, '');
+              r2Name = filePath;
+              r2Label = this.createPathLabel(filePath);
+            }
+          }
+          if (beyondExpectations === false) {
+            neutralName = fileName;
+            r1Name = filePath
+            r1Label = this.createPathLabel(filePath);
+          }
+
+          let currentFileDict = null;
+
+          for (let fileDict of this.storedFilePairings) {
+            if (neutralName === fileDict.name) {
+              currentFileDict = fileDict;
+              break
+            }
+          }
+
+          if (currentFileDict !== null) {
+            if (currentFileDict.pathR1 === "") {
+              currentFileDict.pathR1 = r1Name;
+              currentFileDict.pathR1Label = r1Label
+            }
+            if (currentFileDict.pathR2 === "") {
+              currentFileDict.pathR2 = r2Name;
+              currentFileDict.pathR2Label = r2Label
+            }
+          } else {
+            let dict = {
+              'name': neutralName,
+              'label': label,
+              'pathR1': r1Name,
+              'pathR2': r2Name,
+              'pathR1Label': r1Label,
+              'pathR2Label': r2Label,
+            };
+            dict = this.insertAdditionalColumns(dict);
+            this.storedFilePairings.push(dict);
+          }
+        }
+      },
+      insertAdditionalColumns(dict) {
+        // Adding the additional setting's columns
+        console.log('>>> insertAdditionalColumns')
+        for (let entry of this.storedColumns) {
+          dict[entry.name] = "";
+        }
+        return(dict)
+      },
+      clearFileLists() {
+        console.log('>>> clearFileLists');
+
+        let counter = 0
+        for (let entry of this.storedFileSingles) {
+          this.storedFileSingles[counter] = this.getEmptySingleDict();
+          counter = counter + 1
+        }
+
+        counter = 0;
+        for (let entry of this.storedFilePairings) {
+          this.storedFilePairings[counter] = this.getEmptyPairingDict();
+          counter = counter + 1
+        }
+
+        this.forceUpdate()
+      },
+      rebuildFileLists() {
+        console.log('>>> rebuildFileLists');
+
+        if (this.storedFiles.length !== 0) {
+          this.storedFileSingles = [];
+          this.storedFilePairings = [];
+
+          this.createFileSinglesList(this.storedFiles);
+          this.createFilePairingsList(this.storedFiles);
+        } else {
+          // pass
+          // if lists are empty, 0 entries in this.storedFiles
+        }
+      },
+      deleteFileEntry(mode, index) {
+        if (mode === 'single') {
+          let newArray = this.storedFileSingles.splice(index, 1)
+        } else if (mode === 'paired') {
+          let newArray = this.storedFilePairings.splice(index, 1)
+        }
+      },
+      addEntry (listType) {
+        console.log('>>> addEntry');
+
+        if (listType === 'single') {
+          let newDict = this.getEmptySingleDict();
+          this.storedFileSingles.push(newDict);
+        }
+        if (listType === 'pairing') {
+          let newDict = this.getEmptyPairingDict();
+          this.storedFilePairings.push(newDict)
+        }
+      },
+      getEmptySingleDict () {
+        let newDict = {
+          'name':'',
+          'label':'',
+          'path':'',
+          'pathLabel':''
+        };
+        return(newDict)
+      },
+      getEmptyPairingDict () {
+        let newDict = {
+          'name': '',
+          'label': '',
+          'pathR1': '',
+          'pathR2': '',
+          'pathR1Label': '',
+          'pathR2Label': '',
+        };
+        return(newDict)
+      },
+      clearFileList() {
+        this.storedFiles = [];
+        this.storedFileSingles = [];
+        this.storedFilePairings = [];
+        document.getElementById("p1-fileUploader").value = "";
+      },
+      checkModuleAcceptability (bool) {
+        // checks the acceptability of the page by ...
+        // ... checking the acceptability of a whole group by ...
+        // ... checking the acceptability of a single module (one function)
+        console.log('>>> checkModuleAcceptability');
+
+        let alert = bool;
+        let moduleList = this.collectedModules;
+
+        moduleListLoop:
+        for (let group of moduleList) {
+          for (let module of group.modules) {
+            let tempAcceptability = true;
+            if (module.settings && module.settings.required) {
+              for (let rOption of module.settings.required) {
+                let regexResult = this.zeroContentCheck(rOption.value);
+
+                if (regexResult === null) {
+                  tempAcceptability = false
+                }
+              }
+            }
+
+            if (tempAcceptability === false && alert === true) {
+              this.moduleScroll('p2-' + module.id);
+              break moduleListLoop
+            }
+
+            module.Acceptability = tempAcceptability
+          }
+        }
+      },
+      collectModules() {
+        console.log('>>> COLLECT MODULES');
+        // main function for collecting the chosen modules (= all modules in the pools)
+        // function is running through the module groups storage (storedModuleGroups)
+        // current pool = storedModuleGroups[<index>] => <group-name> + '--' + <index> (e.g. "analyses--3")
+
+        this.storedColumns = [];
+        let tempList = [];
+
+        let counter = 0;
+        for (let group of this.dynamicGroupList) {
+          let tempDict = {};
+
+          tempDict['groupName'] = group.groupName;
+          tempDict['groupId'] = group.groupName + '--' + counter;
+          tempDict['groupNumber'] = counter;
+          tempDict['groupAcceptability'] = false;
+          tempDict['modules'] = this.getSelectedModules(group);
+          tempDict['moduleAmount'] = tempDict['modules'].length;
+
+          // Special 'none' case
+          // If nothing chosen for preprocessing: none is given
+          if (group.groupName === 'preprocessing') {
+            if (this.getSelectedModules(group).length === 0) {
+              let tempModuleDict = {};
+              tempModuleDict['name'] = 'none';
+              tempModuleDict['id'] = 'none--0';
+              tempModuleDict['showRequiredSettings'] = true;
+              tempModuleDict['showOptionalSettings'] = false;
+              tempModuleDict['settings'] = null;
+              tempModuleDict['Acceptability'] = false;
+
+              tempDict['modules'].push(tempModuleDict);
+              tempDict['moduleAmount'] = 1
+            }
+          }
+          // Special 'none' case END
+
+          tempList.push(tempDict);
+
+          counter = counter + 1
+        }
+        this.collectedModules = tempList;
+      },
+      getSelectedModules (group) {
+        let moduleArray = [];
+
+        // iterating not through moduleList instead of moduleDicts:
+        // keeping the alphabetical order for page 2
+        for (let entry of group.modules.moduleList) {
+          let moduleName = entry;
+          // moduleName is key for getting alphabetical information from moduleDicts
+          let currentModule = group.modules.moduleDicts[moduleName];
+
+          if (currentModule['inSelectionField'] === true) {
+
+            let tempModuleDict = {};
+            tempModuleDict['name'] = currentModule['name'];
+            tempModuleDict['id'] = currentModule['id'];
+            tempModuleDict['showRequiredSettings'] = true;
+            tempModuleDict['showOptionalSettings'] = false;
+            tempModuleDict['settings'] = this.getSettingsAndColumns(currentModule);
+            tempModuleDict['Acceptability'] = false;
+
+            moduleArray.push(tempModuleDict)
+          }
+        }
+        return (moduleArray)
+      },
+      getSettingsAndColumns (module) {
+        console.log('>>> getSettingsAndColumns');
+
+        let settings = null;
+
+        if (module.settings !== undefined) {
+          let currentSettings = module.settings;
+          settings = currentSettings;
+
+          if (module.settings.columns !== undefined) {
+            for (let entry of module.settings.columns) {
+              // entry.value = useless at this point
+              // possible use for later states of code
+              entry['value'] = "";
+              this.storedColumns.push(entry)
+            }
+          }
+        }
+
+        return settings
+      },
+      getFilePathForSetting (id, indicesList) {
+        console.log('>>> getFilePathForSetting');
+
+        let fileInput = document.querySelector('#'+id);
+        let path = fileInput.value;
+
+        let gIndex = indicesList[0];
+        let mIndex = indicesList[1];
+        let oIndex = indicesList[2];
+
+        this.collectedModules[gIndex].modules[mIndex].settings['required'][oIndex].value = path;
+        document.getElementById(id).value = "";
+
+        this.forceUpdate()
+      },
+      moduleScroll (moduleId) {
+        // scrolling downwards when module (on page2) is not complete
+        console.log('>>> moduleScroll');
+
+        let element = document.getElementById(moduleId);
+        let elementPositionTop = element.getBoundingClientRect().top;
+        let distanceValue = 50; // -subtraction value for a more 'centered' positioning
+
+        window.scrollBy(0 , elementPositionTop - distanceValue)
+      },
+      checkPage2Acceptability () {
+        let groupList = this.collectedModules;
+        let page2Acceptability = true;
+
+        for (let group of groupList) {
+          if (group.moduleAmount > 0) {
+            let moduleList = group.modules;
+
+            for (let module of moduleList) {
+              if (module.Acceptability === false) {
+                page2Acceptability = false
+              }
+            }
+          }
+        }
+        this.page2Acceptability = page2Acceptability
+      },
+      prepareFinalYaml () {
+        let finalYaml = {
+          pipeline: {
+            paired_end: this.pairedEnd
+          }
+        };
+        let groupList = this.collectedModules;
+
+        for (let group of groupList) {
+          if (group.moduleAmount > 0) {
+            finalYaml[group.groupName] = this.prepareGroupList(group)
+          } else {
+            finalYaml[group.groupName] = {
+              module: '',
+            }
+          }
+        }
+
+        this.finalYaml = finalYaml
+      },
+      prepareGroupList (group) {
+        let tempGroupDict = {};
+
+        if (group.groupName === 'mapping') {
+          tempGroupDict['module'] = group.modules[0].name
+        } else {
+          let tempModuleList = [];
+          for (let module of group.modules) {
+            tempModuleList.push(module.name)
+          }
+          tempGroupDict['modules'] = tempModuleList
+        }
+
+        tempGroupDict = this.prepareModuleList(tempGroupDict, group);
+
+        return (tempGroupDict)
+      },
+      prepareModuleList (groupDict, group) {
+        let modules = group.modules;
+
+        for (let module of modules) {
+          let tempSettingsDict = {};
+          let settings = module.settings;
+          for (let settingsType in settings) {
+            for (let setting of settings[settingsType]) {
+              let regexResult = this.zeroContentCheck(setting.value);
+              if (regexResult !== null) {
+                tempSettingsDict[setting.name] = setting.value
+              }
+            }
+          }
+          groupDict[module.name] = tempSettingsDict
+        }
+
+        return (groupDict)
+      },
+      zeroContentCheck (string) {
+        // checks if input tag has usable input.
+        // does not recognize other letters than standard english letters.
+        console.log('>>> zeroContentCheck');
+
+        let regex = RegExp('\\w');
+        let check = string.match(regex);
+
+        return (check)
+      },
+      changeShowOptionalSettings (module) {
+        if (module.showOptionalSettings === true) {
+          module.showOptionalSettings = false
+        } else {
+          module.showOptionalSettings = true
+        }
+      },
+      switchPage (targetPage) {
+        // main function for switching pages
+        // sets page values true or false
+        let pageList = ["page0", "page1", "page2", "page3"];
+        for (let pageElement of pageList) {
+          VUE[pageElement] = false
+        }
+        VUE[targetPage] = true
+      },
+      moduleOptionsCheck () {
+        console.log('moduleOptionsCheck');
+        this.checkModuleAcceptability(true);
+        this.checkPage2Acceptability();
+        if (this.page2Acceptability === true) {
+          this.switchPage('page3')
+        }
+      },
+      startPipeline () {
+        let currentCommand = this.bashCommand;
+        let exec = require('child_process').exec;
+
+        this.storedTerminalInOutput.push('$ ' + currentCommand)
+
+        let output = '';
+        exec(currentCommand, (error, stdout, stderr) => {
+          output = stdout
+        });
+        setTimeout(() => {
+          this.storedTerminalInOutput.push(output)
+        }, 1000);
+      }
+    },
+    beforeMount () {
+      console.log('>>> beforeMount');
+      this.createDynamicGroupList();
+    },
+    mounted () {
+      console.log('>>> mounted');
+      this.checkGroupAcceptability();
+      this.checkPage0Acceptability()
+    },
+    updated () {
+      console.log('>>> updated');
+      if (this.page0 === true) {
+        this.checkGroupAcceptability();
+        this.checkPage0Acceptability();
+      }
+      if (this.page2 === true) {
+        this.checkModuleAcceptability(false);
+        this.checkPage2Acceptability();
+      }
+    }
+  });
+
+
+  let VUE = app._data;
+
+
+  function fileTest() {
+    // Get the native path of the file selected by user
+    let fileinput = document.querySelector('input[type=file]');
+    let path = fileinput.value;
+  }
+	function allowDrop(ev) {
+		ev.preventDefault();
+	}
+	function forbidDrop(ev) {
+    ev.dataTransfer.dropEffect = "none"
+	}
+	function drag(ev) {
+    console.log('>>> drag');
+    ev.dataTransfer.setData("elementId", ev.target.id);
+
+    let namePartsList = returnNameAndSection(ev.target.id);
+    let sectionCount = namePartsList[1];
+
+    if (ev.path[1].id.startsWith('pool')) {
+      VUE.dynamicGroupList[sectionCount]['groupChosen'] = true
+    }
+  }
+  function returnNameAndSection (nonString) {
+    // universal module id = <moduleName> + "--" + <groupNumber>
+    // e.g. "bowtie--2"; module: bowtie; is within group number: 2;
+    console.log('>>> returnNameAndSection');
+
+    let string = nonString.toString();
+    let namePartsList = string.split('--');
+    let rawInt = parseInt(namePartsList[1]);
+    namePartsList[1] = parseInt(rawInt);
+
+    return(namePartsList)
+  }
+	function dropSection(ev, testvar) {
+    console.log('>>> dropSection');
+
+    ev.preventDefault();
+
+    let draggedElement = ev.dataTransfer.getData("elementId");
+    let namePartsListDragged = returnNameAndSection(draggedElement);
+    let draggedName = namePartsListDragged[0];
+    let draggedCount = namePartsListDragged[1];
+
+    let currentElement = VUE.dynamicGroupList[draggedCount]['modules']['moduleDicts'][draggedName];
+
+
+    let targetElement = ev.target.id;
+    if (testvar !== undefined) {
+      targetElement = testvar;
+    }
+    let namePartsListTarget = returnNameAndSection(targetElement);
+    let targetName = namePartsListTarget[0];
+    let targetCount = namePartsListTarget[1];
+
+    let acceptableElements = ['selection', 'titleDiv'];
+
+    if (draggedCount === targetCount) {
+      for (let element of acceptableElements) {
+        if (targetName === element) {
+          currentElement['inSelectionField'] = true;
+          break
+        }
+        else {
+          currentElement['inSelectionField'] = false;
+        }
+      }
+    }
+    app.forceUpdate();
+    app.checkPage0Acceptability();
+  }
+  function dragEnd (ev) {
+    console.log(' >>> drag END');
+
+    let targetId = ev.target.id;
+    let parentId = ev.target.parentElement.id;
+    let namePartsList = returnNameAndSection(targetId);
+    let sectionCount = namePartsList[1];
+    let moduleName = namePartsList[0];
+    let currentElement = VUE.dynamicGroupList[sectionCount]['modules']['moduleDicts'][moduleName];
+
+    VUE.dynamicGroupList[sectionCount]['groupChosen'] = false;
+
+    app.checkPage0Acceptability()
+  }
+
+  function copyToClipboard(id) {
+    let range = document.createRange();
+    range.selectNode(document.getElementById(id));
+
+    window.getSelection().removeAllRanges();
+
+    window.getSelection().addRange(range);
+    document.execCommand("copy")
+  }
+  function download(dataSource, filename, type) {
+
+    let data = document.getElementById(dataSource).innerText;
+
+    let file = new Blob([data], {type: type});
+    if (window.navigator.msSaveOrOpenBlob) // IE10+
+      window.navigator.msSaveOrOpenBlob(file, filename);
+    else { // Others
+      let a = document.createElement("a"),
+        url = URL.createObjectURL(file);
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function() {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 0);
+    }
+  }
+</script>

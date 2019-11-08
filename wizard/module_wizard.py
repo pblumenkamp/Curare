@@ -1,23 +1,37 @@
 #!/usr/bin/env python
 
+#module_wizard v.2.0
+#08.11.2019
+
+glob_fileName = 'jsonData.js'
 glob_jsonDict = {}
 
+def communicate():
+	print("the file \"" + glob_fileName + "\" has been created.")
+
 def dump_jsFile():
+	global glob_fileName
 	js_input = "let jsonData = " + json.dumps(glob_jsonDict)
 
 	os.chdir("wizard")
-	with open("jsonData.js", "w+") as js_data:
+	with open(glob_fileName, "w+") as js_data:
 		js_data.write(js_input)
 
 def create_moduleDict(module, module_settings):
 	# 'module_settings = None' if no required or optionals settings were found
-	module_dict = {	
-		"name":module,
-		"installed":True,
-	}
+	module_dict = {}
 
-	if module_settings != None:
-		module_dict["settings"] = module_settings
+	if module_settings == None:
+		module_dict = {	
+				"name":module, 
+				"installed":True
+			}
+	else:
+		module_dict = {	
+				"name":module, 
+				"installed":True,
+				"settings": module_settings
+			}
 
 	return(module_dict)
 
@@ -26,11 +40,8 @@ def rearrange_settings(key, yaml_input):
 	settings_list = []
 
 	for setting in settings:
-		temp_dir = {
-			"name": setting,
-			"value": ""	
-		}
-
+		temp_dir = {}
+		temp_dir["name"] = setting
 		for entry in settings[setting]:
 			temp_dir[entry] = settings[setting][entry]
 		
@@ -49,6 +60,9 @@ def extract_settings(yaml_input):
 		if key == "optional_settings":
 			setting_check = True
 			settings["optional"] = rearrange_settings(key, yaml_input)
+		if key == "columns":
+			setting_check = True
+			settings["columns"] = rearrange_settings(key, yaml_input)
 
 	if setting_check == False:
 		settings = None
@@ -63,7 +77,7 @@ def file_loop(root, folder, module):
 	for f in os.listdir(options_path):
 		if f.endswith(".yml") or f.endswith(".yaml"):
 			with open(options_path + "/" + f) as yamlf:
-				options_yaml = yaml.load(yamlf)
+				options_yaml = yaml.load(yamlf, Loader=yaml.SafeLoader)
 
 	return(options_yaml)
 
@@ -74,11 +88,16 @@ def module_loop(root, folder):
 
 	for module in os.listdir(root + "/" + folder):
 		module_name = module
-		module_yaml = file_loop(root, folder, module)
-		module_settings = extract_settings(module_yaml)
-		module_dict = create_moduleDict(module, module_settings)
+		if module_name != "none":
+			module_yaml = file_loop(root, folder, module)
+			module_settings = extract_settings(module_yaml)
+			module_dict = create_moduleDict(module, module_settings)
 
-		module_list.append(module_dict)
+			module_list.append(module_dict)
+		else:
+			## module dict for none:
+			## in html page storage
+			pass
 
 def folder_loop():
 	global glob_jsonDict
@@ -92,9 +111,9 @@ def folder_loop():
 def main():
 	folder_loop()
 	dump_jsFile()
+	communicate()
 
 if __name__ == "__main__":
-	import pprint
 	import json
 	import yaml
 	import os
