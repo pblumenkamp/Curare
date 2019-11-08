@@ -44,8 +44,10 @@ from distutils.dir_util import copy_tree
 import metadata
 
 SNAKEFILES_LIBRARY = Path(__file__).resolve().parent / "snakefiles"  # type: Path
-
 SNAKEFILES_TARGET_DIRECTORY = 'snakemake_lib'  # type: str
+
+REPORT_SRC_DIRECTORY = Path(__file__).resolve().parent / 'report'   # type: Path
+REPORT_TARGET_DIRECTORY = Path('.report')     # type: Path
 
 
 def main():
@@ -60,6 +62,8 @@ def main():
                      cluster_config=str(args["--cluster-config-file"]) if args["--cluster-config-file"] is not None else None,
                      use_conda=args["--use-conda"], latency_wait=int(args["--latency-wait"])):
         exit(1)
+
+    create_report(REPORT_SRC_DIRECTORY, args["--output"])
 
 
 def check_columns(col_names: List[str], modules: Dict[str, List['Module']], paired_end: bool) -> List[Tuple[str, str]]:
@@ -340,6 +344,24 @@ def create_output_directory(output_path: Path):
     elif not snakefiles_target_directory.is_dir():
         raise NotADirectoryError(filename=snakefiles_target_directory)
 
+    report_data_directory = output_path / REPORT_TARGET_DIRECTORY / 'data'
+    if not report_data_directory.exists():
+        report_data_directory.mkdir(parents=True)
+    elif not report_data_directory.is_dir():
+        raise NotADirectoryError(filename=report_data_directory)
+
+    report_css_directory = output_path / REPORT_TARGET_DIRECTORY / 'css'
+    if not report_css_directory.exists():
+        report_css_directory.mkdir(parents=True)
+    elif not report_css_directory.is_dir():
+        raise NotADirectoryError(filename=report_css_directory)
+
+    report_js_directory = output_path / REPORT_TARGET_DIRECTORY / 'js'
+    if not report_js_directory.exists():
+        report_js_directory.mkdir(parents=True)
+    elif not report_js_directory.is_dir():
+        raise NotADirectoryError(filename=report_js_directory)
+
 
 def create_snakefile(output_folder: Path, groups: Dict[str, Dict[str, Dict[str, Any]]], modules: Dict[str, List['Module']], use_conda: bool) -> Path:
     config_file = create_snakemake_config_file(output_folder, groups)
@@ -430,6 +452,18 @@ def copy_lib(src_folder: Path, dest_folder: Path):
         raise err
 
 
+def create_report(src_folder: Path, output_folder: Path):
+    # Copy report-specific files such as the HTML, CSS, and JS files.
+    try:
+        shutil.copy(str(src_folder / 'report.html'), str(output_folder))
+        shutil.copy(str(src_folder / 'css' / 'main.css'), str(output_folder / '.report' / 'css'))
+        shutil.copy(str(src_folder / 'lib' / 'main.js'), str(output_folder / '.report' / 'js'))
+        os.system('python3 {} {}'.format(str(output_folder / 'snakemake_lib' / 'global_scripts' / 'generate_report.py'),
+                                         str(output_folder / '.report' / 'data')))
+    except shutil.Error as err:
+        raise err
+
+
 def parse_arguments():
     args = docopt(__doc__, version=metadata.__version__)
     args["--groups"] = Path(args["--groups"]).resolve()
@@ -438,6 +472,7 @@ def parse_arguments():
     if args["--cluster-config-file"] is not None:
         args["--cluster-config-file"] = Path(args["--cluster-config-file"]).resolve()
     return args
+
 
 class Module:
     """Structure class for used modules
@@ -529,6 +564,7 @@ class OutOfBondError(Exception):
     def __init__(self, message: str):
         super(OutOfBondError, self).__init__(message)
 
+
 class InvalidNumberTypeError(Exception):
     """Exception raised for an invalid number type.
 
@@ -538,7 +574,6 @@ class InvalidNumberTypeError(Exception):
 
     def __init__(self, message: str):
         super(InvalidNumberTypeError, self).__init__(message)
-
 
 
 if __name__ == '__main__':

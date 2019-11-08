@@ -20,6 +20,8 @@ __pycache__/
 /dge_pipeline/tests/ressources/reference/*.pac
 /dge_pipeline/tests/ressources/reference/*.sa
 
+# Ignore report node_modules
+/dge_pipeline/report/node_modules*
 
 # Core latex/pdflatex auxiliary files:
 *.aux

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CURARE Report</title>
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.css">
+  <link rel="stylesheet" type="text/css" href=".report/css/main.css"/>
+</head>
+<body class="has-navbar-fixed-top">
+  <div id="curare-report">
+    <section>
+      <div class="container">
+        <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
+          <div class="navbar-menu">
+            <div class="navbar-start">
+              <div class="navbar-item has-dropdown is-hoverable">
+                <a class="navbar-link" href="#overview">
+                  Overview
+                </a>
+                
+                <div class="navbar-dropdown">
+                  <a href="#tools-used" class="navbar-item">
+                    Tools Used
+                  </a>
+                </div>
+              </div>
+
+              <div 
+                v-for="step of analysis_steps"
+                class="navbar-item has-dropdown is-hoverable"
+              >
+                <a 
+                  :href="'#' + step"
+                  class="navbar-link"
+                >
+                  {{ step.charAt(0).toUpperCase() + step.slice(1) }}
+                </a>
+
+                <div class="navbar-dropdown">
+                  <a 
+                    v-for="tool of steps[step]" 
+                    :href="'#' + tool.name" 
+                    class="navbar-item"
+                  >
+                    {{ tool.name }}
+                  </a>
+                </div>
+              </div>                            
+            </div>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="hero is-primary is-small is-bold">
+      <div class="hero-body">
+        <div class="container has-text-centered">
+          <h1 class="title is-size-1">CURARE</h1>
+          <h2 class="subtitle is-size-3">Pipeline Report</h2>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="columns">
+          <div class="column is-one-fifth"></div>
+          <div class="column">
+            <div class="content">
+              <section id="overview">
+                <h2>Overview</h2>
+                <h3 id="tools-used">Tools Used</h3>
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th></th>
+                      <th>Module</th>
+                      <th>Primary Dependencies</th>
+                      <th>Secondary Dependencies</th>
+                    </tr>
+                  </thead>
+                  <tfoot>
+                    <tr>
+                      <th></th>
+                      <th>Module</th>
+                      <th>Primary Dependencies</th>
+                      <th>Secondary Dependencies</th>
+                    </tr>
+                  </tfoot>
+                  <tbody>
+                    <template v-for="step of analysis_steps">
+                      <tr v-for="(tool, index) of steps[step]">
+                        <th v-if="index == 0">{{ step.toUpperCase() }}</th>
+                        <th v-else></th>
+                        <td>{{ tool.name }}</td>
+                        <td>
+                          <ul :id="`${step}-${tool.name}-primary-dependencies`">
+                            <li v-for="dependency of tool.primaryDependencies">
+                              {{ `${dependency.tool}-${dependency.version} (${dependency.repository})` }}
+                            </li>
+                          </ul>
+                        </td>
+                        <td>
+                          <ul :id="`${step}-${tool.name}-secondary-dependencies`">
+                            <template v-for="(dependency, index) of tool.secondaryDependencies">
+                              <li :class="{ 'is-hidden hideable': index >= 5 }">
+                                {{ `${dependency.tool}-${dependency.version} (${dependency.repository})` }}
+                              </li>
+                            </template>
+                          </ul>
+                          <a 
+                            :class="`show-all-${step}-${tool.name}-secondary-dependencies`" 
+                            v-if="tool.secondaryDependencies.length >= 5" 
+                            @click="showAll"
+                          >
+                            Show more
+                          </a>
+                        </td>
+                      </tr>
+                    </template>
+                  </tbody>
+                </table>
+
+                <hr class="hr">
+
+                <table id="exmaple"></table>
+
+
+
+              </section>
+
+              <template v-for="step of analysis_steps">
+                <hr class="hr">
+                
+                <section 
+                  :id="step"
+                  class="section"
+                >
+                  <h2>{{ step.charAt(0).toUpperCase() + step.slice(1) }}</h2>
+                  <h3 
+                    v-for="tool of steps[step]"
+                    :id="tool.name"
+                  >
+                    {{ tool.name }}
+                  </h2>
+                </section>
+              </template>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <footer class="footer">
+      <div class="content has-text-centered">
+        <p><strong>CURARE</strong> by <a href="mailto:patrick.blumenkamp@computational.bio.uni-giessen.de">Patrick Blumenkamp</a>.</p>
+        <p style="margin-top: 1rem;">
+          Report
+          <a href="http://bulma.io">
+            <img src="made-with-bulma.png" alt="made with Bulma" width="128" height="24">
+          </a>
+        </p>
+      </div>
+    </footer>
+  </div>
+
+  <script src="https://unpkg.com/vue"></script>
+  <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.js"></script>
+  <script src=".report/data/report_data.js"></script>
+  <script src=".report/js/main.js"></script>
+  <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+</body>
+</html>
