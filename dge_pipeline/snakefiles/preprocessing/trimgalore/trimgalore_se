@@ -21,6 +21,8 @@ rule trimgalore:
         reads=lambda wildcard: config['entries'][wildcard.sample]['main']['reads']
     output:
         trim_galore_stats="preprocessing/trim_galore/trimming_stats/{sample}.txt"
+    conda:
+        "../lib/conda_env.yaml"
     params:
         output_dir="preprocessing/trim_galore/"
     group:

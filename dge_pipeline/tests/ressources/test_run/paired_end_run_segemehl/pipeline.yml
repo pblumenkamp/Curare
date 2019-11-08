@@ -1,0 +1,34 @@
+pipeline:
+  paired_end: true
+
+preprocessing:
+  module: ""
+
+premapping:
+  modules: ["fastqc", "multiqc"]
+
+mapping:
+  module: "segemehl"
+
+  segemehl:
+    genome_fasta: "../../reference/listeria_monocytogenes_egd_e.fasta"
+
+analyses:
+  modules: ["readxplorer", "count_table", "deseq2"]
+
+  count_table:
+    gff_feature_type: "gene"
+    gff_feature_name: "ID"
+    gff_path: "../../reference/listeria_monocytogenes_egd_e.gff3"
+
+  readxplorer:
+    reference_genome: "../../reference/listeria_monocytogenes_egd_e.gff3"
+    readxplorer_cli_path: "../../../../../../../../../bioinformatics/tools/readxplorer/bin/readxplorer-cli"
+
+  deseq2:
+    gff_feature_type: "gene"
+    gff_feature_name: "ID"
+    gff_path: "../../reference/listeria_monocytogenes_egd_e.gff3"
+    additional_featcounts_options: "-B"
+    attribute_columns: "'name' 'product'"
+

@@ -20,6 +20,8 @@ rule trimgalore:
     output:
         reads_forward="preprocessing/trim_galore/{sample}_val_1.fq",
         reads_reverse="preprocessing/trim_galore/{sample}_val_2.fq"
+    conda:
+        "../lib/conda_env.yaml"
     params:
         output_dir="preprocessing/trim_galore/"
     group:
