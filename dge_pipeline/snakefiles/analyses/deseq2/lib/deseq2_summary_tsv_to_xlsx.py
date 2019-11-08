@@ -11,7 +11,7 @@ Exit codes:
     4: Python module is missing
 """
 
-import importlib
+import importlib.util
 import sys
 import csv
 import argparse

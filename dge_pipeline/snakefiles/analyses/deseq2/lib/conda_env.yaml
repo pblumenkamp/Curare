@@ -4,6 +4,7 @@ channels:
   - anaconda
   - defaults
 dependencies:
+  - python>=3.4
   - subread>=1.6
   - pandas>=0.23
   - xlsxwriter>=1.0.5
