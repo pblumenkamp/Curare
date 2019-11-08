@@ -1,5 +1,5 @@
 rule parse_versions:
     output:
-        ".report/versions.yaml"
+        ".report/data/versions.json"
     shell:
-        "python3 snakemake_lib/global_scripts/parse_versions.py .snakemake/conda {output}"
+        "python3 snakemake_lib/global_scripts/parse_versions.py .snakemake/conda .report/"
