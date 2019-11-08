@@ -4,7 +4,8 @@ from os.path import isfile, splitext
 rule all:
     input:
         "mapping/stats/mapping_stats.xlsx",
-        expand("mapping/{A}.bam", A=sorted(config['entries'].keys()))
+        expand("mapping/{A}.bam", A=sorted(config['entries'].keys())),
+        ".report/data/mapping_stats.json"
 
 
 rule mapping_stats_xlsx:
@@ -105,3 +106,16 @@ rule index_bam:
     shell:
         "samtools view -F 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam} - && samtools index {output.bam};"
         "samtools view -f 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam_unmapped} -"
+
+
+rule generate_report_data:
+    input:
+        "mapping/stats/mapping_stats.tsv"
+    output:
+        ".report/data/mapping_stats.json"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "bowtie2_report"
+    shell:
+        "python3 lib/generate_report_data.py mapping/ .report/"
