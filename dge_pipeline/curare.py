@@ -4,7 +4,7 @@ Customizable and Reproducible Analysis Pipeline for RNA-Seq Experiments (CURARE)
 Usage:
     curare.py start --groups <groups_file> --config <config_file> --output <output_folder>
                  [--cluster-command <cluster_command>] [--cluster-config-file <config_file>] [--cluster-nodes <nodes>]
-                 [--use-conda] [--cores <cores>] [--latency-wait <seconds>] [--verbose]
+                 [--use-conda] [--conda-prefix <conda_prefix>] [--cores <cores>] [--latency-wait <seconds>] [--verbose]
     curare.py (--version | --help)
 
 Options:
@@ -19,7 +19,8 @@ Options:
     --cluster-config-file <config_file>             File containing cluster settings for individual rules.
                                                     See also: https://snakemake.readthedocs.io/en/stable/snakefiles/configuration.html#cluster-configuration
     --cluster-nodes <nodes>                         Maximal number of parallel jobs send to the cluster. Only used in cluster mode is used. [Default: 1]
-    --use-conda                                     Install and use separate conda environments for pipeline modules
+    --use-conda                                     Install and use separate conda environments for pipeline modules [Default: False]
+    --conda-prefix <conda_prefix>                   The directory in which conda environments will be created. Relative paths will be relative to output folder! (Default: Output_folder)
     -t <cores> --cores <cores>                      Number of threads/cores. Defines locales cores in cluster mode. [Default: 1]
     --latency-wait <seconds>                        Seconds to wait before checking if all files of a rule were created. Should be increased if using cluster mode. [Default: 3]
     -v --verbose                                    Print additional information
@@ -58,7 +59,7 @@ def main():
     if not snakemake(str(snakefile), cores=int(args["--cores"]), local_cores=int(args["--cores"]), nodes=int(args["--cluster-nodes"]), workdir=str(args["--output"]),
                      verbose=args["--verbose"], printshellcmds=True, cluster=args["--cluster-command"],
                      cluster_config=str(args["--cluster-config-file"]) if args["--cluster-config-file"] is not None else None,
-                     use_conda=args["--use-conda"], latency_wait=int(args["--latency-wait"])):
+                     use_conda=args["--use-conda"], conda_prefix=args["--conda-prefix"], latency_wait=int(args["--latency-wait"])):
         exit(1)
 
 
