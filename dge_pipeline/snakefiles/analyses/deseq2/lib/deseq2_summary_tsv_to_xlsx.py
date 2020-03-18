@@ -36,7 +36,7 @@ def parse_arguments():
     parser.add_argument('--identifier', help="GFF identifier, e.g. ID")
     parser.add_argument('--feature', help="Used GFF feature, e.g. gene or CDS")
     parser.add_argument('--attributes', nargs='*', type=str, default=[],
-                        help="GFF atributes (e.g product) to show as columns at the beginning of the XLSX file")
+                        help="GFF attributes (e.g product) to show as columns at the beginning of the XLSX file")
     parser.add_argument('--output', help="Output path for XLSX file")
     return parser.parse_args()
 
