@@ -6,6 +6,8 @@ def getConditions():
 
 localrules: deseq2__create_conditions
 
+DUMP = "analyses/deseq2/deseq2.RData" 
+
 rule all:
     input:
         "analyses/deseq2/counts.txt",
@@ -54,16 +56,37 @@ rule create_conditions:
             for name in sorted(config['entries'].keys()):
                 output_file.write('{}\t{}\n'.format(name, config['entries'][name]['deseq2']['condition']))
 
-rule deseq2:
+rule deseq2_normalize_counts:
     input:
+        count_table = "analyses/deseq2/counts.txt",
+        conditions = "analyses/deseq2/conditions.txt",
+        feature_counts_log = "analyses/deseq2/counts.txt.summary"
+    output:
+        dump=DUMP,
+        correlation_heatmap="analyses/deseq2/correlation_heatmap.pdf",
+        counts_normalized="analyses/deseq2/counts_normalized.txt",
+        assignment_statistics="analyses/deseq2/counts_assignment.pdf",
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "deseq2"
+    params:
+        output_folder="analyses/deseq2/"
+    log:
+        log="analyses/deseq2/logs/deseq2_normalize_counts.log"
+    threads:
+        1
+    shell:
+        "R --vanilla --file=lib/deseq2_analysis_normalize_counts.R --args --threads {threads} --count-table {input.count_table} --conditions {input.conditions} --output-dir {params.output_folder} --r-data {output.dump} "
+        "--featcounts-log {input.feature_counts_log} 2>&1 | tee -a {log.log}"
+
+rule deseq2_create_comparison_files:
+    input:
+        dump = DUMP,
         counttable = "analyses/deseq2/counts.txt",
         conditions = "analyses/deseq2/conditions.txt",
         feature_counts_log = "analyses/deseq2/counts.txt.summary"
     output:
-        dump="analyses/deseq2/deseq2.RData",
-        counts_normalized="analyses/deseq2/counts_normalized.txt",
-        correlation_heatmap="analyses/deseq2/correlation_heatmap.pdf",
-        assignment_statistics="analyses/deseq2/counts_assignment.pdf",
         summary=expand('analyses/deseq2/summary/{COND}.tsv', COND=getConditions()),
         comparisons=directory("analyses/deseq2/deseq2_comparisons")
     conda:
@@ -77,5 +100,5 @@ rule deseq2:
     threads:
         1
     shell:
-        "R --vanilla --file=lib/deseq2_analysis.R --args --threads {threads} --counttable {input.counttable} --conditions {input.conditions} --output {params.output_folder} "
+        "R --vanilla --file=lib/deseq2_analysis_create_comparison_files_and_summary.R --args --threads {threads} --counttable {input.counttable} --conditions {input.conditions} --output {params.output_folder} --r-data {input.dump} "
         "--featcounts-log {input.feature_counts_log} 2>&1 | tee -a {log.log}"

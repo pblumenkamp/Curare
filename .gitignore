@@ -58,3 +58,7 @@ __pycache__/
 *.synctex.gz
 *.synctex.gz(busy)
 *.pdfsync
+
+# Text editor files
+
+.*.swp
