@@ -62,8 +62,8 @@ def main():
                      cluster_config=str(args["--cluster-config-file"]) if args["--cluster-config-file"] is not None else None,
                      use_conda=args["--use-conda"], latency_wait=int(args["--latency-wait"])):
         exit(1)
-
-    create_report(REPORT_SRC_DIRECTORY, args["--output"])
+    if args["--use-conda"]:
+        create_report(REPORT_SRC_DIRECTORY, args["--output"])
 
 
 def check_columns(col_names: List[str], modules: Dict[str, List['Module']], paired_end: bool) -> List[Tuple[str, str]]:
