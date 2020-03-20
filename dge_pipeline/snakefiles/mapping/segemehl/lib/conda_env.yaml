@@ -1,3 +1,4 @@
+#module: segemehl
 channels:
   - conda-forge
   - bioconda
