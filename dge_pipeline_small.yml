@@ -1,12 +1,13 @@
-name: dge_pipeline
+name: curare
 channels:
-- conda-forge
-- bioconda
-- anaconda
-- defaults
+   - https://metachannel.conda-forge.org/conda-forge,bioconda,anaconda,defaults/snakemake,python,yaml,docopt
+  #- conda-forge
+  #- bioconda
+  #- anaconda
+  #- defaults
 dependencies:
-- snakemake>=5
-- python>=3.6
-- yaml>=0.1.7
-- docopt
+   - snakemake>=5
+   - python>=3.6
+   - yaml>=0.1.7
+   - docopt
 
