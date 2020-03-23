@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SCRIPTPATH=`readlink -f $0`
+SCRIPTPATH=$(readlink -f "$0")
 
 FAILEDRUNS=()
 bash "`dirname $SCRIPTPATH`/single_end_run/run_with_conda.sh"
@@ -46,8 +46,8 @@ bash "`dirname $SCRIPTPATH`/paired_end_run_segemehl/run_with_conda.sh"
 if [ $? -ne 0 ]; then FAILEDRUNS+=("Paired_end_segemehl"); fi
 
 
-echo "\n\n"
+echo -e "\n\n"
 echo "Aborted runs:"
-for run in $FAILEDRUNS; do
-	echo $run
+for run in "${FAILEDRUNS[@]}"; do
+	echo "$run"
 done
