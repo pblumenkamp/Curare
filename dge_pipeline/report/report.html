@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CURARE Report</title>
+  <script type="text/javascript" charset="utf8" src=".report/js/vue.js"></script>
   <script defer src=".report/js/fontawesome.all.min.js"></script>
   <link rel="stylesheet" type="text/css" href=".report/css/bulma.min.css"/>
 </head>
@@ -90,10 +91,12 @@
                   </tfoot>
                   <tbody>
                     <template v-for="step of analysis_steps">
-                      <tr v-for="(tool, index) of steps[step]">
+                      <tr v-for="(tool, index) of steps[step]" :key="tool.name">
                         <th v-if="index == 0">{{ step.toUpperCase() }}</th>
                         <th v-else></th>
+
                         <td>{{ tool.name }}</td>
+
                         <td>
                           <ul :id="`${step}-${tool.name}-primary-dependencies`">
                             <li v-for="dependency of tool.primaryDependencies">
@@ -101,20 +104,33 @@
                             </li>
                           </ul>
                         </td>
-                        <td>
+
+                        <td v-if="!showAllDependencies[step][tool.name]">
                           <ul :id="`${step}-${tool.name}-secondary-dependencies`">
-                            <template v-for="(dependency, index) of tool.secondaryDependencies">
-                              <li :class="{ 'is-hidden hideable': index >= 5 }">
+                            <template v-for="(dependency, index) of tool.secondaryDependencies.slice(0, Math.max(tool.primaryDependencies.length, 5))">
+                              <li>
                                 {{ `${dependency.tool}-${dependency.version} (${dependency.repository})` }}
                               </li>
                             </template>
                           </ul>
-                          <a 
-                            :class="`show-all-${step}-${tool.name}-secondary-dependencies`" 
-                            v-if="tool.secondaryDependencies.length >= 5" 
-                            @click="showAll"
+                          <a
+                            v-on:click="switchVisibility(step, tool.name);"
                           >
                             Show more
+                          </a>
+                        </td>
+                        <td v-else>
+                          <ul :id="`${step}-${tool.name}-secondary-dependencies`">
+                            <template v-for="(dependency, index) of tool.secondaryDependencies">
+                              <li>
+                                {{ `${dependency.tool}-${dependency.version} (${dependency.repository})` }}
+                              </li>
+                            </template>
+                          </ul>
+                          <a
+                            v-on:click="switchVisibility(step, tool.name);"
+                          >
+                            Show less
                           </a>
                         </td>
                       </tr>
@@ -165,7 +181,6 @@
     </footer>
   </div>
 
-  <script type="text/javascript" charset="utf8" src=".report/js/vue.min.js"></script>
   <script type="text/javascript" charset="utf8" src=".report/data/report_data.js"></script>
   <script type="text/javascript" charset="utf8" src=".report/js/main.js"></script>
 

@@ -9,15 +9,21 @@ new Vue({
     el: '#curare-report',
     data: {
         reportData: Seed.reportData,
-        analysis_steps: ['preprocessing', 'premapping', 'mapping', 'analyses']
+        analysis_steps: ['preprocessing', 'premapping', 'mapping', 'analyses'],
+        showAllDependencies: {
+            'preprocessing': {},
+            'premapping': {},
+            'mapping': {},
+            'analyses': {}
+        }
     },
     computed: {
         steps: function steps() {
-            var _this = this;
+            let vue = this;
 
-            var steps = {};
+            let steps = {}
             this.analysis_steps.forEach(function (step) {
-                steps[step] = _this.reportData.overview.toolsUsed.filter(function (tool) {
+                steps[step] = vue.reportData.overview.toolsUsed.filter(function (tool) {
                     return tool.step === step;
                 });
             });
@@ -32,32 +38,16 @@ new Vue({
         'menu-item': menuItem
     },
     methods: {
-        showAll: function showAll(event) {
-            var selector = event.target.className.split('show-all-')[1];
-            var list = document.getElementById(selector);
-            var _iteratorNormalCompletion = true;
-            var _didIteratorError = false;
-            var _iteratorError = undefined;
-
-            try {
-                for (var _iterator = list.getElementsByClassName('hideable')[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                    var item = _step.value;
-
-                    item.classList.toggle('is-hidden');
-                }
-            } catch (err) {
-                _didIteratorError = true;
-                _iteratorError = err;
-            } finally {
-                try {
-                    if (!_iteratorNormalCompletion && _iterator.return) {
-                        _iterator.return();
-                    }
-                } finally {
-                    if (_didIteratorError) {
-                        throw _iteratorError;
-                    }
-                }
+        switchVisibility: function (step, module) {
+            let vue = this;
+            vue.$set(vue.showAllDependencies[step], module, !vue.showAllDependencies[step][module]);
+        }
+    },
+    created: function () {
+        let vue = this;
+        for (let [step, modules] of Object.entries(vue.steps)) {
+            for (let module of Object.values(modules)) {
+                vue.$set(vue.showAllDependencies[step], module.name, false);
             }
         }
     }
