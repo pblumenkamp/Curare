@@ -356,18 +356,6 @@ def create_output_directory(output_path: Path):
     elif not report_data_directory.is_dir():
         raise NotADirectoryError(filename=report_data_directory)
 
-    report_css_directory = output_path / REPORT_TARGET_DIRECTORY / 'css'
-    if not report_css_directory.exists():
-        report_css_directory.mkdir(parents=True)
-    elif not report_css_directory.is_dir():
-        raise NotADirectoryError(filename=report_css_directory)
-
-    report_js_directory = output_path / REPORT_TARGET_DIRECTORY / 'js'
-    if not report_js_directory.exists():
-        report_js_directory.mkdir(parents=True)
-    elif not report_js_directory.is_dir():
-        raise NotADirectoryError(filename=report_js_directory)
-
 
 def create_snakefile(output_folder: Path, groups: Dict[str, Dict[str, Dict[str, Any]]], modules: Dict[str, List['Module']], use_conda: bool,
                      conda_environment: Path, curare_pipeline_file: Path) -> Path:
@@ -464,8 +452,9 @@ def create_report(src_folder: Path, output_folder: Path):
     # Copy report-specific files such as the HTML, CSS, and JS files.
     try:
         shutil.copy(str(src_folder / 'report.html'), str(output_folder))
-        shutil.copy(str(src_folder / 'css' / 'main.css'), str(output_folder / '.report' / 'css'))
-        shutil.copy(str(src_folder / 'lib' / 'main.js'), str(output_folder / '.report' / 'js'))
+        shutil.copytree(str(src_folder / 'css'), str(output_folder / '.report' / 'css'))
+        shutil.copytree(str(src_folder / 'js'), str(output_folder / '.report' / 'js'))
+        shutil.copytree(str(src_folder / 'img'), str(output_folder / '.report' / 'img'))
         os.system('python3 {} {}'.format(str(output_folder / 'snakemake_lib' / 'global_scripts' / 'generate_report.py'),
                                          str(output_folder / '.report' / 'data')))
     except shutil.Error as err:
