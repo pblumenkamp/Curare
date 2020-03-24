@@ -27,6 +27,7 @@ Options:
 """
 
 
+import datetime
 import errno
 import filecmp
 import math
@@ -58,6 +59,7 @@ GLOBAL_LIB_TARGET_DIR: Path = SNAKEFILES_TARGET_DIRECTORY / 'global_scripts'
 
 
 def main():
+    start_time: datetime.datetime = datetime.datetime.utcnow()
     args = parse_arguments()
     used_modules, paired_end = load_config_file(args["--config"])
     validate_argsfiles(args["--groups"], args["--config"])
@@ -69,8 +71,15 @@ def main():
                      cluster_config=str(args["--cluster-config-file"]) if args["--cluster-config-file"] is not None else None,
                      use_conda=args["--use-conda"], conda_prefix=args["--conda-prefix"], latency_wait=int(args["--latency-wait"])):
         exit(1)
+    finish_time: datetime.datetime = datetime.datetime.utcnow()
     if args["--use-conda"]:
-        generate_report.create_report(REPORT_SRC_DIRECTORY, args["--output"])
+        generate_report.create_report(
+            src_folder=REPORT_SRC_DIRECTORY,
+            output_folder=args["--output"],
+            curare_version=metadata.__version__,
+            runtime=finish_time - start_time,
+            curare_groups_file=args["--groups"]
+        )
 
 
 def check_columns(col_names: List[str], modules: Dict[str, List['Module']], paired_end: bool) -> List[Tuple[str, str]]:

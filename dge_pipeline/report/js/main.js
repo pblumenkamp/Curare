@@ -9,6 +9,7 @@ new Vue({
     el: '#curare-report',
     data: {
         versionsData: Curare.versions,
+        curare_summary: Curare.summary,
         analysis_steps: ['preprocessing', 'premapping', 'mapping', 'analyses'],
         showAllDependencies: {
             'preprocessing': {},
@@ -18,7 +19,7 @@ new Vue({
         }
     },
     computed: {
-        steps: function steps() {
+        versionsTable: function () {
             let vue = this;
 
             let steps = {}
@@ -29,7 +30,33 @@ new Vue({
             });
 
             return steps;
-        }
+        },
+        curare_execution_date: function () {
+            let vue = this;
+            let date = new Date(vue.curare_summary.date);
+
+            return date.toString();
+        },
+        curare_runtime: function () {
+            let vue = this;
+            if (vue.curare_summary.runtime > 3600) { // runtime longer than 1 hour
+                return `${(vue.curare_summary.runtime / 3600).toFixed(1)} h`
+            } else {
+                return `${(vue.curare_summary.runtime / 60).toFixed(1)} min`
+            }
+        },
+        groups_header: function () {
+            let vue = this;
+            return vue.curare_summary.groups[0].map(function (header) {
+                return header.replace("_", " ").split(' ').map(function (word) {
+                    return word.charAt(0).toUpperCase() + word.slice(1)
+                }).join(' ')
+            })
+        },
+        groups_body: function () {
+            let vue = this;
+            return vue.curare_summary.groups.slice(1)
+        },
     },
     components: {
         'menu-item': menuItem
@@ -42,7 +69,7 @@ new Vue({
     },
     created: function () {
         let vue = this;
-        for (let [step, modules] of Object.entries(vue.steps)) {
+        for (let [step, modules] of Object.entries(vue.versionsTable)) {
             for (let module of Object.values(modules)) {
                 vue.$set(vue.showAllDependencies[step], module.name, false);
             }
