@@ -1,6 +1,6 @@
 'use strict';
 
-var menuItem = {
+const menuItem = {
     template: '<div class="menu-item">\n        <p class="menu-label">{{step}}</p>\n        <ul class="menu-list">\n            <li v-for="module in data[step].modules">\n                <a :href="\'#\' + module.name">{{module.name}}</a>\n            </li>\n        </ul>\n    </div>',
     props: ['step', 'data']
 };
@@ -8,7 +8,7 @@ var menuItem = {
 new Vue({
     el: '#curare-report',
     data: {
-        reportData: Seed.reportData,
+        versionsData: Curare.versions,
         analysis_steps: ['preprocessing', 'premapping', 'mapping', 'analyses'],
         showAllDependencies: {
             'preprocessing': {},
@@ -23,15 +23,12 @@ new Vue({
 
             let steps = {}
             this.analysis_steps.forEach(function (step) {
-                steps[step] = vue.reportData.overview.toolsUsed.filter(function (tool) {
+                steps[step] = vue.versionsData.filter(function (tool) {
                     return tool.step === step;
                 });
             });
 
             return steps;
-        },
-        tableColumns: function tableColumns() {
-            return Object.keys(this.reportData.mapping.stats);
         }
     },
     components: {

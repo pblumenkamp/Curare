@@ -43,6 +43,7 @@ from docopt import docopt
 from distutils.dir_util import copy_tree
 
 import metadata
+from lib import generate_report
 
 CURARE_PATH: Path = Path(__file__).resolve().parent
 
@@ -69,7 +70,7 @@ def main():
                      use_conda=args["--use-conda"], conda_prefix=args["--conda-prefix"], latency_wait=int(args["--latency-wait"])):
         exit(1)
     if args["--use-conda"]:
-        create_report(REPORT_SRC_DIRECTORY, args["--output"])
+        generate_report.create_report(REPORT_SRC_DIRECTORY, args["--output"])
 
 
 def check_columns(col_names: List[str], modules: Dict[str, List['Module']], paired_end: bool) -> List[Tuple[str, str]]:
@@ -444,19 +445,6 @@ def copy_lib(src_folder: Path, dest_folder: Path):
         if dest_folder.is_dir():
             shutil.rmtree(str(dest_folder))
         shutil.copytree(str(src_folder), str(dest_folder), symlinks=True)
-    except shutil.Error as err:
-        raise err
-
-
-def create_report(src_folder: Path, output_folder: Path):
-    # Copy report-specific files such as the HTML, CSS, and JS files.
-    try:
-        shutil.copy(str(src_folder / 'report.html'), str(output_folder))
-        shutil.copytree(str(src_folder / 'css'), str(output_folder / '.report' / 'css'))
-        shutil.copytree(str(src_folder / 'js'), str(output_folder / '.report' / 'js'))
-        shutil.copytree(str(src_folder / 'img'), str(output_folder / '.report' / 'img'))
-        os.system('python3 {} {}'.format(str(output_folder / 'snakemake_lib' / 'global_scripts' / 'generate_report.py'),
-                                         str(output_folder / '.report' / 'data')))
     except shutil.Error as err:
         raise err
 
