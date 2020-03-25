@@ -10,6 +10,7 @@ new Vue({
     data: {
         versionsData: Curare.versions,
         curare_summary: Curare.summary,
+        navigation: Curare.navigation,
         analysis_steps: ['preprocessing', 'premapping', 'mapping', 'analyses'],
         showAllDependencies: {
             'preprocessing': {},
@@ -57,6 +58,20 @@ new Vue({
             let vue = this;
             return vue.curare_summary.groups.slice(1)
         },
+        navigation_elements: function () {
+            let vue = this;
+            let nav = {}
+            for (let step of Object.keys(vue.navigation)) {
+                nav[step] = []
+                for (let module of vue.navigation[step]) {
+                    nav[step].push(module.replace("_", " ").split(' ').map(function (word) {
+                        return word.charAt(0).toUpperCase() + word.slice(1)
+                    }).join(' '))
+                }
+                nav[step].sort()
+            }
+            return nav
+        }
     },
     components: {
         'menu-item': menuItem

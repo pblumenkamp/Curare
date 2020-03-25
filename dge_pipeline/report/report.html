@@ -38,22 +38,20 @@
 
               <div 
                 v-for="step of analysis_steps"
+                v-if="step in navigation_elements"
                 class="navbar-item has-dropdown is-hoverable"
               >
-                <a 
-                  :href="'#' + step"
-                  class="navbar-link"
-                >
+                <a class="navbar-link">
                   {{ step.charAt(0).toUpperCase() + step.slice(1) }}
                 </a>
 
                 <div class="navbar-dropdown">
                   <a 
-                    v-for="tool of versionsTable[step]"
-                    :href="'#' + tool.name" 
+                    v-for="module of navigation_elements[step]"
+                    :href="'#' + module.name"
                     class="navbar-item"
                   >
-                    {{ tool.name }}
+                    {{ module }}
                   </a>
                 </div>
               </div>                            
@@ -232,6 +230,7 @@
     </footer>
   </div>
 
+  <script type="text/javascript" charset="utf8" src=".report/data/navigation.js"></script>
   <script type="text/javascript" charset="utf8" src=".report/data/curare_summary.js"></script>
   <script type="text/javascript" charset="utf8" src=".report/data/versions.js"></script>
   <script type="text/javascript" charset="utf8" src=".report/js/main.js"></script>

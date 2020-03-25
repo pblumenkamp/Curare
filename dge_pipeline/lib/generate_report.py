@@ -5,6 +5,8 @@ import shutil
 import subprocess
 
 from pathlib import Path
+from typing import Dict, List
+
 
 
 def create_report(src_folder: Path, output_folder: Path, curare_version: str, runtime: timedelta, curare_groups_file: Path):
@@ -17,6 +19,8 @@ def create_report(src_folder: Path, output_folder: Path, curare_version: str, ru
 
         create_summary_js_object(output_folder / '.report' / 'data' / 'curare_summary.js', curare_version, runtime, curare_groups_file)
 
+        create_navigationbar_js_object(output_folder / '.report' / 'data' / 'versions.json',
+                                       output_folder / '.report' / 'data' / 'navigation.js')
         create_versions_js_object(output_folder / '.report' / 'data' / 'versions.json',
                                   output_folder / '.report' / 'data' / 'versions.js')
         (output_folder / '.report' / 'data' / 'versions.json').unlink()
@@ -25,6 +29,26 @@ def create_report(src_folder: Path, output_folder: Path, curare_version: str, ru
         raise err
     except subprocess.CalledProcessError as err:
         raise err
+
+
+def create_navigationbar_js_object(versions_json: Path, output_path: Path):
+    versions: List = json.load(versions_json.open())
+    nav: Dict[str, List] = {}
+    for module in versions:
+        if module["step"] not in nav:
+            nav[module["step"]] = []
+        nav[module["step"]].append(module["name"])
+
+    with output_path.open('w') as f:
+        f.write('window.Curare.navigation = (function() {\n')
+        f.write('  const nav = ')
+
+        # Copy contents of versions.json into report_data.js.
+        f.write(json.dumps(nav, indent=2).replace('\n', '\n  '))
+        f.write('\n')
+
+        f.write('  return nav;\n')
+        f.write('}());')
 
 
 def create_summary_js_object(output_path: Path, curare_version: str, runtime: timedelta, curare_groups_file: Path):
@@ -48,11 +72,11 @@ def create_summary_js_object(output_path: Path, curare_version: str, runtime: ti
 def create_versions_js_object(versions_json: Path, output_path: Path):
     with output_path.open('w') as f:
         f.write('window.Curare.versions = (function() {\n')
-        f.write('  const versions = \n')
+        f.write('  const versions = ')
 
         # Copy contents of versions.json into report_data.js.
         with versions_json.open() as versions:
-            f.write(json.dumps(json.load(versions), indent=2).replace('\n', '\n    '))
+            f.write(json.dumps(json.load(versions), indent=2).replace('\n', '\n  '))
         f.write('\n')
 
         f.write('  return versions;\n')
