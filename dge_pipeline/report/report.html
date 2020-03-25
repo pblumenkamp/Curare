@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CURARE Report</title>
-  <script type="text/javascript" charset="utf8" src=".report/js/vue.js"></script>
+  <script type="text/javascript" charset="utf8" src=".report/js/vue.min.js"></script>
   <script defer src=".report/js/fontawesome.all.min.js"></script>
   <link rel="stylesheet" type="text/css" href=".report/css/bulma.min.css"/>
   <script>
@@ -74,9 +74,9 @@
 
     <section class="section">
       <div class="container">
-        <div class="columns">
+        <div class="columns" style="max-width: 100%">
           <div class="column is-one-fifth"></div>
-          <div class="column">
+          <div class="column" style="max-width: 100%">
             <div class="content">
               <section id="overview">
                 <h2>Overview</h2>
@@ -104,23 +104,25 @@
                   </tbody>
                 </table>
                 <h3 id="groups">Groups</h3>
-                <table class="table">
-                  <thead>
-                    <tr>
-                      <th v-for="header of groups_header" :key="header">{{ header }}</th>
-                    </tr>
-                  </thead>
-                  <tfoot>
-                    <tr>
-                      <th v-for="header of groups_header" :key="header">{{ header }}</th>
-                    </tr>
-                  </tfoot>
-                  <tbody>
-                    <tr v-for="row of groups_body" :key="row[0]">
-                      <td v-for="cell of row" :key="cell">{{ cell }}</td>
-                    </tr>
-                  </tbody>
-                </table>
+                <div class="table-container">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th v-for="header of groups_header" :key="header">{{ header }}</th>
+                      </tr>
+                    </thead>
+                    <tfoot>
+                      <tr>
+                        <th v-for="header of groups_header" :key="header">{{ header }}</th>
+                      </tr>
+                    </tfoot>
+                    <tbody>
+                      <tr v-for="row of groups_body" :key="row[0]">
+                        <td v-for="cell of row" :key="cell">{{ cell }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
                 <h3 id="tools-used">Tools Used</h3>
                 <table class="table">
                   <thead>
