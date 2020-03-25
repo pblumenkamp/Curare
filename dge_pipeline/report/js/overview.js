@@ -1,16 +1,10 @@
 'use strict';
 
-const menuItem = {
-    template: '<div class="menu-item">\n        <p class="menu-label">{{step}}</p>\n        <ul class="menu-list">\n            <li v-for="module in data[step].modules">\n                <a :href="\'#\' + module.name">{{module.name}}</a>\n            </li>\n        </ul>\n    </div>',
-    props: ['step', 'data']
-};
-
 new Vue({
-    el: '#curare-report',
+    el: '#overview',
     data: {
         versionsData: Curare.versions,
         curare_summary: Curare.summary,
-        navigation: Curare.navigation,
         analysis_steps: ['preprocessing', 'premapping', 'mapping', 'analyses'],
         showAllDependencies: {
             'preprocessing': {},
@@ -57,24 +51,7 @@ new Vue({
         groups_body: function () {
             let vue = this;
             return vue.curare_summary.groups.slice(1)
-        },
-        navigation_elements: function () {
-            let vue = this;
-            let nav = {}
-            for (let step of Object.keys(vue.navigation)) {
-                nav[step] = []
-                for (let module of vue.navigation[step]) {
-                    nav[step].push(module.replace("_", " ").split(' ').map(function (word) {
-                        return word.charAt(0).toUpperCase() + word.slice(1)
-                    }).join(' '))
-                }
-                nav[step].sort()
-            }
-            return nav
         }
-    },
-    components: {
-        'menu-item': menuItem
     },
     methods: {
         switchVisibility: function (step, module) {

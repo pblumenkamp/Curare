@@ -9,7 +9,7 @@ from pathlib import Path
 def parse_mapping_stats_to_json(src_dir: Path, target_dir: Path):
     tsv_df = pd.read_csv(src_dir / 'stats' / 'mapping_stats.tsv', sep="\t")
     json_obj = json.loads(tsv_df.to_json(orient='records'))
-    with open(target_dir / 'data' / 'mapping_stats.json', 'w') as f:
+    with open(target_dir / 'data' / 'bowtie2_data.js', 'w') as f:
         json.dump(json_obj, f, indent=4)
 
 

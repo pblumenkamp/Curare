@@ -5,7 +5,7 @@ rule all:
     input:
         "mapping/stats/mapping_stats.xlsx",
         expand("mapping/{A}.bam", A=sorted(config['entries'].keys())),
-        ".report/data/mapping_stats.json"
+        ".report/data/bowtie2_data.js"
 
 
 rule mapping_stats_xlsx:
@@ -112,10 +112,14 @@ rule generate_report_data:
     input:
         "mapping/stats/mapping_stats.tsv"
     output:
-        ".report/data/mapping_stats.json"
+        bw2_data=".report/data/bowtie2_data.js",
+        bw2_html=".report/modules/bowtie2.html",
+        bw2_js=".report/js/modules/bowtie2.js"
     conda:
         "../lib/conda_env.yaml"
     group:
         "bowtie2_report"
     shell:
-        "python3 lib/generate_report_data.py mapping/ .report/"
+        "python3 lib/generate_report_data.py mapping/ .report/ && "
+        "cp lib/report/bowtie2.html {output.bw2_html} && "
+        "cp lib/report/bowtie2.js {output.bw2_js}"
