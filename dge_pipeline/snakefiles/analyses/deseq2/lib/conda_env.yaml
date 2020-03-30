@@ -11,6 +11,6 @@ dependencies:
   - xlsxwriter>=1.0.5
   - bioconductor-deseq2
   - r-ggplot2
-  - r-reshape
+  - r-reshape2
   - r-pheatmap
   - r-gplots
