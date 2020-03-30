@@ -12,11 +12,10 @@ def create_report(src_folder: Path, output_folder: Path, curare_version: str, ru
     # Copy report-specific files such as the HTML, CSS, and JS files.
     try:
         shutil.copy(str(src_folder / 'report.html'), str(output_folder))
-        shutil.copytree(str(src_folder / 'css'), str(output_folder / '.report' / 'css'))
-        for file in (src_folder / 'js').iterdir():
-            if file.is_file():
-                shutil.copy(str(file), str(output_folder / '.report' / 'js'))
-        shutil.copytree(str(src_folder / 'img'), str(output_folder / '.report' / 'img'))
+
+        copy_folder(src_folder / 'css', output_folder / '.report' / 'css')
+        copy_folder(src_folder / 'js', output_folder / '.report' / 'js')
+        copy_folder(src_folder / 'img', output_folder / '.report' / 'img')
 
         create_navigationbar_js_object(output_folder / '.report' / 'data' / 'versions.json',
                                        output_folder / '.report' / 'data' / 'navigation.js',
@@ -85,3 +84,14 @@ def create_versions_js_object(versions_json: Path, output_path: Path):
 
         f.write('  return versions;\n')
         f.write('}());')
+
+
+def copy_folder(src: Path, dst: Path):
+    if not dst.exists():
+        shutil.copytree(str(src), str(dst), copy_function=shutil.copy)
+    else:
+        for file in src.iterdir():
+            if file.is_file():
+                shutil.copy(str(file), str(dst))
+            elif file.is_dir():
+                copy_folder(file, (dst / file.stem))

@@ -1,27 +1,53 @@
+"""
+Convert bowtie2 results to usable data for the large report
+
+Usage:
+    generate_report_data.py --stats <bowtie2_stats> --output <output> [--paired-end]
+    generate_report_data.py (--version | --help)
+
+Options:
+    -h --help               Show this help message and exit
+    --version               Show version and exit
+
+    -s <bowtie2_stats> --stats <bowtie2_stats>                 TSV containing the statistics of all bowtie2 runs
+    -o <output> --output <output>                              Created js containing bowtie2 statistics
+    --paired-end                                               Paired-End run, else Single-End
+"""
+
 import json
-import sys
-import pandas as pd
-
-from os.path import abspath
 from pathlib import Path
+from typing import Any, Dict
+
+import pandas as pd
+from docopt import docopt
 
 
-def parse_mapping_stats_to_json(src_dir: Path, target_dir: Path):
-    tsv_df = pd.read_csv(src_dir / 'stats' / 'mapping_stats.tsv', sep="\t")
-    json_obj = json.loads(tsv_df.to_json(orient='records'))
-    with open(target_dir / 'data' / 'bowtie2_data.js', 'w') as f:
-        json.dump(json_obj, f, indent=4)
+def create_bowtie2_stats_js_object(stats_file: Path) -> Dict[str, Any]:
+    tsv_df = pd.read_csv(stats_file, sep="\t")
+    return json.loads(tsv_df.to_json(orient='records'))
 
 
-def generate_report_data(src_dir: Path, target_dir: Path):
-    parse_mapping_stats_to_json(src_dir, target_dir)
+def generate_report_data(output_file: Path, stats_file: Path, is_paired_end: bool):
+    stats = create_bowtie2_stats_js_object(stats_file)
+
+    with output_file.open('w') as f:
+        f.write('window.Curare.bowtie2 = (function() {\n')
+        f.write('  const paired_end = {}\n'.format("true" if is_paired_end else "false"))
+        f.write('  const stats = ')
+
+        f.write(json.dumps(stats, indent=2).replace('\n', '\n  '))
+        f.write('\n')
+
+        f.write('  return {paired_end: paired_end, stats: stats};\n')
+        f.write('}());')
 
 
 def main():
-    mapping_dir = Path(abspath(sys.argv[1]))
-    report_dir = Path(abspath(sys.argv[2]))
+    args = docopt(__doc__, version='1.0')
+    stats_file = Path(args["--stats"]).resolve()
+    output_file = Path(args["--output"]).resolve()
 
-    generate_report_data(mapping_dir, report_dir)
+    generate_report_data(output_file, stats_file, args["--paired-end"])
 
 
 if __name__ == '__main__':

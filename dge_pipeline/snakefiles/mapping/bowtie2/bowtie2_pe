@@ -30,7 +30,7 @@ rule mapping_stats_tsv:
         "bowtie2_statistics"
     shell:
         """
-        echo "sample	reads	reads[%]	aligned_conc_0_times	aligned_conc_0_times[%]	aligned_conc_1_time	aligned_conc_1_time[%]	aligned_conc_more_than_1_times	aligned_conc_more_than_1_times[%]		aligned_disconc_1_time	aligned_disconc_1_time[%]		pairs_aligned_0_times_conc_or_disconc	in_mates	mates_aligned_0_times	mates_aligned_0_times[%]	mates_aligned_1_time	mates_aligned_1_time[%]	mates_aligned_more_than_1_times	mates_aligned_more_than_1_times[%]	overall_alignment_rate" > {output}
+        echo "sample	reads	reads[%]	aligned_conc_0_times	aligned_conc_0_times[%]	aligned_conc_1_time	aligned_conc_1_time[%]	aligned_conc_more_than_1_times	aligned_conc_more_than_1_times[%]	aligned_disconc_1_time	aligned_disconc_1_time[%]	pairs_aligned_0_times_conc_or_disconc	in_mates	mates_aligned_0_times	mates_aligned_0_times[%]	mates_aligned_1_time	mates_aligned_1_time[%]	mates_aligned_more_than_1_times	mates_aligned_more_than_1_times[%]	overall_alignment_rate" > {output}
         for i in {input}; do
             sample=$(basename $i);
             sample=${{sample%*.log}};
@@ -41,7 +41,8 @@ rule mapping_stats_tsv:
             -e 's/^[^0-9]*\([0-9]\{{1,\}}\) pairs.*/\\1/' \
             -e 's/^\(.*\)%.*$/\\1/' -e 's/^[^0-9]*\([0-9]\{{1,\}}\) mates.*/\\1/' -e 's/^.*----.*$//' | \
             tr '\n' '\t' | \
-            sed -e 's/\t$//' >> {output}
+            sed -e 's/\t$//' | \
+            sed -e 's/\t\t/\t/g' >> {output}
             echo >> {output};
         done;
         """
@@ -114,12 +115,14 @@ rule generate_report_data:
     output:
         bw2_data=".report/data/bowtie2_data.js",
         bw2_html=".report/modules/bowtie2.html",
-        bw2_js=".report/js/modules/bowtie2.js"
+        bw2_js=".report/js/modules/bowtie2.js",
+        bw2_css=".report/css/modules/bowtie2.css"
     conda:
         "../lib/conda_env.yaml"
     group:
         "bowtie2_report"
     shell:
-        "python3 lib/generate_report_data.py mapping/ .report/ && "
+        "python3 lib/generate_report_data.py --stats {input} --output {output.bw2_data} --paired-end && "
         "cp lib/report/bowtie2.html {output.bw2_html} && "
-        "cp lib/report/bowtie2.js {output.bw2_js}"
+        "cp lib/report/bowtie2.js {output.bw2_js} && "
+        "cp lib/report/bowtie2.css {output.bw2_css}"
