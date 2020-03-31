@@ -5,20 +5,24 @@ rule all:
     input:
         "mapping/stats/mapping_stats.xlsx",
         expand("mapping/{A}.bam", A=sorted(config['entries'].keys())),
-        ".report/data/bowtie2_data.js"
+        ".report/modules/bowtie2.html"
 
 
 rule mapping_stats_xlsx:
     input:
         "mapping/stats/mapping_stats.tsv"
     output:
-        "mapping/stats/mapping_stats.xlsx"
+        xlsx="mapping/stats/mapping_stats.xlsx",
+        plot_alignment_absolute="mapping/stats/alignment_stats.svg",
+        plot_alignment_relative="mapping/stats/alignment_stats_relative.svg"
+    params:
+        plot_dir="mapping/stats/"
     conda:
         "../lib/conda_env.yaml"
     group:
         "bowtie2_statistics"
     shell:
-        "python3 lib/pe_mapping_stats_tsv_to_xlsx.py {input} {output}"
+        "python3 lib/pe_mapping_stats_tsv_to_xlsx.py {input} {output.xlsx} {params.plot_dir}"
 
 
 rule mapping_stats_tsv:
@@ -111,18 +115,21 @@ rule index_bam:
 
 rule generate_report_data:
     input:
-        "mapping/stats/mapping_stats.tsv"
+        stats_tsv="mapping/stats/mapping_stats.tsv",
+        images=["mapping/stats/alignment_stats.svg", "mapping/stats/alignment_stats_relative.svg"]
     output:
         bw2_data=".report/data/bowtie2_data.js",
         bw2_html=".report/modules/bowtie2.html",
         bw2_js=".report/js/modules/bowtie2.js",
-        bw2_css=".report/css/modules/bowtie2.css"
+        bw2_css=".report/css/modules/bowtie2.css",
+        bw2_images=directory(".report/img/modules/bowtie2/")
     conda:
         "../lib/conda_env.yaml"
     group:
         "bowtie2_report"
     shell:
-        "python3 lib/generate_report_data.py --stats {input} --output {output.bw2_data} --paired-end && "
+        "python3 lib/generate_report_data.py --stats {input.stats_tsv} --output {output.bw2_data} --paired-end && "
         "cp lib/report/bowtie2.html {output.bw2_html} && "
         "cp lib/report/bowtie2.js {output.bw2_js} && "
-        "cp lib/report/bowtie2.css {output.bw2_css}"
+        "cp lib/report/bowtie2.css {output.bw2_css} &&"
+        "cp {input.images} {output.bw2_images}"

@@ -79,6 +79,39 @@
         <div class="content">
           <section id="bowtie2-body">
             <h2>Bowtie2</h2>
+
+            <div class="columns" style="max-width: 100%; padding-top: 2rem">
+              <div class="column is-11" style="max-width: 100%">
+                <h3 id="statistics_plots">Alignment Distribution</h3>
+              </div>
+              <div v-if="bowtie2_stats.length >= 7" class="column field">
+                <input id="in-percent_plots" type="checkbox" name="in-percent_plots" class="switch is-rounded" v-model="stats_in_percent">
+                <label for="in-percent_plots">in %</label>
+              </div>
+            </div>
+            <div v-if="bowtie2_stats.length < 7" class="columns">
+              <div class="column">
+                <img src="../img/modules/bowtie2/alignment_stats.svg" alt="Barchart with alignment statistics">
+              </div>
+              <div class="column">
+                <img src="../img/modules/bowtie2/alignment_stats_relative.svg" alt="Barchart with alignment statistics (in %)">
+              </div>
+            </div>
+            <div v-else class="columns">
+              <div class="column is-centered">
+                <img v-if="stats_in_percent.length"
+                     src="../img/modules/bowtie2/alignment_stats_relative.svg"
+                     alt="Barchart with alignment statistics (in %)"
+                     style="margin-left: auto; margin-right: auto; display: block"
+                     width="85%">
+                <img v-else
+                     src="../img/modules/bowtie2/alignment_stats.svg"
+                     alt="Barchart with alignment statistics"
+                     style="margin-left: auto; margin-right: auto; display: block"
+                     width="85%">
+              </div>
+            </div>
+            
             <div class="columns" style="max-width: 100%">
               <div class="column is-11" style="max-width: 100%">
                 <h3 id="statistics">Alignment Statistics</h3>
