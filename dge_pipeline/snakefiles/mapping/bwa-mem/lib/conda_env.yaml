@@ -1,4 +1,4 @@
-# module: bwa
+# module: bwa-mem
 channels:
   - conda-forge
   - bioconda

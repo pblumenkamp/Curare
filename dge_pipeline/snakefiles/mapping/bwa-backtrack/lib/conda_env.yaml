@@ -1,4 +1,4 @@
-# module: bwa
+# module: bwa-backtrack
 channels:
   - conda-forge
   - bioconda
