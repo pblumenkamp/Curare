@@ -5,7 +5,8 @@ from os.path import isfile, splitext
 rule all:
     input:
         expand("mapping/{A}.bam", A=sorted(config['entries'].keys())),
-        "mapping/statistics/flagstat_summary.tsv"
+        "mapping/statistics/flagstat_summary.tsv",
+        ".report/modules/bwa-sw.html"
 
 
 rule summarize_flagstat:
@@ -131,7 +132,7 @@ rule bwa_sw_mapping:
     group:
         "bwa_mapping"
     log:
-        "mapping/logs/bwa_mem_mapping.{sample}.log"
+        "mapping/logs/bwa_sw_mapping.{sample}.log"
     threads:
         1
     shell:
@@ -155,3 +156,21 @@ rule sam_to_bam:
     shell:
         "samtools view -F 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam} - && samtools index {output.bam};"
         "samtools view -f 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam_unmapped} -"
+
+rule generate_report_data:
+    input:
+        stats_tsv="mapping/statistics/flagstat_summary.tsv"
+    output:
+        bwa_data=".report/data/bwa-sw_data.js",
+        bwa_html=".report/modules/bwa-sw.html",
+        bwa_js=".report/js/modules/bwa-sw.js",
+        bwa_css=".report/css/modules/bwa-sw.css",
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "bwa_report"
+    shell:
+        "python3 lib/generate_report_data.py --stats {input.stats_tsv} --output {output.bwa_data} --paired-end && "
+        "cp lib/report/bwa-sw.html {output.bwa_html} && "
+        "cp lib/report/bwa-sw.js {output.bwa_js} && "
+        "cp lib/report/bwa-sw.css {output.bwa_css}"

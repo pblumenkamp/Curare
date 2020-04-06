@@ -7,7 +7,8 @@ import re
 rule all:
     input:
         expand("mapping/{A}.bam", A=sorted(config['entries'].keys())),
-        "mapping/statistics/flagstat_summary.tsv"
+        "mapping/statistics/flagstat_summary.tsv",
+        ".report/modules/bwa-mem.html"
 
 
 rule summarize_flagstat:
@@ -127,3 +128,21 @@ rule sam_to_bam:
     shell:
         "samtools view -F 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam} - && samtools index {output.bam};"
         "samtools view -f 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam_unmapped} -"
+
+rule generate_report_data:
+    input:
+        stats_tsv="mapping/statistics/flagstat_summary.tsv"
+    output:
+        bwa_data=".report/data/bwa-mem_data.js",
+        bwa_html=".report/modules/bwa-mem.html",
+        bwa_js=".report/js/modules/bwa-mem.js",
+        bwa_css=".report/css/modules/bwa-mem.css",
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "bwa_report"
+    shell:
+        "python3 lib/generate_report_data.py --stats {input.stats_tsv} --output {output.bwa_data} && "
+        "cp lib/report/bwa-mem.html {output.bwa_html} && "
+        "cp lib/report/bwa-mem.js {output.bwa_js} && "
+        "cp lib/report/bwa-mem.css {output.bwa_css}"
