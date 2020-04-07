@@ -95,31 +95,37 @@
                   <thead>
                   <tr>
                     <th class="right-border">Sample</th>
+                    <th class="left-border">#Alignemnts</th>
                     <th class="right-border">#Pairs</th>
-                    <th class="left-border right-border">Pairs Properly Aligned</th>
-                    <th class="left-border right-border">Pairs Aligned</th>
-                    <th class="left-border right-border">Single Mates Aligned</th>
-                    <th class="left-border right-border">Pairs Completely Unaligned</th>
+                    <th class="left-border right-border">Properly Aligned in Pair</th>
+                    <th class="left-border right-border">Aligned in Pair</th>
+                    <th class="left-border right-border">Aligned (Singleton)</th>
+                    <th class="left-border right-border">Unaligned</th>
+                    <th class="left-border">Not Primary Alignment</th>
                   </tr>
                   </thead>
                   <tfoot v-if="bwa_stats.length > 12">
                   <tr>
                     <th class="right-border">Sample</th>
+                    <th class="left-border">#Alignemnts</th>
                     <th class="right-border">#Pairs</th>
-                    <th class="left-border right-border">Pairs Properly Aligned</th>
-                    <th class="left-border right-border">Pairs Aligned</th>
-                    <th class="left-border right-border">Single Mates Aligned</th>
-                    <th class="left-border right-border">Pairs Completely Unaligned</th>
+                    <th class="left-border right-border">Properly Aligned in Pair</th>
+                    <th class="left-border right-border">Aligned in Pair</th>
+                    <th class="left-border right-border">Aligned (Singleton)</th>
+                    <th class="left-border right-border">Unaligned</th>
+                    <th class="left-border">Not Primary Alignment</th>
                   </tr>
                   </tfoot>
                   <tbody>
                     <tr v-for="seqrun of bwa_stats" :key="seqrun.sample">
                       <td class="right-border" style="font-weight: bold">{{ seqrun.sample }}</td>
-                      <td class="right-border">{{ seqrun["total alignments"] / 2 }}</td>
+                      <td class="left-border">{{ seqrun["total alignments"] }}</td>
+                      <td class="right-border">{{ seqrun["paired in sequencing"] / 2 }}</td>
                       <td>{{ (seqrun["properly paired"] / seqrun["total alignments"] * 100).toFixed(2) }}</td>
                       <td>{{ ((seqrun["with itself and mate mapped"] - seqrun["properly paired"]) / seqrun["total alignments"] * 100).toFixed(2) }}</td>
-                      <td>{{ (seqrun["singletons"] * 2 / seqrun["total alignments"] * 100).toFixed(2) }}</td>
-                      <td>{{ ((seqrun["total alignments"] - seqrun["singletons"] * 2 - seqrun["with itself and mate mapped"]) / seqrun["total alignments"] * 100).toFixed(2) }}</td>
+                      <td>{{ (seqrun["singletons"] / seqrun["total alignments"] * 100).toFixed(2) }}</td>
+                      <td>{{ (100 - (seqrun["singletons"] + seqrun["with itself and mate mapped"] + seqrun["secondary"] + seqrun["supplementary"] + seqrun["duplicates"]) / seqrun["total alignments"] * 100).toFixed(2) }}</td>
+                      <td class="left-border">{{ ((seqrun["secondary"] + seqrun["supplementary"] + seqrun["duplicates"]) / seqrun["total alignments"] * 100).toFixed(2) }}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -127,31 +133,37 @@
                   <thead>
                   <tr>
                     <th class="right-border">Sample</th>
+                    <th class="left-border">#Alignemnts</th>
                     <th class="right-border">#Pairs</th>
-                    <th class="left-border right-border">Pairs Properly Aligned</th>
-                    <th class="left-border right-border">Pairs Aligned</th>
-                    <th class="left-border right-border">Single Mates Aligned</th>
-                    <th class="left-border right-border">Pairs Completely Unaligned</th>
+                    <th class="left-border right-border">Properly Aligned in Pair</th>
+                    <th class="left-border right-border">Aligned in Pair</th>
+                    <th class="left-border right-border">Aligned (Singleton)</th>
+                    <th class="left-border right-border">Unaligned</th>
+                    <th class="left-border">Not Primary Alignment</th>
                   </tr>
                   </thead>
                   <tfoot v-if="bwa_stats.length > 12">
                   <tr>
                     <th class="right-border">Sample</th>
+                    <th class="left-border">#Alignemnts</th>
                     <th class="right-border">#Pairs</th>
-                    <th class="left-border right-border">Pairs Properly Aligned</th>
-                    <th class="left-border right-border">Pairs Aligned</th>
-                    <th class="left-border right-border">Single Mates Aligned</th>
-                    <th class="left-border right-border">Pairs Completely Unaligned</th>
+                    <th class="left-border right-border">Properly Aligned in Pair</th>
+                    <th class="left-border right-border">Aligned in Pair</th>
+                    <th class="left-border right-border">Aligned (Singleton)</th>
+                    <th class="left-border right-border">Unaligned</th>
+                    <th class="left-border">Not Primary Alignment</th>
                   </tr>
                   </tfoot>
                   <tbody>
                   <tr v-for="seqrun of bwa_stats" :key="seqrun.sample">
                     <td class="right-border" style="font-weight: bold">{{ seqrun.sample }}</td>
-                    <td class="right-border">{{ seqrun["total alignments"] / 2 }}</td>
-                    <td>{{ seqrun["properly paired"] / 2}}</td>
-                    <td>{{ (seqrun["with itself and mate mapped"] - seqrun["properly paired"]) / 2 }}</td>
+                    <td class="left-border">{{ seqrun["total alignments"] }}</td>
+                    <td class="right-border">{{ seqrun["paired in sequencing"] / 2 }}</td>
+                    <td>{{ seqrun["properly paired"]}}</td>
+                    <td>{{ seqrun["with itself and mate mapped"] - seqrun["properly paired"] }}</td>
                     <td>{{ seqrun["singletons"] }}</td>
-                    <td>{{ seqrun["total alignments"] / 2 - seqrun["singletons"] - seqrun["with itself and mate mapped"] / 2 }}</td>
+                    <td>{{ seqrun["total alignments"] - seqrun["singletons"] - seqrun["with itself and mate mapped"] - seqrun["secondary"] - seqrun["supplementary"] - seqrun["duplicates"] }}</td>
+                    <td class="left-border">{{ seqrun["secondary"] + seqrun["supplementary"] + seqrun["duplicates"] }}</td>
                   </tr>
                   </tbody>
                 </table>
