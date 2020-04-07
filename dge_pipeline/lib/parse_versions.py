@@ -92,14 +92,13 @@ def main():
     for file in [f for f in listdir(conda_dir) if f.endswith('.yaml')]:
         with open(conda_dir / file, 'r') as yaml_file:
             first_line = yaml_file.readline()
-            if first_line.startswith("# module:"):
+            if first_line.startswith("# module:") or first_line.startswith("#module:"):
                 module = first_line.split(": ")[1].strip()
 
         conda_env = file.split(".")[0]
         with open(conda_dir / conda_env / 'conda-meta' / 'history', 'r') as history_file:
             dependencies: List[str] = history_file.readlines()
             primary_dependencies, secondary_dependencies, date = get_dependencies(dependencies)
-
         step = steps[module] if module in steps else ''
 
         output_list.append({
