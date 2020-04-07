@@ -28,9 +28,9 @@ new Vue({
         },
         curare_execution_date: function () {
             let vue = this;
-            let date = new Date(vue.curare_summary.date);
-
-            return date.toString();
+            //let date = new Date(vue.curare_summary.date);
+            //return date.toString();
+            return vue.curare_summary.date
         },
         curare_runtime: function () {
             let vue = this;

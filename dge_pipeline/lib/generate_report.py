@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import getpass
 import json
 import shutil
@@ -63,7 +63,8 @@ def create_summary_js_object(output_path: Path, curare_version: str, runtime: ti
         f.write('window.Curare.summary = (function() {\n')
         f.write('  const summary = {\n')
         f.write('    user: "{}",\n'.format(getpass.getuser()))
-        f.write('    date: "{}",\n'.format(datetime.isoformat(datetime.utcnow(), timespec='seconds')))
+        time: datetime = datetime.now(timezone(timedelta(0))).astimezone()
+        f.write('    date: "{} ({})",\n'.format(datetime.strftime(time, "%Y-%m-%d %H:%M:%S"), time.tzinfo))
         f.write('    curare_version: "{}",\n'.format(curare_version))
         f.write('    runtime: {},\n'.format(runtime.total_seconds()))
         f.write('    groups: {},\n'.format(json.dumps(groups, indent=2).replace('\n', '\n    ')))
