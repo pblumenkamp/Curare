@@ -40,7 +40,8 @@ def create_navigationbar_js_object(versions_json: Path, navigation_output: Path,
         if module["step"] not in nav:
             nav[module["step"]] = []
         html_name = module["name"] + ".html" if (curare_output / ".report" / "modules" / (module["name"] + ".html")).is_file() else None
-        nav[module["step"]].append({'name': module["name"], 'html_name': html_name})
+        new_tab = True if module["name"] in ["fastqc", "multiqc"] else False
+        nav[module["step"]].append({'name': module["name"], 'html_name': html_name, "new_tab": new_tab})
 
     with navigation_output.open('w') as f:
         f.write('window.Curare.navigation = (function() {\n')

@@ -17,7 +17,9 @@ new Vue({
                                  return word.charAt(0).toUpperCase() + word.slice(1)
                                  }).join(' ')
                     let html = module.html_name !== null ? module.html_name  : ""
-                    nav[step].push({'name': name, 'html_name': html})
+                    if (html) {
+                        nav[step].push({'name': name, 'html_name': html, new_tab: module.new_tab})
+                    }
                 }
                 nav[step].sort(function (a,b) {
                     const nameA = a.name.toUpperCase()

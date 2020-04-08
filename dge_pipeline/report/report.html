@@ -45,13 +45,24 @@
               </a>
 
               <div class="navbar-dropdown">
-                <a
-                  v-for="module of navigation_elements[step]"
-                  :href="'.report/modules/' + module.html_name"
-                  class="navbar-item"
-                >
-                  {{ module.name }}
-                </a>
+                <template v-for="module of navigation_elements[step]">
+                  <a
+                    v-if="module.new_tab"
+                    :href="'.report/modules/' + module.html_name"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="navbar-item"
+                  >
+                    {{ module.name }}
+                  </a>
+                  <a
+                    v-else
+                    :href="'.report/modules/' + module.html_name"
+                    class="navbar-item"
+                  >
+                    {{ module.name }}
+                  </a>
+                </template>
               </div>
             </div>
           </div>
