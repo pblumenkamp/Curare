@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CURARE Report</title>
+  <script type="text/javascript" charset="utf8" src="../js/vue.js"></script>
+  <script defer src="../js/fontawesome.all.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="../css/bulma.min.css"/>
+  <link rel="stylesheet" type="text/css" href="../css/bulma-switch.min.css"/>
+  <link rel="stylesheet" type="text/css" href="../css/modules/segemehl.css"/>
+  <script>
+      window.Curare = {}
+  </script>
+</head>
+<body class="has-navbar-fixed-top">
+<section>
+  <div id="navigation-bar" class="container">
+    <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
+      <div class="navbar-menu">
+        <div class="navbar-start">
+          <div class="navbar-item has-dropdown is-hoverable">
+            <a class="navbar-link" href="../../report.html#overview">
+              Overview
+            </a>
+
+            <div class="navbar-dropdown">
+              <a href="../../report.html" class="navbar-item">
+                Curare Summary
+              </a>
+              <a href="../../report.html#groups" class="navbar-item">
+                Groups
+              </a>
+              <a href="../../report.html#tools-used" class="navbar-item">
+                Tools Used
+              </a>
+            </div>
+          </div>
+
+          <div
+            v-for="step of analysis_steps"
+            v-if="step in navigation_elements & child_has_html[step]"
+            class="navbar-item has-dropdown is-hoverable"
+          >
+            <a class="navbar-link">
+              {{ step.charAt(0).toUpperCase() + step.slice(1) }}
+            </a>
+
+            <div class="navbar-dropdown">
+              <a
+                v-for="module of navigation_elements[step]"
+                :href="module.html_name"
+                class="navbar-item"
+              >
+                {{ module.name }}
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+  </div>
+</section>
+
+<section class="hero is-primary is-small is-bold">
+  <div class="hero-body">
+    <div class="container has-text-centered">
+      <h1 class="title is-size-1">CURARE</h1>
+      <h2 class="subtitle is-size-3">Pipeline Report</h2>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div id="segemehl" class="container">
+    <div class="columns" style="max-width: 100%">
+      <div class="column is-1"></div>
+      <div class="column" style="max-width: 100%">
+        <div class="content">
+          <section id="segemehl-body">
+            <h2>Segemehl</h2>
+            
+            <div class="columns" style="max-width: 100%">
+              <div class="column is-11" style="max-width: 100%">
+                <h3 id="statistics">Alignment Statistics</h3>
+              </div>
+              <div class="column field">
+                <input id="in-percent" type="checkbox" name="in-percent" class="switch is-rounded" v-model="stats_in_percent">
+                <label for="in-percent">in %</label>
+              </div>
+            </div>
+            <div id="segemehl-stats" class="table-container scroll">
+              <template v-if="paired_end">
+                <table v-if="stats_in_percent.length" id="segemehl-stats-percent" class="table">
+                  <thead>
+                  <tr>
+                    <th rowspan="2" class="right-border">Sample</th>
+                    <th colspan="5" class="left-border right-border">Reads</th>
+                    <th colspan="5" class="left-border">Pairs</th>
+                  </tr>
+                  <tr>
+                    <th class="right-border">Total</th>
+                    <th class="left-border right-border">Unmapped</th>
+                    <th class="left-border right-border">Uniquely Mapped</th>
+                    <th class="left-border right-border">Multi Mapped</th>
+                    <th class="left-border right-border">Split Mapped</th>
+                    <th class="right-border">Total</th>
+                    <th class="left-border right-border">Unmapped</th>
+                    <th class="left-border right-border">Uniquely Mapped</th>
+                    <th class="left-border right-border">Multi Mapped</th>
+                    <th class="left-border">Split Mapped</th>
+                  </tr>
+                  </thead>
+                  <tfoot v-if="segemehl_stats.length > 12">
+                  <tr>
+                    <th rowspan="2" class="right-border">Sample</th>
+                    <th class="right-border">Total</th>
+                    <th class="left-border right-border">Unmapped</th>
+                    <th class="left-border right-border">Uniquely Mapped</th>
+                    <th class="left-border right-border">Multi Mapped</th>
+                    <th class="left-border right-border">Split Mapped</th>
+                    <th class="right-border">Total</th>
+                    <th class="left-border right-border">Unmapped</th>
+                    <th class="left-border right-border">Uniquely Mapped</th>
+                    <th class="left-border right-border">Multi Mapped</th>
+                    <th class="left-border">Split Mapped</th>
+                  </tr>
+                  <tr>
+                    <th colspan="5" class="left-border right-border">Reads</th>
+                    <th colspan="5" class="left-border">Pairs</th>
+                  </tr>
+                  </tfoot>
+                  <tbody>
+                    <tr v-for="seqrun of segemehl_stats" :key="seqrun.sample">
+                      <td class="right-border" style="font-weight: bold">{{ seqrun.Sample }}</td>
+                      <td class="left-border">{{ seqrun["Total_Reads"] }}</td>
+                      <td>{{ ((seqrun["Total_Reads"] - seqrun["Mapped_Reads"]) / seqrun["Total_Reads"] * 100).toFixed(2) }}</td>
+                      <td>{{ (seqrun["Uniquely_Mapped_Reads"] / seqrun["Total_Reads"] * 100).toFixed(2) }}</td>
+                      <td>{{ (seqrun["Multi_Mapped_Reads"] / seqrun["Total_Reads"] * 100).toFixed(2) }}</td>
+                      <td class="right-border">{{ (seqrun["Split_Mapped_Reads"] / seqrun["Total_Reads"] * 100).toFixed(2) }}</td>
+                      <td class="left-border">{{ seqrun["Total_Pairs"] }}</td>
+                      <td>{{ ((seqrun["Total_Pairs"] - seqrun["Mapped_Pairs"]) / seqrun["Total_Reads"] * 100).toFixed(2) }}</td>
+                      <td>{{ (seqrun["Uniquely_Mapped_Pairs"] / seqrun["Total_Pairs"] * 100).toFixed(2) }}</td>
+                      <td>{{ (seqrun["Multi_Mapped_Pairs"] / seqrun["Total_Pairs"] * 100).toFixed(2) }}</td>
+                      <td>{{ (seqrun["Split_Mapped_Pairs"] / seqrun["Total_Pairs"] * 100).toFixed(2) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <table v-else id="segemehl-stats-absolute" class="table">
+                  <thead>
+                  <tr>
+                    <th rowspan="2" class="right-border">Sample</th>
+                    <th colspan="5" class="left-border right-border">Reads</th>
+                    <th colspan="5" class="left-border">Pairs</th>
+                  </tr>
+                  <tr>
+                    <th class="right-border">Total</th>
+                    <th class="left-border right-border">Unmapped</th>
+                    <th class="left-border right-border">Uniquely Mapped</th>
+                    <th class="left-border right-border">Multi Mapped</th>
+                    <th class="left-border right-border">Split Mapped</th>
+                    <th class="right-border">Total</th>
+                    <th class="left-border right-border">Unmapped</th>
+                    <th class="left-border right-border">Uniquely Mapped</th>
+                    <th class="left-border right-border">Multi Mapped</th>
+                    <th class="left-border">Split Mapped</th>
+                  </tr>
+                  </thead>
+                  <tfoot v-if="segemehl_stats.length > 12">
+                  <tr>
+                    <th rowspan="2" class="right-border">Sample</th>
+                    <th class="right-border">Total</th>
+                    <th class="left-border right-border">Unmapped</th>
+                    <th class="left-border right-border">Uniquely Mapped</th>
+                    <th class="left-border right-border">Multi Mapped</th>
+                    <th class="left-border right-border">Split Mapped</th>
+                    <th class="right-border">Total</th>
+                    <th class="left-border right-border">Unmapped</th>
+                    <th class="left-border right-border">Uniquely Mapped</th>
+                    <th class="left-border right-border">Multi Mapped</th>
+                    <th class="left-border">Split Mapped</th>
+                  </tr>
+                  <tr>
+                    <th colspan="5" class="left-border right-border">Reads</th>
+                    <th colspan="5" class="left-border">Pairs</th>
+                  </tr>
+                  </tfoot>
+                  <tbody>
+                  <tr v-for="seqrun of segemehl_stats" :key="seqrun.sample">
+                    <td class="right-border" style="font-weight: bold">{{ seqrun.Sample }}</td>
+                    <td class="left-border">{{ seqrun["Total_Reads"] }}</td>
+                    <td>{{ seqrun["Total_Reads"] - seqrun["Mapped_Reads"] }}</td>
+                    <td>{{ seqrun["Uniquely_Mapped_Reads"] }}</td>
+                    <td>{{ seqrun["Multi_Mapped_Reads"] }}</td>
+                    <td class="right-border">{{ seqrun["Split_Mapped_Reads"] }}</td>
+                    <td class="left-border">{{ seqrun["Total_Pairs"] }}</td>
+                    <td>{{ seqrun["Total_Pairs"] - seqrun["Mapped_Pairs"] }}</td>
+                    <td>{{ seqrun["Uniquely_Mapped_Pairs"] }}</td>
+                    <td>{{ seqrun["Multi_Mapped_Pairs"] }}</td>
+                    <td>{{ seqrun["Split_Mapped_Pairs"] }}</td>
+                  </tr>
+                  </tbody>
+                </table>
+              </template>
+              <template v-else>
+                <table v-if="stats_in_percent.length" id="segemehl-stats-percent" class="table">
+                  <thead>
+                  <tr>
+                    <th class="right-border">Sample</th>
+                    <th class="right-border">Total</th>
+                    <th class="left-border right-border">Unmapped</th>
+                    <th class="left-border right-border">Uniquely Mapped</th>
+                    <th class="left-border right-border">Multi Mapped</th>
+                    <th class="left-border right-border">Split Mapped</th>
+                  </tr>
+                  </thead>
+                  <tfoot v-if="segemehl_stats.length > 12">
+                  <tr>
+                    <th class="right-border">Sample</th>
+                    <th class="right-border">Total</th>
+                    <th class="left-border right-border">Unmapped</th>
+                    <th class="left-border right-border">Uniquely Mapped</th>
+                    <th class="left-border right-border">Multi Mapped</th>
+                    <th class="left-border right-border">Split Mapped</th>
+                  </tr>
+                  </tfoot>
+                  <tbody>
+                  <tr v-for="seqrun of segemehl_stats" :key="seqrun.sample">
+                    <td class="right-border" style="font-weight: bold">{{ seqrun.Sample }}</td>
+                    <td class="left-border right-border">{{ seqrun["Total_Reads"] }}</td>
+                    <td>{{ ((seqrun["Total_Reads"] - seqrun["Mapped_Reads"]) / seqrun["Total_Reads"] * 100).toFixed(2) }}</td>
+                    <td>{{ (seqrun["Uniquely_Mapped_Reads"] / seqrun["Total_Reads"] * 100).toFixed(2) }}</td>
+                    <td>{{ (seqrun["Multi_Mapped_Reads"] / seqrun["Total_Reads"] * 100).toFixed(2) }}</td>
+                    <td>{{ (seqrun["Split_Mapped_Reads"] / seqrun["Total_Reads"] * 100).toFixed(2) }}</td>
+                  </tr>
+                  </tbody>
+                </table>
+                <table v-else id="segemehl-stats-absolute" class="table">
+                  <thead>
+                  <tr>
+                    <th class="right-border">Sample</th>
+                    <th class="right-border">Total</th>
+                    <th class="left-border right-border">Unmapped</th>
+                    <th class="left-border right-border">Uniquely Mapped</th>
+                    <th class="left-border right-border">Multi Mapped</th>
+                    <th class="left-border right-border">Split Mapped</th>
+                  </tr>
+                  </thead>
+                  <tfoot v-if="segemehl_stats.length > 12">
+                  <tr>
+                    <th class="right-border">Sample</th>
+                    <th class="right-border">Total</th>
+                    <th class="left-border right-border">Unmapped</th>
+                    <th class="left-border right-border">Uniquely Mapped</th>
+                    <th class="left-border right-border">Multi Mapped</th>
+                    <th class="left-border right-border">Split Mapped</th>
+                  </tr>
+                  </tfoot>
+                  <tbody>
+                  <tr v-for="seqrun of segemehl_stats" :key="seqrun.sample">
+                    <td class="right-border" style="font-weight: bold">{{ seqrun.Sample }}</td>
+                    <td class="left-border right-border">{{ seqrun["Total_Reads"] }}</td>
+                    <td>{{ seqrun["Total_Reads"] - seqrun["Mapped_Reads"] }}</td>
+                    <td>{{ seqrun["Uniquely_Mapped_Reads"] }}</td>
+                    <td>{{ seqrun["Multi_Mapped_Reads"] }}</td>
+                    <td>{{ seqrun["Split_Mapped_Reads"] }}</td>
+                  </tr>
+                  </tbody>
+                </table>
+              </template>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<footer class="footer">
+  <div class="content has-text-centered">
+    <p><strong>CURARE</strong> by <a href="mailto:patrick.blumenkamp@computational.bio.uni-giessen.de">Patrick Blumenkamp</a>.</p>
+    <p style="margin-top: 1rem;">
+      <a href="http://bulma.io">
+        <img src="../img/made-with-bulma.png" alt="made with Bulma" width="128" height="24">
+      </a>
+    </p>
+  </div>
+</footer>
+
+<script type="text/javascript" charset="utf8" src="../data/navigation.js"></script>
+<script type="text/javascript" charset="utf8" src="../js/navigation_bar.js"></script>
+<script type="text/javascript" charset="utf8" src="../data/segemehl_data.js"></script>
+<script type="text/javascript" charset="utf8" src="../js/modules/segemehl.js"></script>
+
+</body>
+</html>

@@ -1,11 +1,14 @@
-#module: segemehl
+# module: segemehl
 channels:
   - conda-forge
   - bioconda
   - anaconda
   - defaults
 dependencies:
-  - segemehl>=0.3.4
-  - samtools>=1.8
+  - docopt>=0.6
+  - matplotlib
   - pandas>=0.23
+  - python>=3.5
+  - samtools>=1.8
+  - segemehl>=0.3.4
   - xlsxwriter>=1.0.5
