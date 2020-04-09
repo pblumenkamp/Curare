@@ -4,11 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CURARE Report</title>
-  <script type="text/javascript" charset="utf8" src="../js/vue.js"></script>
-  <script defer src="../js/fontawesome.all.min.js"></script>
-  <link rel="stylesheet" type="text/css" href="../css/bulma.min.css"/>
-  <link rel="stylesheet" type="text/css" href="../css/bulma-switch.min.css"/>
+  <link rel="stylesheet" type="text/css" href="../css/buefy.min.css"/>
   <link rel="stylesheet" type="text/css" href="../css/modules/bowtie2.css"/>
+
+  <script type="text/javascript" charset="utf8" src="../js/vue.min.js"></script>
+  <script type="text/javascript" charset="utf8" src="../js/buefy.min.js"></script>
+  <script defer src="../js/fontawesome.all.min.js"></script>
   <script>
       window.Curare = {}
   </script>
@@ -85,8 +86,7 @@
                 <h3 id="statistics_plots">Alignment Distribution</h3>
               </div>
               <div v-if="bowtie2_stats.length >= 7" class="column field">
-                <input id="in-percent_plots" type="checkbox" name="in-percent_plots" class="switch is-rounded" v-model="stats_in_percent">
-                <label for="in-percent_plots">in %</label>
+                <b-switch id="in-percent-plots" v-model="stats_in_percent"><p>in %</p></b-switch>
               </div>
             </div>
             <div v-if="bowtie2_stats.length < 7" class="columns">
@@ -117,8 +117,7 @@
                 <h3 id="statistics">Alignment Statistics</h3>
               </div>
               <div class="column field">
-                <input id="in-percent" type="checkbox" name="in-percent" class="switch is-rounded" v-model="stats_in_percent">
-                <label for="in-percent">in %</label>
+                <b-switch id="in-percent" v-model="stats_in_percent"><p>in %</p></b-switch>
               </div>
             </div>
             <div id="bowtie2-stats" class="table-container scroll">
@@ -306,7 +305,11 @@
     <p><strong>CURARE</strong> by <a href="mailto:patrick.blumenkamp@computational.bio.uni-giessen.de">Patrick Blumenkamp</a>.</p>
     <p style="margin-top: 1rem;">
       <a href="http://bulma.io">
-        <img src="../img/made-with-bulma.png" alt="made with Bulma" width="128" height="24">
+        <img src=".report/img/made-with-bulma.png" alt="made with Bulma" style="height: 24px; width: auto; padding-right: 1rem" width="128" height="24">
+      </a>
+      and
+      <a href="https://buefy.org/">
+        <img src=".report/img/buefy-logo.png" alt="Buefy Logo" style="height: 24px; width: auto; padding-left: 1rem">
       </a>
     </p>
   </div>
