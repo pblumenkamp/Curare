@@ -23,7 +23,9 @@ rule trimgalore:
     conda:
         "../lib/conda_env.yaml"
     params:
-        output_dir="preprocessing/trim_galore/"
+        output_dir="preprocessing/trim_galore/",
+        adapter_forward=lambda wildcard: "--adapter %%ADAPTER_FORWARD%%" if "%%ADAPTER_FORWARD%%" else "",
+        adapter_reverse=lambda wildcard: "--adapter2 %%ADAPTER_REVERSE%%" if "%%ADAPTER_REVERSE%%" else ""
     group:
         "trim_galore"
     log:
@@ -31,8 +33,8 @@ rule trimgalore:
     threads:
         4
     shell:
-        "trim_galore %%ADDITIONAL_PARAMETER%% --paired --retain_unpaired --quality %%QUALITY_THRESHOLD%% %%PHRED_SCORE_TYPE%% --length %%MIN_LENGTH%% --adapter %%ADAPTER_FORWARD%% "
-        "--adapter2 %%ADAPTER_REVERSE%% --cores {threads} --basename {wildcards.sample} --dont_gzip --output_dir {params.output_dir} {input.reads_forward} {input.reads_reverse} 2>&1 |"
+        "trim_galore %%ADDITIONAL_PARAMETER%% --paired --retain_unpaired --quality %%QUALITY_THRESHOLD%% %%PHRED_SCORE_TYPE%% --length %%MIN_LENGTH%% {params.adapter_forward} "
+        "{params.adapter_reverse} --cores {threads} --basename {wildcards.sample} --dont_gzip --output_dir {params.output_dir} {input.reads_forward} {input.reads_reverse} 2>&1 |"
         "tee {log} && "
         "if [[ -f \"preprocessing/trim_galore/{wildcards.sample}_R1_val_1.fq\" ]]; then mv \"preprocessing/trim_galore/{wildcards.sample}_R1_val_1.fq\" \"preprocessing/trim_galore/{wildcards.sample}_val_1.fq\"; fi && "
         "if [[ -f \"preprocessing/trim_galore/{wildcards.sample}_R2_val_2.fq\" ]]; then mv \"preprocessing/trim_galore/{wildcards.sample}_R2_val_2.fq\" \"preprocessing/trim_galore/{wildcards.sample}_val_2.fq\"; fi;"
