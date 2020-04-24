@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CURARE Report</title>
+  <link rel="stylesheet" type="text/css" href="../css/buefy.min.css"/>
+  <link rel="stylesheet" type="text/css" href="../css/modules/trimgalore.css"/>
+
+  <script type="text/javascript" charset="utf8" src="../js/Chart.js"></script>
+  <script type="text/javascript" charset="utf8" src="../js/vue.js"></script>
+  <script type="text/javascript" charset="utf8" src="../js/buefy.min.js"></script>
+  <script defer src="../js/fontawesome.all.min.js"></script>
+  <script>
+      window.Curare = {}
+  </script>
+</head>
+<body class="has-navbar-fixed-top">
+<section>
+  <div id="navigation-bar" class="container">
+    <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
+      <div class="navbar-menu">
+        <div class="navbar-start">
+          <div class="navbar-item has-dropdown is-hoverable">
+            <a class="navbar-link" href="../../report.html#overview">
+              Overview
+            </a>
+
+            <div class="navbar-dropdown">
+              <a href="../../report.html" class="navbar-item">
+                Curare Summary
+              </a>
+              <a href="../../report.html#groups" class="navbar-item">
+                Groups
+              </a>
+              <a href="../../report.html#tools-used" class="navbar-item">
+                Tools Used
+              </a>
+            </div>
+          </div>
+
+          <div
+            v-for="step of analysis_steps"
+            v-if="step in navigation_elements & child_has_html[step]"
+            class="navbar-item has-dropdown is-hoverable"
+          >
+            <a class="navbar-link">
+              {{ step.charAt(0).toUpperCase() + step.slice(1) }}
+            </a>
+
+            <div class="navbar-dropdown">
+              <a
+                v-for="module of navigation_elements[step]"
+                :href="module.html_name"
+                class="navbar-item"
+              >
+                {{ module.name }}
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+  </div>
+</section>
+
+<section class="hero is-primary is-small is-bold">
+  <div class="hero-body">
+    <div class="container has-text-centered">
+      <h1 class="title is-size-1">CURARE</h1>
+      <h2 class="subtitle is-size-3">Pipeline Report</h2>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div id="trim-galore" class="container">
+    <div class="columns" style="max-width: 100%">
+      <div class="column is-1"></div>
+      <div class="column" style="max-width: 100%">
+        <div class="content">
+          <section id="trim-galore-body">
+            <h2>Trim-Galore</h2>
+            <b-tabs v-model="activeTab" :animated="false" multiline size="is-large" type="is-toggle">
+              <template v-for="(tab, tab_index) in samples">
+                <b-tab-item :key="tab" :label="tab">
+                  <h3 style="padding-top: 1rem">Runtime Parameters</h3>
+                  <b-table :data="run_parameters[tab_index]">
+                    <template slot-scope="props">
+                      <b-table-column field="user.key" label="Key">
+                        <template slot="header" slot-scope="{ column }"></template>
+                        {{ props.row.key }}
+                      </b-table-column>
+                      <b-table-column field="user.value" label="Value">
+                        <template slot="header" slot-scope="{ column }"></template>
+                        {{ props.row.value }}
+                      </b-table-column>
+                    </template>
+                    <template slot="footer">
+                      <div></div>
+                    </template>
+                  </b-table>
+
+                  <h3 style="padding-top: 2rem">Summary</h3>
+                  <template v-if="paired_end">
+                    <div class="columns">
+                      <div class="column">
+                        <h4>Forward Reads</h4>
+                        <b-table :data="summary[tab_index][0]">
+                          <template slot-scope="props">
+                            <b-table-column field="user.key" label="Key">
+                              <template slot="header" slot-scope="{ column }"></template>
+                              {{ props.row.key }}
+                            </b-table-column>
+                            <b-table-column field="user.value" label="Value">
+                              <template slot="header" slot-scope="{ column }"></template>
+                              {{ props.row.value }}
+                            </b-table-column>
+                          </template>
+                          <template slot="footer">
+                            <div></div>
+                          </template>
+                        </b-table>
+                      </div>
+                      <div class="column">
+                        <h4>Reverse Reads</h4>
+                        <b-table :data="summary[tab_index][1]">
+                          <template slot-scope="props">
+                            <b-table-column field="user.key" label="Key">
+                              <template slot="header" slot-scope="{ column }"></template>
+                              {{ props.row.key }}
+                            </b-table-column>
+                            <b-table-column field="user.value" label="Value">
+                              <template slot="header" slot-scope="{ column }"></template>
+                              {{ props.row.value }}
+                            </b-table-column>
+                          </template>
+                          <template slot="footer">
+                            <div></div>
+                          </template>
+                        </b-table>
+                      </div>
+                    </div>
+                  </template>
+
+                  <h3 style="padding-top: 2rem">Adapter</h3>
+                  <template v-if="paired_end">
+                    <div class="columns">
+                      <div class="column" v-for="(header, index) in ['Forward Reads', 'Reverse Reads']">
+                        <h4>{{ header }}</h4>
+                        <h6>Overview</h6>
+                        <b-table :data="adapter_overview[tab_index][index]" :columns="adapter_overview_columns"></b-table>
+                        <h6 style="padding-top: 2rem">Allowed Errors</h6>
+                        <b-table :data="adapter_allowed_errors[tab_index][index]" :columns="allowed_errors_columns"></b-table>
+                        <h6 style="padding-top: 2rem">Bases Preceeding Adapter</h6>
+                        <canvas :id=`preceeding_bases_${tab_index}_${index}` style="padding-top: 1rem; padding-bottom: 1rem"></canvas>
+                        <b-table :data="adapter_preceeding_bases[tab_index][index]" :columns="preceeding_bases_columns"></b-table>
+                        <h6 style="padding-top: 2rem">Removed Sequences</h6>
+                        <canvas :id=`removed_sequences_${tab_index}_${index}` style="padding-top: 1rem"></canvas>
+                        <b-table :data="adapter_removed_sequences[tab_index][index]" :columns="removed_sequences_columns"></b-table>
+                      </div>
+                    </div>
+                  </template>
+
+                </b-tab-item>
+              </template>
+            </b-tabs>
+
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<footer class="footer">
+  <div class="content has-text-centered">
+    <p><strong>CURARE</strong> by <a href="mailto:patrick.blumenkamp@computational.bio.uni-giessen.de">Patrick Blumenkamp</a>.</p>
+    <p style="margin-top: 1rem;">
+      <a href="http://bulma.io">
+        <img src="../img/made-with-bulma.png" alt="made with Bulma" style="height: 24px; width: auto; padding-right: 1rem" width="128" height="24">
+      </a>
+      and
+      <a href="https://buefy.org/">
+        <img src="../img/buefy-logo.png" alt="Buefy Logo" style="height: 24px; width: auto; padding-left: 1rem">
+      </a>
+    </p>
+  </div>
+</footer>
+
+<script type="text/javascript" charset="utf8" src="../data/navigation.js"></script>
+<script type="text/javascript" charset="utf8" src="../js/navigation_bar.js"></script>
+<script type="text/javascript" charset="utf8" src="../data/trimgalore_data.js"></script>
+<script type="text/javascript" charset="utf8" src="../js/modules/trimgalore.js"></script>
+
+</body>
+</html>
