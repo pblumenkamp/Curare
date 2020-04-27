@@ -104,6 +104,18 @@ new Vue({
                     {'key': 'Length Cutoff (Forward Reads)', 'value': sample_parameters['length_cutoff_forward']},
                     {'key': 'Length Cutoff (Reverse Reads)', 'value': sample_parameters['length_cutoff_reverse']}
                 ]
+                if (table[7].value === undefined) {
+                    table[6].key = 'Adapter Sequence'
+                    table.splice(7,1)
+                }
+                const to_delete = []
+                for (const [i, entry] of table.entries()) {
+                    if (entry['value'] === undefined) {
+                      to_delete.push(i)
+                    }
+                }
+                to_delete.reverse().forEach((x) => table.splice(x, 1))
+
                 all_run_parameters.push(table)
             }
             return all_run_parameters
@@ -114,7 +126,8 @@ new Vue({
             const summaries = []
             for (const sample of vue.samples) {
                 const summary = []
-                for (const strand of ["Forward", "Reverse"]) {
+                const strands = (vue.paired_end) ? ["Forward", "Reverse"] : ["Forward"]
+                for (const strand of strands) {
                     const summary_data = vue.trim_galore_stats[sample][strand]
                     const table = [
                         {
@@ -143,6 +156,12 @@ new Vue({
                             'value': `${summary_data['basepairs_passing_filters']} (${getRatio(summary_data['basepairs_passing_filters'], summary_data['total_basepairs_processed'])}%)`
                         },
                     ]
+                    if (summary_data['reads_lost_due_to_length_cutoff'] !== undefined) {
+                        table.splice(2,0, {
+                            'key': 'Reads filtered due to length cutoff',
+                            'value': `${summary_data['reads_lost_due_to_length_cutoff']} (${getRatio(summary_data['reads_lost_due_to_length_cutoff'], summary_data['total_reads_processed'])}%)`
+                        },)
+                    }
                     summary.push(table)
                 }
                 summaries.push(summary)
@@ -155,7 +174,8 @@ new Vue({
             const overviews = []
             for (const sample of vue.samples) {
                 const overview = []
-                for (const strand of ["Forward", "Reverse"]) {
+                const strands = (vue.paired_end) ? ["Forward", "Reverse"] : ["Forward"]
+                for (const strand of strands) {
                     const overview_data = vue.trim_galore_stats[sample][strand]
                     const table = [
                         {
@@ -176,7 +196,8 @@ new Vue({
             const all_allowed_errors = []
             for (const sample of vue.samples) {
                 const sample_allowed_errors = []
-                for (const strand of ["Forward", "Reverse"]) {
+                const strands = (vue.paired_end) ? ["Forward", "Reverse"] : ["Forward"]
+                for (const strand of strands) {
                     const allowed_errors_data = vue.trim_galore_stats[sample][strand]['allowed_errors']
                     const table = []
                     for (const row of allowed_errors_data) {
@@ -196,7 +217,8 @@ new Vue({
             const all_preceding_bases = []
             for (const sample of vue.samples) {
                 const sample_preceding_bases = []
-                for (const strand of ["Forward", "Reverse"]) {
+                const strands = (vue.paired_end) ? ["Forward", "Reverse"] : ["Forward"]
+                for (const strand of strands) {
                     const preceding_bases_data = vue.trim_galore_stats[sample][strand]['bases_preceding_adapter']
                     sample_preceding_bases.push([{
                         "A": preceding_bases_data["A"],
@@ -215,7 +237,8 @@ new Vue({
             const all_removed_sequences = []
             for (const sample of vue.samples) {
                 const sample_removed_sequences = []
-                for (const strand of ["Forward", "Reverse"]) {
+                const strands = (vue.paired_end) ? ["Forward", "Reverse"] : ["Forward"]
+                for (const strand of strands) {
                     const removed_sequences_data = vue.trim_galore_stats[sample][strand]['removed_sequences']
                     const table = []
                     for (const row of removed_sequences_data) {
@@ -250,7 +273,8 @@ new Vue({
         },
         create_preceeding_bases_chart() {
             const vue = this
-            for (const [i, strand] of ['Forward', 'Reverse'].entries()) {
+            const strands = (vue.paired_end) ? ["Forward", "Reverse"] : ["Forward"]
+            for (const [i, strand] of strands.entries()) {
                 const preceeding_bases = vue.trim_galore_stats[vue.samples[vue.activeTab]][strand]['bases_preceding_adapter']
                 const datapoints = [
                     parseFloat(preceeding_bases['A']),
@@ -287,25 +311,20 @@ new Vue({
         },
         create_removed_sequences_chart() {
             const vue = this
-            for (const [i, strand] of ['Forward', 'Reverse'].entries()) {
+            const strands = (vue.paired_end) ? ["Forward", "Reverse"] : ["Forward"]
+            for (const [i, strand] of strands.entries()) {
                 const removed_sequences = vue.trim_galore_stats[vue.samples[vue.activeTab]][strand]['removed_sequences']
                 const datapoints = []
                 const labels = []
                 const backgroundColor = []
-                console.log(removed_sequences[removed_sequences.length-1]['length'])
                 for (let i=1; i <= removed_sequences[removed_sequences.length-1]['length']; i++) {
-                    console.log(i)
                     labels.push(i.toString())
                     datapoints.push(0)
                     backgroundColor.push('rgba(0,114,178,1)')
                 }
-                console.log(labels)
-                console.log(datapoints)
                 for (const row of removed_sequences) {
                     datapoints[parseInt(row['length'])-1] = parseInt(row['count'])
                 }
-                console.log(labels)
-                console.log(datapoints)
                 this.createChart(
                     `removed_sequences_${vue.activeTab}_${i}`,
                     'bar',

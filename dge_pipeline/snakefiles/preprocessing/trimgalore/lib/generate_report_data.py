@@ -27,8 +27,10 @@ def create_trim_galore_stats_js_object_se(stats_file: Path) -> Dict[str, Any]:
     tsv_df = pd.read_csv(stats_file, sep="\t")
     stats: Dict[str, Dict[str, Dict[str, Any]]] = {}
     for index, row in tsv_df.iterrows():
+        forward, runtime_parameter = parse_stats_file(Path(row["Forward"]), False)
         stats[row["Sample"]] = {
-            "Forward": parse_stats_file(Path(row["Forward"]))
+            "Runtime Parameters": runtime_parameter,
+            "Forward": forward
         }
     return stats
 
@@ -37,8 +39,8 @@ def create_trim_galore_stats_js_object_pe(stats_file: Path) -> Dict[str, Any]:
     tsv_df = pd.read_csv(stats_file, sep="\t")
     stats: Dict[str, Dict[str, Dict[str, Any]]] = {}
     for index, row in tsv_df.iterrows():
-        forward, runtime_parameter = parse_stats_file(Path(row["Forward"]))
-        reverse, _ = parse_stats_file(Path(row["Reverse"]))
+        forward, runtime_parameter = parse_stats_file(Path(row["Forward"]), True)
+        reverse, _ = parse_stats_file(Path(row["Reverse"]), True)
         stats[row["Sample"]] = {
             "Runtime Parameters": runtime_parameter,
             "Forward": forward,
@@ -46,7 +48,7 @@ def create_trim_galore_stats_js_object_pe(stats_file: Path) -> Dict[str, Any]:
         }
     return stats
 
-def parse_stats_file(stats_file: Path) -> Dict[str, Any]:
+def parse_stats_file(stats_file: Path, paired_end: bool) -> Dict[str, Any]:
     re_summary_run_parameters: Dict[str, Pattern] = {
         "trimming_mode": re.compile("Trimming mode:\s+(.*)"),
         "trim_galore_version": re.compile("Trim Galore version:\s+(.*)"),
@@ -57,7 +59,7 @@ def parse_stats_file(stats_file: Path) -> Dict[str, Any]:
         "adapter_sequence_reverse": re.compile("Optional adapter 2 sequence \(only used for read 2 of paired-end files\):\s+'(.*)'"),
         "max_trimming_error_rate": re.compile("Maximum trimming error rate:\s+(.*)"),
         "min_adapter_overlap": re.compile("Minimum required adapter overlap \(stringency\):\s+(.*)"),
-        "min_sequence_length": re.compile("Minimum required sequence length for both reads before a sequence pair gets removed:\s+(.*)"),
+        "min_sequence_length": re.compile("Minimum required sequence length for both reads before a sequence pair gets removed:\s+(.*)") if paired_end else re.compile("Minimum required sequence length before a sequence gets removed:\s+(.*)"),
         "length_cutoff_forward": re.compile("Length cut-off for read 1:\s+(.*)"),
         "length_cutoff_reverse": re.compile("Length cut-off for read 2:\s+(.*)")
     }
@@ -76,6 +78,10 @@ def parse_stats_file(stats_file: Path) -> Dict[str, Any]:
         "bases_preceding_removed_adapters_start": re.compile("Bases preceding removed adapters:"),
         "removed_sequences_start": re.compile("Overview of removed sequences"),
 
+    }
+
+    re_else: Dict[str, Pattern] = {
+        "reads_lost_due_to_length_cutoff": re.compile("Sequences removed because they became shorter than the length cutoff of 20 bp:\s+(.*) \(.*\)"),
     }
 
     runtime_parameter_stats: Dict[str, Any] = {}
@@ -158,6 +164,13 @@ def parse_stats_file(stats_file: Path) -> Dict[str, Any]:
                     sample_stats["removed_sequences"] = removed_sequences
                     in_removed_sequences_block = False
                     break
+                else:
+                    for key, pattern in re_else.items():
+                        match: Match = pattern.search(line)
+                        if match:
+                            sample_stats[key] = match.group(1)
+                            del re_summary_run_parameters[key]
+                            break
 
     return sample_stats, runtime_parameter_stats
 
