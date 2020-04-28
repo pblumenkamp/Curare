@@ -11,6 +11,12 @@ def getPath(file_name):
 
 localrules: none__create_symlink
 
+rule all:
+    input:
+        expand("preprocessing/{sample}_R1.fastq", sample=config['entries'].keys()),
+        expand("preprocessing/{sample}_R2.fastq", sample=config['entries'].keys())
+
+
 rule create_symlink:
     input:
         lambda wildcards: getPath(wildcards.sample)

@@ -37,7 +37,7 @@ bash "`dirname $SCRIPTPATH`/single_end_run_trim_galore/run_with_conda.sh"
 if [ $? -ne 0 ]; then FAILEDRUNS+=("Single_end_trimgalore"); fi
 
 bash "`dirname $SCRIPTPATH`/paired_end_run_trim_galore/run_with_conda.sh"
-if [ $? -ne 0 ]; then FAILEDRUNS+=("Paired_end_bwa_trimgalore"); fi
+if [ $? -ne 0 ]; then FAILEDRUNS+=("Paired_end_trimgalore"); fi
 
 bash "`dirname $SCRIPTPATH`/single_end_run_segemehl/run_with_conda.sh"
 if [ $? -ne 0 ]; then FAILEDRUNS+=("Single_end_segemehl"); fi
