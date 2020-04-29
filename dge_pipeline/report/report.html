@@ -15,61 +15,8 @@
 </head>
 <body class="has-navbar-fixed-top">
   <section>
-    <div id="navigation-bar" class="container">
-      <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
-        <div class="navbar-menu">
-          <div class="navbar-start">
-            <div class="navbar-item has-dropdown is-hoverable">
-              <a class="navbar-link" href="#overview-body">
-                Overview
-              </a>
-
-              <div class="navbar-dropdown">
-                <a href="#" class="navbar-item">
-                  Curare Summary
-                </a>
-                <a href="#groups" class="navbar-item">
-                  Groups
-                </a>
-                <a href="#tools-used" class="navbar-item">
-                  Tools Used
-                </a>
-              </div>
-            </div>
-
-            <div
-              v-for="step of analysis_steps"
-              v-if="step in navigation_elements & child_has_html[step]"
-              class="navbar-item has-dropdown is-hoverable"
-            >
-              <a class="navbar-link">
-                {{ step.charAt(0).toUpperCase() + step.slice(1) }}
-              </a>
-
-              <div class="navbar-dropdown">
-                <template v-for="module of navigation_elements[step]">
-                  <a
-                    v-if="module.new_tab"
-                    :href="'.report/modules/' + module.html_name"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="navbar-item"
-                  >
-                    {{ module.name }}
-                  </a>
-                  <a
-                    v-else
-                    :href="'.report/modules/' + module.html_name"
-                    class="navbar-item"
-                  >
-                    {{ module.name }}
-                  </a>
-                </template>
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>
+    <div id="navigation">
+      <navigation-bar modules-path=".report/modules/" main-html="report.html"></navigation-bar>
     </div>
   </section>
 
@@ -90,7 +37,7 @@
           <div class="content">
             <section id="overview-body">
               <h2>Overview</h2>
-              <h3 id="curare-summary">Curare Summary</h3>
+              <h3 id="summary">Curare Summary</h3>
               <table class="table">
                 <thead><tr><td></td><td></td></tr></thead>
                 <tfoot><tr><td></td><td></td></tr></tfoot>
