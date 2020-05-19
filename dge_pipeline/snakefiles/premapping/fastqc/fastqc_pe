@@ -26,7 +26,7 @@ rule groups_file:
     input:
         html=expand("premapping/fastqc/{SAMPLE}_R{DIRECTION}_fastqc.html", SAMPLE=config['entries'].keys(), DIRECTION=[1,2])
     output:
-        groups="premapping/fastqc/groups.tsv"
+        groups=temp("premapping/fastqc/groups.tsv")
     run:
         with open(output.groups, 'w') as out:
             out.write("Sample\tFprward\tReverse\n")
