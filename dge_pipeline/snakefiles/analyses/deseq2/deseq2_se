@@ -13,7 +13,8 @@ rule all:
         "analyses/deseq2/counts.txt",
         "analyses/deseq2/counts_normalized.txt",
         "analyses/deseq2/deseq2.RData",
-        expand('analyses/deseq2/summary/{COND}.xlsx', COND=getConditions())
+        expand('analyses/deseq2/summary/{COND}.xlsx', COND=getConditions()),
+        ".report/modules/deseq2.html"
 
 rule summary_tsv_to_xslx:
     input:
@@ -102,3 +103,20 @@ rule deseq2_create_comparison_files:
     shell:
         "R --vanilla --file=lib/deseq2_analysis_create_comparison_files_and_summary.R --args --threads {threads} --counttable {input.counttable} --conditions {input.conditions} --output {params.output_folder} --r-data {input.dump} "
         "--featcounts-log {input.feature_counts_log} 2>&1 | tee -a {log.log}"
+
+rule generate_report_data:
+    input:
+        stats="analyses/deseq2/counts.txt.summary",
+        comparisons=directory("analyses/deseq2/deseq2_comparisons")
+    output:
+        deseq2_data=".report/data/deseq2_data.js",
+        deseq2_html=".report/modules/deseq2.html",
+        deseq2_js=".report/js/modules/deseq2.js"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "deseq2_report"
+    shell:
+        "python3 lib/generate_report_data.py --fc_stats {input.stats} --comparison_dir {input.comparisons} --output {output.deseq2_data} && "
+        "cp lib/report/deseq2.html {output.deseq2_html} && "
+        "cp lib/report/deseq2.js {output.deseq2_js}"
