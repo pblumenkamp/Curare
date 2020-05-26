@@ -1,0 +1,36 @@
+name: 'star'
+label: 'STAR'
+
+required_settings:
+
+  genome_fasta:
+    label: 'Reference Genome Sequence'
+    description: 'Path to genome fasta file'
+    type: 'file'
+
+  genome_annotation:
+    label: 'Reference Genome Annotation'
+    description: 'Path to genome gff file'
+    type: 'file'
+
+  gff_parent_keyword:
+    label: 'GFF Parent Keyword'
+    description: 'Keyword for parent attribute in gff file'
+    type: 'string'
+
+optional_settings:
+  additional_star_options:
+    label: 'Additional STAR Options'
+    description: "Additional options to use in shell command"
+    type: "string"
+    default: ''
+
+
+single_end:
+  snakefile: 'star_se'
+
+paired_end:
+  snakefile: 'star_pe'
+
+
+

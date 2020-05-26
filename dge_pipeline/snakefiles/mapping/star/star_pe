@@ -1,0 +1,94 @@
+from os import listdir
+from os.path import isfile, splitext
+
+rule all:
+    input:
+        "mapping/stats/mapping_stats.xlsx",
+        expand("mapping/{A}.bam", A=sorted(config['entries'].keys()))
+
+
+rule mapping_stats_xlsx:
+    input:
+        "mapping/stats/mapping_stats.tsv"
+    output:
+        "mapping/stats/mapping_stats.xlsx"
+    shell:
+        "python3 lib/pe_mapping_stats_tsv_to_xlsx.py {input} {output}"
+
+
+rule mapping_stats_tsv:
+    input:
+        expand("mapping/logs/bowtie2_mapping.{name}.log", name=config['entries'].keys())
+    output:
+        "mapping/stats/mapping_stats.tsv"
+    shell:
+        """
+        echo "sample	reads	reads[%]	aligned_conc_0_times	aligned_conc_0_times[%]	aligned_conc_1_time	aligned_conc_1_time[%]	aligned_conc_more_than_1_times	aligned_conc_more_than_1_times[%]		aligned_disconc_1_time	aligned_disconc_1_time[%]		pairs_aligned_0_times_conc_or_disconc	in_mates	mates_aligned_0_times	mates_aligned_0_times[%]	mates_aligned_1_time	mates_aligned_1_time[%]	mates_aligned_more_than_1_times	mates_aligned_more_than_1_times[%]	overall_alignment_rate" > {output}
+        for i in {input}; do
+            sample=$(basename $i);
+            sample=${{sample%*.log}};
+            sample=${{sample#bowtie2_mapping.}};
+            echo -n $sample"	" >> {output};
+            tail -n+2 $i | \
+            sed -e '6d' -e 's/^[^0-9]*\([0-9]\{{1,\}}\) (\([0-9.]\{{1,\}}\)%).*/\\1\t\\2/' \
+            -e 's/^[^0-9]*\([0-9]\{{1,\}}\) pairs.*/\\1/' \
+            -e 's/^\(.*\)%.*$/\\1/' -e 's/^[^0-9]*\([0-9]\{{1,\}}\) mates.*/\\1/' -e 's/^.*----.*$//' | \
+            tr '\n' '\t' | \
+            sed -e 's/\t$//' >> {output}
+            echo >> {output};
+        done;
+        """
+
+rule star_index:
+    input:
+        genome="%%GENOME_FASTA%%",
+        annotation="%%GENOME_ANNOTATION%%"
+    output:
+        index_settings="mapping/index_parameters.txt",
+        index_dir_touch=touch("mapping/reference_index/index_parameters.txt")
+    params:
+        index_directory=lambda wildcards, output: output.index_dir_touch[:output.index_dir_touch.rindex("/")]
+    log:
+        "mapping/logs/star_index.log"
+    threads:
+        1
+    shell:
+        "genomeLength=`grep -v '^<' {input.genome}| wc -m`;"
+        "genomeSAindexNbases=`python3 -c \"import math; print(min(14, int(math.log2($genomeLength)/2-1)))\"`;"
+        "STAR --runMode genomeGenerate --runThreadN {threads} --genomeSAindexNbases $genomeSAindexNbases --genomeDir {params.index_directory} --genomeFastaFiles {input.genome} "
+        "--sjdbGTFfile {input.annotation} --sjdbGTFtagExonParentTranscript %%GFF_PARENT_KEYWORD%% 2>&1 |"
+        "tee {log}; echo \"genomeSAindexNbases: $genomeSAindexNbases\" > \"mapping/index_parameters.txt\";"
+
+
+rule star_mapping:
+    input:
+        genome="%%GENOME_FASTA%%",
+        genome_index=touch("mapping/reference_index/index_parameters.txt"),
+	    reads="preprocessing/{sample}_R1.fastq",
+	    reads_reverse="preprocessing/{sample}_R2.fastq"
+    output:
+        temp("mapping/sam/unsorted_{sample}.sam")
+    params:
+        output_prefix="mapping/sam/unsorted_{sample}",
+        index_directory=lambda wildcards, input: input.genome_index[:input.genome_index.rindex("/")]
+    log:
+        "mapping/logs/bowtie2_mapping.{sample}.log"
+    threads:
+        2
+    shell:
+        "STAR --runThreadN {threads} --genomeDir {params.index_directory} --readFilesIn {input.reads} {input.reads_reverse} --outFileNamePrefix {params.output_prefix} --outSAMtype BAM SortedByCoordinate "
+        "2>&1 | tee {log}"
+
+
+rule index_bam:
+    input:
+        "mapping/sam/unsorted_{sample}.sam"
+    output:
+        bam="mapping/{sample}.bam",
+        bai="mapping/{sample}.bam.bai",
+        bam_unmapped="mapping/unmapped/{sample}_unmapped.bam"
+    threads:
+        1
+    shell:
+        "samtools view -F 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam} - && samtools index {output.bam};"
+        "samtools view -f 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam_unmapped} -"

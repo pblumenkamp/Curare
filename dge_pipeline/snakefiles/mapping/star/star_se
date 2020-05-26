@@ -1,0 +1,83 @@
+from os import listdir
+from os.path import isfile, splitext
+
+rule all:
+    input:
+        "mapping/stats/mapping_stats.xlsx",
+        expand("mapping/{A}.bam", A=sorted(config['entries'].keys()))
+
+
+rule mapping_stats_xlsx:
+    input:
+        "mapping/stats/mapping_stats.tsv"
+    output:
+        "mapping/stats/mapping_stats.xlsx"
+    shell:
+        "python3 lib/se_mapping_stats_tsv_to_xlsx.py {input} {output}"
+
+
+rule mapping_stats_tsv:
+    input:
+        expand("mapping/logs/bowtie2_mapping.{name}.log", name=config['entries'].keys())
+    output:
+        "mapping/stats/mapping_stats.tsv"
+    shell:
+        """
+        echo "sample	reads	reads[%]	aligned_0_times	aligned_0_times[%]	aligned_1_time	aligned_1_time[%]	aligned_more_than_1_times	aligned_more_than_1_times[%]	overall_alignment_rate" > {output}
+        for i in {input}; do
+            sample=$(basename $i);
+            sample=${{sample%*.log}};
+            sample=${{sample#bowtie2_mapping.}};
+            echo -n $sample"	" >> {output};
+            tail -n+2 $i | sed -e 's/^[^0-9]*\([0-9]\{{1,\}}\) (\([0-9.]\{{1,\}}\)%).*/\\1\t\\2/' | sed -e 's/^\(.*\)%.*$/\\1/' | tr '\n' '\t' | sed -e 's/\t$//' >> {output};
+            echo >> {output};
+        done;
+        """
+
+
+rule bowtie2_index:
+    params:
+        prefix=splitext("%%GENOME_FASTA%%")[0]
+    input:
+        genome="%%GENOME_FASTA%%"
+    output:
+        splitext("%%GENOME_FASTA%%")[0] + ".1.bt2"
+    log:
+        "mapping/logs/bowtie2_index.log"
+    threads:
+        32
+    shell:
+        "echo $PATH; bowtie2-build --threads {threads} {input.genome} {params.prefix} 2>&1 |"
+        "tee {log}"
+
+
+rule bowtie2_mapping:
+    params:
+        prefix=splitext("%%GENOME_FASTA%%")[0]
+    input:
+        genome="%%GENOME_FASTA%%",
+        genome_index=splitext("%%GENOME_FASTA%%")[0] + ".1.bt2",
+        reads=lambda wildcards: os.path.join('preprocessing', os.path.basename(config['entries'][wildcards.name]['main']['reads'])).strip('.gz')
+    output:
+        temp("mapping/sam/{name}.sam")
+    log:
+        "mapping/logs/bowtie2_mapping.{name}.log"
+    threads:
+        4
+    shell:
+        "bowtie2 %%ADDITIONAL_BOWTIE2_OPTIONS%% -p {threads} --mm %%ALIGNMENT_TYPE%% -x {params.prefix} -U {input.reads} -S {output} 2>&1 |"
+        "tee {log}"
+
+
+rule sam_to_bam:
+    input:
+        "mapping/sam/{sample}.sam"
+    output:
+        bam="mapping/{sample}.bam",
+        bai="mapping/{sample}.bam.bai",
+        bam_unmapped="mapping/unmapped/{sample}_unmapped.bam"
+    threads:
+        4
+    shell:
+        "samtools view -F 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam} - && samtools index {output.bam};"
+        "samtools view -f 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam_unmapped} -"
