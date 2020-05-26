@@ -1,4 +1,4 @@
-# Differential gene expression pipeline
+# Customizable and Reproducible Analysis Pipeline for RNA-Seq Experiments (Curare)
 
 Patrick Blumenkamp<br />
 patrick.blumenkamp@computational.bio<br />
