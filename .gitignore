@@ -7,18 +7,21 @@ __pycache__/
 # Ignore snakemake folder
 .snakemake/
 
+# Ignore conda environments for test cases
+/dge_pipeline/tests/**/envs
+
 # Ignore test run results
-/dge_pipeline/tests/ressources/reference/*.bt2
-/dge_pipeline/tests/ressources/reference/*.fai
-/dge_pipeline/tests/ressources/reference/*.idx
-/dge_pipeline/tests/ressources/**/output_dir*/
+/dge_pipeline/tests/resources/reference/*.bt2
+/dge_pipeline/tests/resources/reference/*.fai
+/dge_pipeline/tests/resources/reference/*.idx
+/dge_pipeline/tests/resources/**/output_dir*/
 
 #bwa index files
-/dge_pipeline/tests/ressources/reference/*.amb
-/dge_pipeline/tests/ressources/reference/*.ann
-/dge_pipeline/tests/ressources/reference/*.bwt
-/dge_pipeline/tests/ressources/reference/*.pac
-/dge_pipeline/tests/ressources/reference/*.sa
+/dge_pipeline/tests/resources/reference/*.amb
+/dge_pipeline/tests/resources/reference/*.ann
+/dge_pipeline/tests/resources/reference/*.bwt
+/dge_pipeline/tests/resources/reference/*.pac
+/dge_pipeline/tests/resources/reference/*.sa
 
 # Ignore report node_modules
 /dge_pipeline/report/node_modules*
