@@ -2,7 +2,7 @@
 Customizable and Reproducible Analysis Pipeline for RNA-Seq Experiments (CURARE).
 
 Usage:
-    curare.py start --groups <groups_file> --config <config_file> --output <output_folder>
+    curare.py --groups <groups_file> --config <config_file> --output <output_folder>
                  [--cluster-command <cluster_command>] [--cluster-config-file <config_file>] [--cluster-nodes <nodes>]
                  [--use-conda] [--conda-prefix <conda_prefix>] [--cores <cores>] [--latency-wait <seconds>] [--verbose]
     curare.py (--version | --help)
@@ -11,10 +11,10 @@ Options:
     -h --help               Show this help message and exit
     --version               Show version and exit
 
-    Start:
     --groups <groups_file>                          File containing information about each sample
     --config <config_file>                          File containing information about the RNA-seq pipeline
     --output <output_folder>                        Output folder (will be created if not existing)
+
     --cluster-command <command>                     Command for cluster execution. , e.g. 'qsub'. For resource requests use also --cluster-config
     --cluster-config-file <config_file>             File containing cluster settings for individual rules.
                                                     See also: https://snakemake.readthedocs.io/en/stable/snakefiles/configuration.html#cluster-configuration
@@ -24,6 +24,7 @@ Options:
     -t <cores> --cores <cores>                      Number of threads/cores. Defines locales cores in cluster mode. [Default: 1]
     --latency-wait <seconds>                        Seconds to wait before checking if all files of a rule were created. Should be increased if using cluster mode. [Default: 3]
     -v --verbose                                    Print additional information
+
 """
 
 
