@@ -28,6 +28,7 @@ rule trimgalore:
     params:
         output_dir="preprocessing/trim_galore/",
         stats_forward_raw=lambda wildcard: basename(config['entries'][wildcard.sample]['main']['reads']) + "_trimming_report.txt",
+        adapter=lambda wildcard: "--adapter %%ADAPTER%%" if "%%ADAPTER%%" else ""
     group:
         "trim_galore"
     log:
@@ -35,7 +36,7 @@ rule trimgalore:
     threads:
         4
     shell:
-        "trim_galore %%ADDITIONAL_PARAMETER%% --quality %%QUALITY_THRESHOLD%% %%PHRED_SCORE_TYPE%% --length %%MIN_LENGTH%% --adapter %%ADAPTER%% "
+        "trim_galore %%ADDITIONAL_PARAMETER%% --quality %%QUALITY_THRESHOLD%% %%PHRED_SCORE_TYPE%% --length %%MIN_LENGTH%% {params.adapter} "
         "--cores {threads} --dont_gzip --basename {wildcards.sample} --output_dir {params.output_dir} {input.reads} 2>&1 |"
         "tee {log};"
         "echo \"Renaming Trim-Galore reports:\";"
