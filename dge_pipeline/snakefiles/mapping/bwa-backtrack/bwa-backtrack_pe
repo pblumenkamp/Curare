@@ -5,7 +5,8 @@ from os.path import isfile, splitext
 rule all:
     input:
         expand("mapping/{A}.bam", A=sorted(config['entries'].keys())),
-        "mapping/statistics/flagstat_summary.tsv"
+        "mapping/statistics/flagstat_summary.tsv",
+        ".report/modules/bwa-backtrack.html"
 
 
 rule summarize_flagstat:
@@ -187,7 +188,11 @@ rule sam_to_bam:
     output:
         bam="mapping/{sample}.bam",
         bai="mapping/{sample}.bam.bai",
-        bam_unmapped="mapping/unmapped/{sample}_unmapped.bam"
+        bam_unmapped="mapping/unmapped/{sample}_unmapped.bam",
+        bam_singleton="mapping/singleton/{sample}_singletons.bam",
+        bam_disconc="mapping/disconcordantly/{sample}_disconc.bam"
+    params:
+        tmp_singleton=temp("mapping/singleton/{sample}_tmp.sam")
     conda:
         "../lib/conda_env.yaml"
     group:
@@ -195,5 +200,29 @@ rule sam_to_bam:
     threads:
         1
     shell:
-        "samtools view -F 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam} - && samtools index {output.bam};"
-        "samtools view -f 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam_unmapped} -"
+        "samtools view -F 12 -f 2 -Shb {input} | samtools sort -@ {threads} -o {output.bam} - && samtools index {output.bam};"
+
+        "samtools view -f 4 -F 8 -Sh {input} > {params.tmp_singleton} && samtools view -f 8 -F 4 -S {input} >> {params.tmp_singleton} "
+        "&& samtools view -Shb {params.tmp_singleton} | samtools sort -@ {threads} -o {output.bam_singleton} - && rm {params.tmp_singleton};"
+
+        "samtools view -F 14 -Shb {input} | samtools sort -@ {threads} -o {output.bam_disconc} -;"
+
+        "samtools view -f 12 -Shb {input} | samtools sort -@ {threads} -o {output.bam_unmapped} -;"
+
+rule generate_report_data:
+    input:
+        stats_tsv="mapping/statistics/flagstat_summary.tsv"
+    output:
+        bwa_data=".report/data/bwa-backtrack_data.js",
+        bwa_html=".report/modules/bwa-backtrack.html",
+        bwa_js=".report/js/modules/bwa-backtrack.js",
+        bwa_css=".report/css/modules/bwa-backtrack.css",
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "bwa_report"
+    shell:
+        "python3 lib/generate_report_data.py --stats {input.stats_tsv} --output {output.bwa_data} --paired-end && "
+        "cp lib/report/bwa-backtrack.html {output.bwa_html} && "
+        "cp lib/report/bwa-backtrack.js {output.bwa_js} && "
+        "cp lib/report/bwa-backtrack.css {output.bwa_css}"

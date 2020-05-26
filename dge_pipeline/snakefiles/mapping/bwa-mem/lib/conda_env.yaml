@@ -1,4 +1,4 @@
-# module: bwa
+# module: bwa-mem
 channels:
   - conda-forge
   - bioconda
@@ -7,3 +7,5 @@ channels:
 dependencies:
   - samtools>=1.8
   - bwa>=0.7.17
+  - docopt>=0.6
+  - pandas>=0.23

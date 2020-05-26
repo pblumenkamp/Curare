@@ -3,7 +3,8 @@ from os.path import isfile, basename, splitext
 
 rule all:
     input:
-        "premapping/multiqc/multiqc_report.html"
+        "premapping/multiqc/multiqc_report.html",
+        ".report/modules/multiqc.html"
 
 rule fastqc:
     input:
@@ -35,3 +36,15 @@ rule multiqc:
         1
     shell:
         "multiqc -o premapping/multiqc {params.input_dir}"
+
+rule generate_report_data:
+    input:
+        html="premapping/multiqc/multiqc_report.html"
+    output:
+        report_html=".report/modules/multiqc.html"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "multiqc_report"
+    shell:
+        "cp {input} {output}"

@@ -27,6 +27,7 @@ Options:
 """
 
 
+import datetime
 import errno
 import filecmp
 import math
@@ -43,24 +44,42 @@ from docopt import docopt
 from distutils.dir_util import copy_tree
 
 import metadata
+from lib import generate_report
 
-SNAKEFILES_LIBRARY = Path(__file__).resolve().parent / "snakefiles"  # type: Path
+CURARE_PATH: Path = Path(__file__).resolve().parent
 
-SNAKEFILES_TARGET_DIRECTORY = 'snakemake_lib'  # type: str
+SNAKEFILES_LIBRARY: Path = CURARE_PATH / "snakefiles"
+SNAKEFILES_TARGET_DIRECTORY: Path = Path('snakemake_lib')
+
+REPORT_SRC_DIRECTORY: Path = CURARE_PATH / 'report'
+REPORT_TARGET_DIRECTORY: Path = Path('.report')
+
+GLOBAL_LIB: Path = CURARE_PATH / 'lib'
+GLOBAL_LIB_TARGET_DIR: Path = SNAKEFILES_TARGET_DIRECTORY / 'global_scripts'
 
 
 def main():
+    start_time: datetime.datetime = datetime.datetime.utcnow()
     args = parse_arguments()
     used_modules, paired_end = load_config_file(args["--config"])
     validate_argsfiles(args["--groups"], args["--config"])
     groups = parse_groups_file(args["--groups"], used_modules, paired_end)
     create_output_directory(args["--output"])
-    snakefile = create_snakefile(args["--output"], groups, used_modules, args["--use-conda"])
+    snakefile = create_snakefile(args["--output"], groups, used_modules, args["--use-conda"], args["--conda-prefix"], args["--config"])
     if not snakemake(str(snakefile), cores=int(args["--cores"]), local_cores=int(args["--cores"]), nodes=int(args["--cluster-nodes"]), workdir=str(args["--output"]),
                      verbose=args["--verbose"], printshellcmds=True, cluster=args["--cluster-command"],
                      cluster_config=str(args["--cluster-config-file"]) if args["--cluster-config-file"] is not None else None,
                      use_conda=args["--use-conda"], conda_prefix=args["--conda-prefix"], latency_wait=int(args["--latency-wait"])):
         exit(1)
+    finish_time: datetime.datetime = datetime.datetime.utcnow()
+    if args["--use-conda"]:
+        generate_report.create_report(
+            src_folder=REPORT_SRC_DIRECTORY,
+            output_folder=args["--output"],
+            curare_version=metadata.__version__,
+            runtime=finish_time - start_time,
+            curare_groups_file=args["--groups"]
+        )
 
 
 def check_columns(col_names: List[str], modules: Dict[str, List['Module']], paired_end: bool) -> List[Tuple[str, str]]:
@@ -341,9 +360,16 @@ def create_output_directory(output_path: Path):
     elif not snakefiles_target_directory.is_dir():
         raise NotADirectoryError(filename=snakefiles_target_directory)
 
+    report_data_directory = output_path / REPORT_TARGET_DIRECTORY / 'data'
+    if not report_data_directory.exists():
+        report_data_directory.mkdir(parents=True)
+    elif not report_data_directory.is_dir():
+        raise NotADirectoryError(filename=report_data_directory)
 
-def create_snakefile(output_folder: Path, groups: Dict[str, Dict[str, Dict[str, Any]]], modules: Dict[str, List['Module']], use_conda: bool) -> Path:
-    config_file = create_snakemake_config_file(output_folder, groups)
+
+def create_snakefile(output_folder: Path, groups: Dict[str, Dict[str, Dict[str, Any]]], modules: Dict[str, List['Module']], use_conda: bool,
+                     conda_environment: Path, curare_pipeline_file: Path) -> Path:
+    config_file: Path = create_snakemake_config_file(output_folder, groups)
     # find every rule name
     re_rule_name = re.compile('^rule (?P<rule_name>.*):$', re.MULTILINE)
     # find every lib reference
@@ -379,32 +405,32 @@ def create_snakefile(output_folder: Path, groups: Dict[str, Dict[str, Dict[str, 
     snakefile_main_path = output_folder / 'Snakefile'
     with snakefile_main_path.open('w') as snakefile:
         snakefile.write(
-            'configfile: "{}"\n\n'.format(os.path.join(SNAKEFILES_TARGET_DIRECTORY, config_file.name)))
+            'configfile: "{}"\n\n'.format(SNAKEFILES_TARGET_DIRECTORY / config_file.name))
         for path in snakefile_module_paths:
-            snakefile.write('include: "{}"\n'.format(os.path.join(SNAKEFILES_TARGET_DIRECTORY, path)))
+            snakefile.write('include: "{}"\n'.format(SNAKEFILES_TARGET_DIRECTORY / path))
         snakefile.write('\n')
         snakefile.write('rule all:\n')
         snakefile.write('    input:\n')
-        for module in [module for (category, module_list) in modules.items() for module in module_list if
-                       category in ('premapping', 'analyses', 'mapping')]:
+        for module in [module for (category, module_list) in modules.items() for module in module_list]:
             snakefile.write('        rules.{module_name}__all.input,\n'.format(module_name=module.name.lower().replace('-', '_')))
 
         # copy parse_versions snakefile to parse conda versions for report.
         if use_conda:
             # copy parse_versions.py script
-            global_lib_dir = Path(sys.path[0]) / 'lib'
-            global_scripts_dir = output_folder / SNAKEFILES_TARGET_DIRECTORY / 'global_scripts'
-            copy_tree(str(global_lib_dir), str(global_scripts_dir), preserve_symlinks=True)
-            with open(SNAKEFILES_LIBRARY / 'misc' / 'parse_versions', 'r') as versions_snakefile:
-                lines = []
-                for line in versions_snakefile:
-                    lines.append(line)
+            copy_tree(str(GLOBAL_LIB), str(output_folder / GLOBAL_LIB_TARGET_DIR), preserve_symlinks=True)
+            with (SNAKEFILES_LIBRARY / 'misc' / 'parse_versions').open() as versions_snakefile:
+                parse_versions_rule: List[str] = versions_snakefile.read()\
+                    .replace('%%CONDA_ENVIRONMENT%%', str(conda_environment))\
+                    .replace('%%PIPELINE_YAML%%', str(curare_pipeline_file))\
+                    .split("\n")
+
+                for i, line in enumerate(parse_versions_rule):
+                    # Write output of parse_versions in input of rule "all"
                     if 'output:' in line:
-                        next_line = next(versions_snakefile)
-                        lines.append(next_line)
+                        next_line = parse_versions_rule[i+1]
                         snakefile.write('        {},\n'.format(next_line.strip()))
                         snakefile.write('\n')
-                snakefile.writelines(lines)
+                snakefile.writelines([line + "\n" for line in parse_versions_rule])
 
     return snakefile_main_path
 
@@ -436,9 +462,12 @@ def parse_arguments():
     args["--groups"] = Path(args["--groups"]).resolve()
     args["--output"] = Path(args["--output"])
     args["--config"] = Path(args["--config"]).resolve()
+    args["--conda-prefix"] = Path(args["--conda-prefix"]).resolve()
+
     if args["--cluster-config-file"] is not None:
         args["--cluster-config-file"] = Path(args["--cluster-config-file"]).resolve()
     return args
+
 
 class Module:
     """Structure class for used modules
@@ -530,6 +559,7 @@ class OutOfBondError(Exception):
     def __init__(self, message: str):
         super(OutOfBondError, self).__init__(message)
 
+
 class InvalidNumberTypeError(Exception):
     """Exception raised for an invalid number type.
 
@@ -539,7 +569,6 @@ class InvalidNumberTypeError(Exception):
 
     def __init__(self, message: str):
         super(InvalidNumberTypeError, self).__init__(message)
-
 
 
 if __name__ == '__main__':

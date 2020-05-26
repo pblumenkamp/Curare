@@ -16,6 +16,8 @@ import sys
 import csv
 import argparse
 
+from importlib import util
+
 missing_modules = []
 for module in ['pandas', 'xlsxwriter']:
     if importlib.util.find_spec(module) is None:

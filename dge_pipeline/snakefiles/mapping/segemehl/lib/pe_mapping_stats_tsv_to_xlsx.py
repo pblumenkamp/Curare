@@ -1,26 +1,31 @@
-import sys
 import csv
+import matplotlib.pyplot as plt
 import pandas as pd
+import sys
+
+from matplotlib import rcParams
+from pathlib import Path
+from typing import Dict, List, Union
 
 
 def get_col_widths(df):
     return [max(y) for y in [[len(col) if col is not None else 0] + [len(x) for x in df[col] if x is not None] for col in df.columns]]
 
 
-# function for lazy programmers. Only works for cells with values between 0 and 100: make a format white 2 black. You can change the colors (see below)
-def format_w2c(min_color='#FFFFFF', max_color='#000000'):
+# function for lazy programmers. make a format white 2 black. You can change the colors (see below)
+def format_w2c(min_color: str = '#FFFFFF', max_color: str = '#000000', min_value: int = 0, max_value: int = 100) -> Dict[str, Union[str, int]]:
     return {'type': '2_color_scale',
             'min_color': min_color,
             'max_color': max_color,
             'min_type': 'num',
             'max_type': 'num',
-            'min_value': 0,
-            'max_value': 100}
+            'min_value': min_value,
+            'max_value': max_value}
 
 
 def main():
-    tsv_file = sys.argv[1]
-    output = sys.argv[2]
+    tsv_file: Path = Path(sys.argv[1]).resolve()
+    output_xlsx: Path = Path(sys.argv[2]).resolve()
     # name of sheet
     sheet_name = "Mappings"
 
@@ -28,7 +33,7 @@ def main():
     # first element = 1st row: header
     # second to n-th element: data
     list_data = []
-    with open(tsv_file, "r") as tsvin:
+    with tsv_file.open("r") as tsvin:
         tsvin = csv.reader(tsvin, delimiter="\t")
         for row in tsvin:
             list_data.append(row)
@@ -41,7 +46,7 @@ def main():
     # and write it to the xlsx sheet
     df = pd.DataFrame(list_data[1:], columns=list_data[0])
 
-    writer = pd.ExcelWriter(output,
+    writer = pd.ExcelWriter(str(output_xlsx),
                             engine='xlsxwriter',
                             options={'strings_to_numbers': True}
                             )
@@ -76,8 +81,13 @@ def main():
     worksheet.conditional_format(1, columns, rows - 1, columns, format_w2c(min_color='#FFFFFF', max_color="#FF0000"))
     worksheet.conditional_format(1, columns - 2, rows - 1, columns - 2, format_w2c(min_color='#FFFFFF', max_color="#FF0000"))
     worksheet.conditional_format(1, columns - 4, rows - 1, columns - 4, format_w2c(max_color='#FFFFFF', min_color="#FF0000"))
-    worksheet.conditional_format(1, columns - 6, rows - 1, columns - 6, format_w2c(min_color='#FFFFFF', max_color="#FF0000"))
+    worksheet.conditional_format(1, columns - 6, rows - 1, columns - 6, format_w2c(max_color='#FFFFFF', min_color="#FF0000"))
     worksheet.conditional_format(1, columns - 8, rows - 1, columns - 8, {'type': 'data_bar', 'bar_color': "#BBCFDA", 'bar_solid': True})
+    worksheet.conditional_format(1, columns - 9, rows - 1, columns - 9, format_w2c(min_color='#FFFFFF', max_color="#FF0000"))
+    worksheet.conditional_format(1, columns - 11, rows - 1, columns - 11, format_w2c(min_color='#FFFFFF', max_color="#FF0000"))
+    worksheet.conditional_format(1, columns - 13, rows - 1, columns - 13, format_w2c(max_color='#FFFFFF', min_color="#FF0000"))
+    worksheet.conditional_format(1, columns - 15, rows - 1, columns - 15, format_w2c(max_color='#FFFFFF', min_color="#FF0000"))
+    worksheet.conditional_format(1, columns - 17, rows - 1, columns - 17, {'type': 'data_bar', 'bar_color': "#BBCFDA", 'bar_solid': True})
 
     writer.save()
 

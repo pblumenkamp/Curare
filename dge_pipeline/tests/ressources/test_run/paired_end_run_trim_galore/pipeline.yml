@@ -6,8 +6,8 @@ preprocessing:
 
   trimgalore:
     quality_threshold: 30
-    adapter_forward: 'AAAA'
-    adapter_reverse: 'AAAA'
+    #adapter_forward: 'ATCTACTACTCACTCCC'
+    #adapter_reverse: 'CCCTCATCGGGCGGCTA'
 
 premapping:
   modules: []
