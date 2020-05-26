@@ -3,8 +3,8 @@
 Wizard script for creating pipeline and groups file for Curare.
 
 Usage:
-    wizard.py wizard (--output <output_folder> | --samples <samples> --pipeline <pipeline>) [--snakefiles <snakefiles>] [--verbose]
-    wizard.py (--version | --help)
+    curare_wizard.py (--output <output_folder> | --samples <samples> --pipeline <pipeline>) [--snakefiles <snakefiles>] [--verbose]
+    curare_wizard.py (--version | --help)
 
 Options:
     -h --help               Show this help message and exit
@@ -14,17 +14,16 @@ Options:
     --samples <samples>                             Path for output samples file (Default Name: <output_folder>/samples.tsv)
     --pipeline <pipeline>                           Path for output pipeline file (Default Name: <output_folder>/pipeline.yaml)
 
-    --snakefiles <snakefiles>                       Folder containing all Curare snakefiles [default: ../snakefiles]
+    --snakefiles <snakefiles>                       Folder containing all Curare snakefiles [default: snakefiles]
     -v --verbose                                    Print additional information
 """
 
 from docopt import docopt
 from pathlib import Path
+import pprint
 import sys
 from typing import Any, Callable, Dict, IO, List, Union
 import yaml
-
-import pprint
 
 PP = pprint.PrettyPrinter(indent=2)
 
