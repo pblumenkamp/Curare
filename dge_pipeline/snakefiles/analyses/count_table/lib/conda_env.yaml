@@ -6,3 +6,4 @@ channels:
   - defaults
 dependencies:
   - subread>=1.6
+  - docopt>=0.6

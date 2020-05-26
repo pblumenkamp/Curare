@@ -6,6 +6,9 @@ channels:
   - defaults
 dependencies:
   - bowtie2>=2.3
-  - samtools>=1.8
+  - python>=3.5
+  - docopt>=0.6
   - pandas>=0.23
+  - matplotlib
+  - samtools>=1.8
   - xlsxwriter>=1.0.5

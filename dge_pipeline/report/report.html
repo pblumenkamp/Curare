@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CURARE Report</title>
+  <link rel="stylesheet" type="text/css" href=".report/css/buefy.min.css"/>
+
+  <script type="text/javascript" charset="utf8" src=".report/js/vue.min.js"></script>
+  <script type="text/javascript" charset="utf8" src=".report/js/buefy.min.js"></script>
+  <script defer src=".report/js/fontawesome.all.min.js"></script>
+  <script>
+    window.Curare = {}
+  </script>
+</head>
+<body class="has-navbar-fixed-top">
+  <section>
+    <div id="navigation">
+      <navigation-bar modules-path=".report/modules/" main-html="report.html"></navigation-bar>
+    </div>
+  </section>
+
+  <section class="hero is-primary is-small is-bold">
+    <div class="hero-body">
+      <div class="container has-text-centered">
+        <h1 class="title is-size-1">CURARE</h1>
+        <h2 class="subtitle is-size-3">Pipeline Report</h2>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div id="overview" class="container">
+      <div class="columns" style="max-width: 100%">
+        <div class="column is-one-fifth"></div>
+        <div class="column" style="max-width: 100%">
+          <div class="content">
+            <section id="overview-body">
+              <h2>Overview</h2>
+              <h3 id="summary">Curare Summary</h3>
+              <table class="table">
+                <thead><tr><td></td><td></td></tr></thead>
+                <tfoot><tr><td></td><td></td></tr></tfoot>
+                <tbody>
+                <tr>
+                  <td>Curare Version</td>
+                  <td>{{ curare_summary.curare_version }}</td>
+                </tr>
+                <tr>
+                  <td>User</td>
+                  <td>{{ curare_summary.user }}</td>
+                </tr>
+                <tr>
+                  <td>Date</td>
+                  <td>{{ curare_execution_date }}</td>
+                </tr>
+                <tr>
+                  <td>Runtime</td>
+                  <td>{{ curare_runtime }}</td>
+                </tr>
+                </tbody>
+              </table>
+              <h3 id="groups">Groups</h3>
+              <div class="table-container">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th v-for="header of groups_header" :key="header">{{ header }}</th>
+                    </tr>
+                  </thead>
+                  <tfoot>
+                    <tr>
+                      <th v-for="header of groups_header" :key="header">{{ header }}</th>
+                    </tr>
+                  </tfoot>
+                  <tbody>
+                    <tr v-for="row of groups_body" :key="row[0]">
+                      <td v-for="cell of row" :key="cell">{{ cell }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <h3 id="tools-used">Tools Used</h3>
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>Module</th>
+                    <th>Primary Dependencies</th>
+                    <th>Secondary Dependencies</th>
+                  </tr>
+                </thead>
+                <tfoot>
+                  <tr>
+                    <th></th>
+                    <th>Module</th>
+                    <th>Primary Dependencies</th>
+                    <th>Secondary Dependencies</th>
+                  </tr>
+                </tfoot>
+                <tbody>
+                  <template v-for="step of analysis_steps">
+                    <tr v-for="(tool, index) of versionsTable[step]" :key="tool.name">
+                      <th v-if="index == 0">{{ step.toUpperCase() }}</th>
+                      <th v-else></th>
+
+                      <td>{{ tool.name }}</td>
+
+                      <td>
+                        <ul :id="`${step}-${tool.name}-primary-dependencies`">
+                          <li v-for="dependency of tool.primaryDependencies">
+                            {{ `${dependency.tool}-${dependency.version} (${dependency.repository})` }}
+                          </li>
+                        </ul>
+                      </td>
+
+                      <td v-if="!showAllDependencies[step][tool.name]">
+                        <ul :id="`${step}-${tool.name}-secondary-dependencies`">
+                          <template v-for="(dependency, index) of tool.secondaryDependencies.slice(0, Math.max(tool.primaryDependencies.length, 5))">
+                            <li>
+                              {{ `${dependency.tool}-${dependency.version} (${dependency.repository})` }}
+                            </li>
+                          </template>
+                        </ul>
+                        <a
+                          v-on:click="switchVisibility(step, tool.name);"
+                        >
+                          Show more
+                        </a>
+                      </td>
+                      <td v-else>
+                        <ul :id="`${step}-${tool.name}-secondary-dependencies`">
+                          <template v-for="(dependency, index) of tool.secondaryDependencies">
+                            <li>
+                              {{ `${dependency.tool}-${dependency.version} (${dependency.repository})` }}
+                            </li>
+                          </template>
+                        </ul>
+                        <a
+                          v-on:click="switchVisibility(step, tool.name);"
+                        >
+                          Show less
+                        </a>
+                      </td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <footer class="footer">
+    <div class="content has-text-centered">
+      <p><strong>CURARE</strong> by <a href="mailto:patrick.blumenkamp@computational.bio.uni-giessen.de">Patrick Blumenkamp</a>.</p>
+      <p style="margin-top: 1rem;">
+        <a href="http://bulma.io">
+          <img src=".report/img/made-with-bulma.png" alt="made with Bulma" style="height: 24px; width: auto; padding-right: 1rem" width="128" height="24">
+        </a>
+         and
+        <a href="https://buefy.org/">
+          <img src=".report/img/buefy-logo.png" alt="Buefy Logo" style="height: 24px; width: auto; padding-left: 1rem">
+        </a>
+      </p>
+    </div>
+  </footer>
+
+  <script type="text/javascript" charset="utf8" src=".report/data/navigation.js"></script>
+  <script type="text/javascript" charset="utf8" src=".report/data/curare_summary.js"></script>
+  <script type="text/javascript" charset="utf8" src=".report/data/versions.js"></script>
+  <script type="text/javascript" charset="utf8" src=".report/js/navigation_bar.js"></script>
+  <script type="text/javascript" charset="utf8" src=".report/js/overview.js"></script>
+
+</body>
+</html>

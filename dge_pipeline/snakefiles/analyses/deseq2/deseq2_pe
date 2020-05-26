@@ -13,7 +13,8 @@ rule all:
         "analyses/deseq2/counts.txt",
         "analyses/deseq2/counts_normalized.txt",
         "analyses/deseq2/deseq2.RData",
-        expand('analyses/deseq2/summary/{COND}.xlsx', COND=getConditions())
+        expand('analyses/deseq2/summary/{COND}.xlsx', COND=getConditions()),
+        ".report/modules/deseq2.html"
 
 rule summary_tsv_to_xslx:
     input:
@@ -30,12 +31,20 @@ rule summary_tsv_to_xslx:
         "python3 lib/deseq2_summary_tsv_to_xlsx.py --tsv {input} --conditions {params.number_conditions} --gff '%%GFF_PATH%%' --identifier '%%GFF_FEATURE_NAME%%' "
         "--feature '%%GFF_FEATURE_TYPE%%' --attributes %%ATTRIBUTE_COLUMNS%% --output {output}"
 
-rule count_reads:
+rule get_possible_annotation_types:
     input:
-        expand("mapping/{A}.bam", A=sorted(config['entries'].keys()))
+        annotation="%%GFF_PATH%%"
     output:
-        counts = "analyses/deseq2/counts.txt",
-        summary = "analyses/deseq2/counts.txt.summary"
+        list="analyses/deseq2/annotation_types.txt"
+    shell:
+        "grep -v '^#' {input.annotation} | awk 'NF {{print $3}}' | sort | uniq -c | sort -n > {output.list}"
+
+rule make_count_tables:
+    input:
+        annotation="analyses/deseq2/annotation_types.txt",
+        mappings=expand("mapping/{A}.bam", A=sorted(config['entries'].keys()))
+    output:
+        list=directory("analyses/deseq2/count_tables")
     conda:
         "../lib/conda_env.yaml"
     group:
@@ -43,10 +52,31 @@ rule count_reads:
     threads:
         1
     log:
-        log="analyses/deseq2/logs/featurecounts.log"
+        log=directory("analyses/deseq2/logs/count_tables")
     shell:
-        "featureCounts -p -T {threads} %%ADDITIONAL_FEATCOUNTS_OPTIONS%% -t '%%GFF_FEATURE_TYPE%%' -g '%%GFF_FEATURE_NAME%%' -a %%GFF_PATH%% -o {output.counts} {input} 2>&1 |"
-        "tee {log}"
+        "mkdir -p {log.log}; mkdir -p {output.list};"
+        "awk 'NF {{print $2}}' {input.annotation} | while read line; do "
+        "featureCounts -p -T {threads} %%ADDITIONAL_FEATCOUNTS_OPTIONS%% -t ${{line}} -g '%%GFF_FEATURE_NAME%%' -a %%GFF_PATH%% -o {output.list}/${{line}}.txt {input.mappings} 2>&1 |"
+        "tee {log.log}/${{line}}.log; done;"
+
+rule count_reads:
+    input:
+        "analyses/deseq2/count_tables"
+    output:
+        counts = "analyses/deseq2/counts.txt",
+        summary = "analyses/deseq2/counts.txt.summary"
+    params:
+        counts_link="count_tables/%%GFF_FEATURE_TYPE%%.txt",
+        summary_link="count_tables/%%GFF_FEATURE_TYPE%%.txt.summary",
+        counts="analyses/deseq2/count_tables/%%GFF_FEATURE_TYPE%%.txt",
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "count_reads"
+    threads:
+        1
+    shell:
+        "if [ -f '{params.counts}' ]; then ln -s {params.counts_link} {output.counts}; ln -s {params.summary_link} {output.summary}; else echo 'Unknown feature type: %%GFF_FEATURE_TYPE%%'; exit 50; fi"
 
 rule create_conditions:
     output:
@@ -100,3 +130,20 @@ rule deseq2_create_comparison_files:
     shell:
         "R --vanilla --file=lib/deseq2_analysis_create_comparison_files_and_summary.R --args --threads {threads} --output {params.output_folder} --r-data {input.dump} "
         "--featcounts-log {input.feature_counts_log} 2>&1 | tee -a {log.log}"
+
+rule generate_report_data:
+    input:
+        stats="analyses/deseq2/counts.txt.summary",
+        comparisons="analyses/deseq2/deseq2_comparisons"
+    output:
+        deseq2_data=".report/data/deseq2_data.js",
+        deseq2_html=".report/modules/deseq2.html",
+        deseq2_js=".report/js/modules/deseq2.js"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "deseq2_report"
+    shell:
+        "python3 lib/generate_report_data.py --fc_stats {input.stats} --comparison_dir {input.comparisons} --output {output.deseq2_data} --paired-end && "
+        "cp lib/report/deseq2.html {output.deseq2_html} && "
+        "cp lib/report/deseq2.js {output.deseq2_js}"

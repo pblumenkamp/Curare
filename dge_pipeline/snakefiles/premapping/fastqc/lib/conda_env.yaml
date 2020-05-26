@@ -6,3 +6,6 @@ channels:
   - defaults
 dependencies:
   - fastqc>=0.11.7
+  - docopt>=0.6
+  - pandas>=0.23
+  - python>=3.5

@@ -1,0 +1,32 @@
+#bowtie2-stats th {
+  text-align: center;
+  vertical-align: middle;
+}
+
+#bowtie2-stats td {
+  text-align: right;
+  vertical-align: middle;
+}
+
+#bowtie2-stats .left-border {
+  border-left-width: 2px;
+}
+
+#bowtie2-stats .right-border {
+  border-right-width: 2px;
+}
+
+.scroll::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+.scroll::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 4px rgba(0,0,0,0.3);
+  border-radius: 10px;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  -webkit-box-shadow: inset 0 0 4px rgba(0,0,0,0.5);
+}

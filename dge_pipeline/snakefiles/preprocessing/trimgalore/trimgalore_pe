@@ -11,7 +11,8 @@ def getFilePath(sample_name, forward=True):
 rule all:
     input:
         "mapping/stats/mapping_stats.xlsx",
-        expand("mapping/{A}.bam", A=sorted(config['entries'].keys()))
+        expand("mapping/{A}.bam", A=sorted(config['entries'].keys())),
+        ".report/modules/trimgalore.html"
 
 rule trimgalore:
     input:
@@ -19,11 +20,15 @@ rule trimgalore:
         reads_reverse=lambda wildcard: getFilePath(wildcard.sample, False)
     output:
         reads_forward="preprocessing/trim_galore/{sample}_val_1.fq",
-        reads_reverse="preprocessing/trim_galore/{sample}_val_2.fq"
+        reads_reverse="preprocessing/trim_galore/{sample}_val_2.fq",
+        stats_forward="preprocessing/trim_galore/{sample}_val_1_trimming_report.txt",
+        stats_reverse="preprocessing/trim_galore/{sample}_val_2_trimming_report.txt"
     conda:
         "../lib/conda_env.yaml"
     params:
         output_dir="preprocessing/trim_galore/",
+        stats_forward_raw=lambda wildcard: basename(getFilePath(wildcard.sample, True)) + "_trimming_report.txt",
+        stats_reverse_raw=lambda wildcard: basename(getFilePath(wildcard.sample, False)) + "_trimming_report.txt",
         adapter_forward=lambda wildcard: "--adapter %%ADAPTER_FORWARD%%" if "%%ADAPTER_FORWARD%%" else "",
         adapter_reverse=lambda wildcard: "--adapter2 %%ADAPTER_REVERSE%%" if "%%ADAPTER_REVERSE%%" else ""
     group:
@@ -35,14 +40,21 @@ rule trimgalore:
     shell:
         "trim_galore %%ADDITIONAL_PARAMETER%% --paired --retain_unpaired --quality %%QUALITY_THRESHOLD%% %%PHRED_SCORE_TYPE%% --length %%MIN_LENGTH%% {params.adapter_forward} "
         "{params.adapter_reverse} --cores {threads} --basename {wildcards.sample} --dont_gzip --output_dir {params.output_dir} {input.reads_forward} {input.reads_reverse} 2>&1 |"
-        "tee {log} && "
+        "tee {log}; "
         "if [[ -f \"preprocessing/trim_galore/{wildcards.sample}_R1_val_1.fq\" ]]; then mv \"preprocessing/trim_galore/{wildcards.sample}_R1_val_1.fq\" \"preprocessing/trim_galore/{wildcards.sample}_val_1.fq\"; fi && "
         "if [[ -f \"preprocessing/trim_galore/{wildcards.sample}_R2_val_2.fq\" ]]; then mv \"preprocessing/trim_galore/{wildcards.sample}_R2_val_2.fq\" \"preprocessing/trim_galore/{wildcards.sample}_val_2.fq\"; fi;"
+        "echo \"Renaming Trim-Galore reports:\";"
+        "echo \"preprocessing/trim_galore/{params.stats_forward_raw} -> {output.stats_forward}\";"
+        "mv \"preprocessing/trim_galore/{params.stats_forward_raw}\" \"{output.stats_forward}\";"
+        "echo \"preprocessing/trim_galore/{params.stats_reverse_raw} -> {output.stats_reverse}\";"
+        "mv \"preprocessing/trim_galore/{params.stats_reverse_raw}\" \"{output.stats_reverse}\";"
+        "echo"
+
 
 rule collect_paired_reads:
     input:
         reads_forward=lambda wildcards: os.path.join('preprocessing', 'trim_galore', wildcards.sample + "_val_1.fq"),
-        reads_reverse=lambda wildcards: os.path.join('preprocessing', 'trim_galore', wildcards.sample + "_val_2.fq")
+        reads_reverse=lambda wildcards: os.path.join('preprocessing', 'trim_galore', wildcards.sample + "_val_2.fq"),
     output:
         reads_forward="preprocessing/{sample, [^/]*}_R1.fastq",
         reads_reverse="preprocessing/{sample, [^/]*}_R2.fastq"
@@ -51,3 +63,33 @@ rule collect_paired_reads:
         symlink_path_reverse=lambda wildcard, input, output: os.path.relpath(input.reads_reverse, os.path.dirname(output.reads_reverse))
     shell:
         "ln -s {params.symlink_path_forward} {output.reads_forward} && ln -s {params.symlink_path_reverse} {output.reads_reverse}"
+
+rule stats_file_list_for_report:
+    input:
+        stats=expand("preprocessing/trim_galore/{sample}_val_{strand}_trimming_report.txt", sample=sorted(config['entries'].keys()), strand=['1', '2'])
+    output:
+        temp("preprocessing/trim_galore/stats_file.tsv")
+    params:
+        target_dir="preprocessing/trim_galore",
+        samples=sorted(config['entries'].keys())
+    group:
+        "trim_galore_report"
+    shell:
+        "echo -e \"Sample\tForward\tReverse\" > {output};"
+        "for sample in {params.samples}; do echo -e \"${{sample}}\t{params.target_dir}/${{sample}}_val_1_trimming_report.txt\t{params.target_dir}/${{sample}}_val_2_trimming_report.txt\" >> {output}; done"
+
+rule generate_report:
+    input:
+        stats="preprocessing/trim_galore/stats_file.tsv"
+    output:
+        trim_galore_data=".report/data/trimgalore_data.js",
+        trim_galore_html=".report/modules/trimgalore.html",
+        trim_galore_js=".report/js/modules/trimgalore.js",
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "trim_galore_report"
+    shell:
+        "python3 lib/generate_report_data.py --stats {input.stats} --output {output.trim_galore_data} --paired-end && "
+        "cp lib/report/trimgalore.html {output.trim_galore_html} && "
+        "cp lib/report/trimgalore.js {output.trim_galore_js}"
