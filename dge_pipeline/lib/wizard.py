@@ -3,7 +3,7 @@
 Wizard script for creating pipeline and groups file for Curare.
 
 Usage:
-    wizard.py (--output <output_folder> | --samples <samples> --pipeline <pipeline>) [--snakefiles <snakefiles>] [--verbose]
+    wizard.py wizard (--output <output_folder> | --samples <samples> --pipeline <pipeline>) [--snakefiles <snakefiles>] [--verbose]
     wizard.py (--version | --help)
 
 Options:
@@ -225,7 +225,6 @@ def print_verbose(text: Any = '', file: IO = sys.stderr) -> None:
 
 def main() -> None:
     args = docopt(__doc__, version="1.0")
-    PP.pprint(args)
     if args["--output"] is not None:
         args["--output"] = Path(args["--output"]).resolve()
         args["--samples"]: Path = args['--output'] / 'samples.tsv'
@@ -234,7 +233,6 @@ def main() -> None:
         args["--samples"] = Path(args["--samples"]).resolve()
         args["--pipeline"] = Path(args["--pipeline"]).resolve()
     args["--snakefiles"] = Path(args["--snakefiles"]).resolve()
-
 
     print()
 
