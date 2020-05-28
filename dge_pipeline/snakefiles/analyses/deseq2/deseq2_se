@@ -13,6 +13,7 @@ rule all:
         "analyses/deseq2/counts.txt",
         "analyses/deseq2/counts_normalized.txt",
         "analyses/deseq2/deseq2.RData",
+        'analyses/deseq2/count_tables/visualization/',
         expand('analyses/deseq2/summary/{COND}.xlsx', COND=getConditions()),
         ".report/modules/deseq2.html"
 
@@ -44,7 +45,9 @@ rule make_count_tables:
         annotation="analyses/deseq2/annotation_types.txt",
         mappings=expand("mapping/{A}.bam", A=sorted(config['entries'].keys()))
     output:
-        list=directory("analyses/deseq2/count_tables")
+        list=touch("analyses/deseq2/count_tables/.count_tables")
+    params:
+        output="analyses/deseq2/count_tables/"
     conda:
         "../lib/conda_env.yaml"
     group:
@@ -54,14 +57,26 @@ rule make_count_tables:
     log:
         log=directory("analyses/deseq2/logs/count_tables")
     shell:
-        "mkdir -p {log.log}; mkdir -p {output.list};"
+        "mkdir -p {log.log}; mkdir -p {params.output};"
         "awk 'NF {{print $2}}' {input.annotation} | while read line; do "
-        "featureCounts -T {threads} %%ADDITIONAL_FEATCOUNTS_OPTIONS%% -t ${{line}} -g '%%GFF_FEATURE_NAME%%' -a %%GFF_PATH%% -o {output.list}/${{line}}.txt {input.mappings} 2>&1 |"
+        "featureCounts -T {threads} %%ADDITIONAL_FEATCOUNTS_OPTIONS%% -t ${{line}} -g '%%GFF_FEATURE_NAME%%' -a %%GFF_PATH%% -o {params.output}/${{line}}.txt {input.mappings} 2>&1 |"
         "tee {log.log}/${{line}}.log; done;"
+
+rule visualize_assignments:
+    input:
+        "analyses/deseq2/count_tables/.count_tables"
+    output:
+        directory('analyses/deseq2/count_tables/visualization/')
+    params:
+        input="analyses/deseq2/count_tables/"
+    conda:
+        "../lib/conda_env.yaml"
+    shell:
+        "mkdir -p {output}; python3 lib/visualize_assignments.py -i {params.input} -o {output}"
 
 rule count_reads:
     input:
-        "analyses/deseq2/count_tables"
+        "analyses/deseq2/count_tables/.count_tables"
     output:
         counts = "analyses/deseq2/counts.txt",
         summary = "analyses/deseq2/counts.txt.summary"
