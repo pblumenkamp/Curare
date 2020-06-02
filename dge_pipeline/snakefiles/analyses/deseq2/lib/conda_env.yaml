@@ -16,3 +16,4 @@ dependencies:
   - r-reshape2
   - r-pheatmap
   - r-gplots
+  - r-svglite

@@ -30,7 +30,7 @@ for (package in c("DESeq2")) {
 }
 
 # "Optional" packages
-for (package in c("BiocParallel", "pheatmap", "ggplot2", "reshape2", "gplots")) {
+for (package in c("BiocParallel", "pheatmap", "ggplot2", "reshape2", "gplots", "svglite")) {
     if (!(package %in% rownames(installed.packages()))) {
         stop(paste('Package "', package, '" not installed', sep=""))
     } else {
@@ -76,22 +76,26 @@ save.image(file = r_data)
 
 # Heatmap showing similarities between samples (needs a count table and conditions )
 if ("pheatmap" %in% rownames(installed.packages())) {
-    pdf(paste(output_vis, 'correlation_heatmap.pdf', sep = "/"), width = 8, height = 8, onefile = FALSE)
+    svglite(paste(output_vis, 'correlation_heatmap.svg', sep = "/"))
     print(create_correlation_matrix(countdata.normalized, conditiontable))
     dev.off()
 }
 
 # Bar charts showing the assignment of allignments to genes (featureCounts statistics)
-if (("ggplot2" %in% rownames(installed.packages())) && ("reshape2" %in% rownames(installed.packages()))) {
-    pdf(paste(output_vis, 'counts_assignment.pdf', sep = "/"))
-    invisible(lapply(create_feature_counts_statistics(feature_counts_log_file), print))
+if (("ggplot2" %in% rownames(installed.packages())) && ("reshape2" %in% rownames(installed.packages())) && ("svglite" %in% rownames(installed.packages()))) {
+    plots <- create_feature_counts_statistics(feature_counts_log_file)
+    svglite(paste(output_vis, 'counts_assignment_absolute.svg', sep = "/"))
+    print(plots[1])
+    dev.off()
+    svglite(paste(output_vis, 'counts_assignment_relative.svg', sep = "/"))
+    print(plots[2])
     dev.off()
 }
 
 # PCA of DESeq2 data (needs a DESeq2 dataset )
 {
     rld <- rlog(deseqDataset)
-    pdf(paste(output_vis, 'pca.pdf', sep = "/"), onefile = FALSE)
+    svglite(paste(output_vis, 'pca.svg', sep = "/"))
     print(plotPCA(rld))
     dev.off()
 }
