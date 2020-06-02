@@ -14,7 +14,8 @@ counttable_file <- args[match('--count-table', args) + 1]
 condition_file <- args[match('--conditions', args) + 1]
 feature_counts_log_file <- args[match('--featcounts-log', args) + 1]
 r_data <- args[match('--r-data',args)+1]
-output_folder <- args[match('--output-dir', args) + 1]
+output_vis <- args[match('--output-vis', args) + 1]
+output_count <- args[match('--output-count', args) + 1]
 threads <- args[match('--threads', args) + 1]
 
 # Required packages
@@ -65,7 +66,7 @@ deseqDataset <- DESeqDataSetFromMatrix(countData = countdata, colData = conditio
 # Write normalized count table
 deseqDataset <- estimateSizeFactors(deseqDataset)
 countdata.normalized <- counts(deseqDataset, normalized = TRUE)
-write.table(countdata.normalized, file = paste(output_folder, "counts_normalized.txt", sep = ""), sep = "\t", row.names = TRUE, col.names = NA)
+write.table(countdata.normalized, file = output_count, sep = "\t", row.names = TRUE, col.names = NA)
 
 # Often called dds
 deseq.results <- DESeq(object = deseqDataset, parallel = TRUE)
@@ -75,14 +76,22 @@ save.image(file = r_data)
 
 # Heatmap showing similarities between samples (needs a count table and conditions )
 if ("pheatmap" %in% rownames(installed.packages())) {
-    pdf(paste(output_folder, 'correlation_heatmap.pdf', sep = ""), width = 8, height = 8, onefile = FALSE)
+    pdf(paste(output_vis, 'correlation_heatmap.pdf', sep = "/"), width = 8, height = 8, onefile = FALSE)
     print(create_correlation_matrix(countdata.normalized, conditiontable))
     dev.off()
 }
 
 # Bar charts showing the assignment of allignments to genes (featureCounts statistics)
 if (("ggplot2" %in% rownames(installed.packages())) && ("reshape2" %in% rownames(installed.packages()))) {
-    pdf(paste(output_folder, 'counts_assignment.pdf', sep = ""))
+    pdf(paste(output_vis, 'counts_assignment.pdf', sep = "/"))
     invisible(lapply(create_feature_counts_statistics(feature_counts_log_file), print))
+    dev.off()
+}
+
+# PCA of DESeq2 data (needs a DESeq2 dataset )
+{
+    rld <- rlog(deseqDataset)
+    pdf(paste(output_vis, 'pca.pdf', sep = "/"), onefile = FALSE)
+    print(plotPCA(rld))
     dev.off()
 }

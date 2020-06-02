@@ -11,7 +11,7 @@ source(utils.plotting)
 args <- commandArgs(TRUE)
 feature_counts_log_file <- args[match('--featcounts-log', args) + 1]
 r_data <- args[match('--r-data',args)+1]
-output_folder <- args[match('--output-dir', args) + 1]
+output_folder <- args[match('--output', args) + 1]
 threads <- args[match('--threads', args) + 1]
 
 # Required packages
