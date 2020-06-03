@@ -47,7 +47,7 @@
                 <b-switch id="in-percent" v-model="counttable_in_percent"><p>in %</p></b-switch>
               </div>
             </div>
-          <canvas id='stacked_barchart' style="padding-top: 1rem"></canvas>
+            <canvas id='stacked_barchart' style="padding-top: 1rem"></canvas>
             <div class="columns" style="max-width: 100%; padding-top: 1rem">
               <div class="column is-11" style="max-width: 100%">
                 <div></div>
@@ -57,6 +57,18 @@
               </div>
             </div>
             <b-table :data="counttable_table" :columns="counttable_columns" scrollable></b-table>
+
+            <h3 style="padding-top: 2rem">Principal Component Analysis</h3>
+            <img src="../img/modules/deseq2/pca.svg"
+                 alt="Principle Component Analysis"
+                 style="margin-left: auto; margin-right: auto; display: block; padding-top: 1.5rem"
+                 width="75%">
+
+            <h3 style="padding-top: 2rem">Sample Correlation</h3>
+            <img src="../img/modules/deseq2/correlation_heatmap.svg"
+                 alt="Sample Correlation"
+                 style="margin-left: auto; margin-right: auto; display: block; padding-top: 1.5rem"
+                 width="75%">
 
             <h3 style="padding-top: 2rem">DESeq2 Summary</h3>
             <b-tabs v-model="activeComparisonTab" :animated="false" multiline size="is-medium" type="is-toggle">
