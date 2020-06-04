@@ -5,6 +5,7 @@ new Vue({
     data: {
         counttable: Curare.deseq2.featurecounts,
         deseq2_comparisons: Curare.deseq2.deseq2_summary,
+        feature_assignment: Curare.deseq2.feature_assignment,
         paired_end: Curare.deseq2.paired_end,
         counttable_in_percent: false,
         charts: {},
@@ -90,7 +91,8 @@ new Vue({
                 visible: true
             }
         ],
-        activeComparisonTab: 0
+        activeComparisonTab: 0,
+        active_feature_assignment_tab: 0
     },
     computed: {
         reads_per_sample: function () {

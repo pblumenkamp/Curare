@@ -147,7 +147,7 @@ rule deseq2_create_comparison_files:
     threads:
         1
     shell:
-        "R --vanilla --file=lib/deseq2_analysis_create_comparison_files_and_summary.R --args --threads {threads} --counttable {input.counttable} --conditions {input.conditions} --output {params.output_folder} --r-data {input.dump} "
+        "R --vanilla --file=lib/deseq2_analysis_create_comparison_files_and_summary.R --args --threads {threads} --output {params.output_folder} --r-data {input.dump} "
         "--featcounts-log {input.feature_counts_log} 2>&1 | tee -a {log.log}"
 
 rule generate_report_data:
@@ -156,19 +156,26 @@ rule generate_report_data:
         comparisons="analyses/deseq2/deseq2_comparisons",
         img_pca="analyses/deseq2/visualization/pca.svg",
         correlation_heatmap="analyses/deseq2/visualization/correlation_heatmap.svg",
+        feature_assignment="analyses/deseq2/visualization/feature_assignments"
     output:
         deseq2_data=".report/data/deseq2_data.js",
         deseq2_html=".report/modules/deseq2.html",
         deseq2_js=".report/js/modules/deseq2.js",
+        deseq2_css=".report/css/modules/deseq2.css",
         deseq2_img_pca='.report/img/modules/deseq2/pca.svg',
-        deseq2_img_correlation='.report/img/modules/deseq2/correlation_heatmap.svg'
+        deseq2_img_correlation='.report/img/modules/deseq2/correlation_heatmap.svg',
+        deseq2_img_feature_assignment=directory('.report/img/modules/deseq2/feature_assignment')
+    params:
+        visualization="analyses/deseq2/visualization"
     conda:
         "../lib/conda_env.yaml"
     group:
         "deseq2_report"
     shell:
-        "python3 lib/generate_report_data.py --fc_stats {input.stats} --comparison_dir {input.comparisons} --output {output.deseq2_data} && "
+        "python3 lib/generate_report_data.py --fc_stats {input.stats} --comparison_dir {input.comparisons} --visualization {params.visualization} --output {output.deseq2_data} && "
         "cp lib/report/deseq2.html {output.deseq2_html} && "
         "cp lib/report/deseq2.js {output.deseq2_js} &&"
+        "cp lib/report/deseq2.css {output.deseq2_css} &&"
         "cp {input.img_pca} {output.deseq2_img_pca} &&"
-        "cp {input.correlation_heatmap} {output.deseq2_img_correlation}"
+        "cp {input.correlation_heatmap} {output.deseq2_img_correlation} &&"
+        "mkdir -p {output.deseq2_img_feature_assignment} && cp {input.feature_assignment}/*.svg {output.deseq2_img_feature_assignment}"

@@ -81,7 +81,7 @@ def print_visualizations(assignment_data: Dict[str, Dict[str, int]], output_fold
         keys: List[str] = list(assignment_data[sample].keys())
         values: List[int] = [assignment_data[sample][key]for key in keys]
         df: pandas.DataFrame = pandas.DataFrame({'keys': keys, 'values': values})
-        ax: plt.Axes = df.plot.bar(x='keys', y='values', legend=False, log=True)
+        ax: plt.Axes = df.plot.bar(x='keys', y='values', legend=False, log=True, color='#167df0')
         ax.set_xlabel("")
         ax.set_ylabel("# Assigned Alignments")
         plt.savefig(output_folder / (sample + '.svg'))

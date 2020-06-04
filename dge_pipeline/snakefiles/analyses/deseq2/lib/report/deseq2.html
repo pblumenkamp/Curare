@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CURARE Report</title>
   <link rel="stylesheet" type="text/css" href="../css/buefy.min.css"/>
+  <link rel="stylesheet" type="text/css" href="../css/modules/deseq2.css"/>
 
   <script type="text/javascript" charset="utf8" src="../js/Chart.min.js"></script>
   <script type="text/javascript" charset="utf8" src="../js/vue.min.js"></script>
@@ -44,7 +45,7 @@
                 <h3>FeatureCount Assignment</h3>
               </div>
               <div class="column field">
-                <b-switch id="in-percent" v-model="counttable_in_percent"><p>in %</p></b-switch>
+                <b-switch id="in-percent" type="is-info" v-model="counttable_in_percent"><p>in %</p></b-switch>
               </div>
             </div>
             <canvas id='stacked_barchart' style="padding-top: 1rem"></canvas>
@@ -53,10 +54,26 @@
                 <div></div>
               </div>
               <div class="column field">
-                <b-switch id="in-percent" v-model="counttable_in_percent"><p>in %</p></b-switch>
+                <b-switch id="in-percent" type="is-info" v-model="counttable_in_percent"><p>in %</p></b-switch>
               </div>
             </div>
             <b-table :data="counttable_table" :columns="counttable_columns" scrollable></b-table>
+
+            <hr>
+
+            <h3 style="padding-top: 2rem">Type Assignment</h3>
+            <b-tabs v-model="active_feature_assignment_tab" :animated="false" multiline size="is-medium" type="is-toggle">
+              <template v-for="(tab, tab_index) in Object.keys(feature_assignment)">
+                <b-tab-item :key="tab" :label="tab">
+                  <img :src="'../img/modules/deseq2/feature_assignment/' + feature_assignment[tab]"
+                       :alt="'Feature Type Distribution for ' + tab"
+                       style="margin-left: auto; margin-right: auto; display: block; padding-top: 1.5rem"
+                       width="85%">
+                </b-tab-item>
+              </template>
+            </b-tabs>
+
+            <hr>
 
             <h3 style="padding-top: 2rem">Principal Component Analysis</h3>
             <img src="../img/modules/deseq2/pca.svg"
@@ -64,11 +81,15 @@
                  style="margin-left: auto; margin-right: auto; display: block; padding-top: 1.5rem"
                  width="75%">
 
+            <hr>
+
             <h3 style="padding-top: 2rem">Sample Correlation</h3>
             <img src="../img/modules/deseq2/correlation_heatmap.svg"
                  alt="Sample Correlation"
                  style="margin-left: auto; margin-right: auto; display: block; padding-top: 1.5rem"
                  width="75%">
+
+            <hr>
 
             <h3 style="padding-top: 2rem">DESeq2 Summary</h3>
             <b-tabs v-model="activeComparisonTab" :animated="false" multiline size="is-medium" type="is-toggle">
