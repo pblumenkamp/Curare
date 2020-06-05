@@ -1,10 +1,9 @@
 name: curare
 channels:
-   - https://metachannel.conda-forge.org/conda-forge,bioconda,anaconda,defaults/snakemake,python,yaml,docopt
-  #- conda-forge
-  #- bioconda
-  #- anaconda
-  #- defaults
+  - conda-forge
+  - bioconda
+  - anaconda
+  - defaults
 dependencies:
    - snakemake>=5
    - python>=3.6
