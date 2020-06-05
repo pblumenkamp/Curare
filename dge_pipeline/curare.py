@@ -5,6 +5,7 @@ Usage:
     curare.py --groups <groups_file> --config <config_file> --output <output_folder>
                  [--cluster-command <cluster_command>] [--cluster-config-file <config_file>] [--cluster-nodes <nodes>]
                  [--use-conda] [--conda-prefix <conda_prefix>] [--cores <cores>] [--latency-wait <seconds>] [--verbose]
+    curare.py --groups <groups_file> --config <config_file> --output <output_folder> --create-conda-envs-only [--conda-prefix <conda_prefix>] [--verbose]
     curare.py (--version | --help)
 
 Options:
@@ -21,6 +22,7 @@ Options:
     --cluster-nodes <nodes>                         Maximal number of parallel jobs send to the cluster. Only used in cluster mode is used. [Default: 1]
     --use-conda                                     Install and use separate conda environments for pipeline modules [Default: False]
     --conda-prefix <conda_prefix>                   The directory in which conda environments will be created. Relative paths will be relative to output folder! (Default: Output_folder)
+    --create-conda-envs-only                        Only download and create conda environments.
     -t <cores> --cores <cores>                      Number of threads/cores. Defines locales cores in cluster mode. [Default: 1]
     --latency-wait <seconds>                        Seconds to wait before checking if all files of a rule were created. Should be increased if using cluster mode. [Default: 3]
     -v --verbose                                    Print additional information
@@ -67,20 +69,26 @@ def main():
     groups = parse_groups_file(args["--groups"], used_modules, paired_end)
     create_output_directory(args["--output"])
     snakefile = create_snakefile(args["--output"], groups, used_modules, args["--use-conda"], args["--conda-prefix"], args["--config"])
-    if not snakemake(str(snakefile), cores=int(args["--cores"]), local_cores=int(args["--cores"]), nodes=int(args["--cluster-nodes"]), workdir=str(args["--output"]),
-                     verbose=args["--verbose"], printshellcmds=True, cluster=args["--cluster-command"],
-                     cluster_config=str(args["--cluster-config-file"]) if args["--cluster-config-file"] is not None else None,
-                     use_conda=args["--use-conda"], conda_prefix=args["--conda-prefix"], latency_wait=int(args["--latency-wait"])):
-        exit(1)
-    finish_time: datetime.datetime = datetime.datetime.utcnow()
-    if args["--use-conda"]:
-        generate_report.create_report(
-            src_folder=REPORT_SRC_DIRECTORY,
-            output_folder=args["--output"],
-            curare_version=metadata.__version__,
-            runtime=finish_time - start_time,
-            curare_groups_file=args["--groups"]
-        )
+    if args['--create-conda-envs-only']:
+        if not snakemake(str(snakefile), workdir=str(args["--output"]), verbose=args["--verbose"], cores=1,
+                         use_conda=True, conda_prefix=args["--conda-prefix"],
+                         conda_create_envs_only=True):
+            exit(1)
+    else:
+        if not snakemake(str(snakefile), cores=int(args["--cores"]), local_cores=int(args["--cores"]), nodes=int(args["--cluster-nodes"]), workdir=str(args["--output"]),
+                         verbose=args["--verbose"], printshellcmds=True, cluster=args["--cluster-command"],
+                         cluster_config=str(args["--cluster-config-file"]) if args["--cluster-config-file"] is not None else None,
+                         use_conda=args["--use-conda"], conda_prefix=args["--conda-prefix"], latency_wait=int(args["--latency-wait"])):
+            exit(1)
+        finish_time: datetime.datetime = datetime.datetime.utcnow()
+        if args["--use-conda"]:
+            generate_report.create_report(
+                src_folder=REPORT_SRC_DIRECTORY,
+                output_folder=args["--output"],
+                curare_version=metadata.__version__,
+                runtime=finish_time - start_time,
+                curare_groups_file=args["--groups"]
+            )
 
 
 def check_columns(col_names: List[str], modules: Dict[str, List['Module']], paired_end: bool) -> List[Tuple[str, str]]:
@@ -463,7 +471,8 @@ def parse_arguments():
     args["--groups"] = Path(args["--groups"]).resolve()
     args["--output"] = Path(args["--output"])
     args["--config"] = Path(args["--config"]).resolve()
-    args["--conda-prefix"] = Path(args["--conda-prefix"]).resolve()
+    if args["--conda-prefix"]:
+        args["--conda-prefix"] = Path(args["--conda-prefix"]).resolve()
 
     if args["--cluster-config-file"] is not None:
         args["--cluster-config-file"] = Path(args["--cluster-config-file"]).resolve()
