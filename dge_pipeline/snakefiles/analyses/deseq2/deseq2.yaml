@@ -35,7 +35,7 @@ optional_settings:
 columns:
   condition:
     label: "Condition"
-    description: "Condition name of sequencing run"
+    description: "Condition name of sequencing run. May contain any character but '/', '\\' and '#'"
     type: "string"
 
 

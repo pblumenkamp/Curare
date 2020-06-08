@@ -29,8 +29,8 @@ rule summary_tsv_to_xslx:
     group:
         "deseq2"
     shell:
-        "python3 lib/deseq2_summary_tsv_to_xlsx.py --tsv {input} --conditions {params.number_conditions} --gff '%%GFF_PATH%%' --identifier '%%GFF_FEATURE_NAME%%' "
-        "--feature '%%GFF_FEATURE_TYPE%%' --attributes %%ATTRIBUTE_COLUMNS%% --output {output}"
+        "python3 lib/deseq2_summary_tsv_to_xlsx.py --tsv \"{input}\" --conditions \"{params.number_conditions}\" --gff '%%GFF_PATH%%' --identifier \"%%GFF_FEATURE_NAME%%\" "
+        "--feature \"%%GFF_FEATURE_TYPE%%\" --attributes \"%%ATTRIBUTE_COLUMNS%%\" --output \"{output}\""
 
 rule get_possible_annotation_types:
     input:
@@ -59,7 +59,7 @@ rule make_count_tables:
     shell:
         "mkdir -p {log.log}; mkdir -p {params.output};"
         "awk 'NF {{print $2}}' {input.annotation} | while read line; do "
-        "featureCounts -T {threads} %%ADDITIONAL_FEATCOUNTS_OPTIONS%% -t ${{line}} -g '%%GFF_FEATURE_NAME%%' -a %%GFF_PATH%% -o {params.output}/${{line}}.txt {input.mappings} 2>&1 |"
+        "featureCounts -T {threads} %%ADDITIONAL_FEATCOUNTS_OPTIONS%% -t ${{line}} -g '%%GFF_FEATURE_NAME%%' -a %%GFF_PATH%% -o \"{params.output}/${{line}}.txt\" {input.mappings} 2>&1 |"
         "tee {log.log}/${{line}}.log; done;"
 
 rule visualize_assignments:
@@ -91,7 +91,7 @@ rule count_reads:
     threads:
         1
     shell:
-        "if [ -f '{params.counts}' ]; then ln -s {params.counts_link} {output.counts}; ln -s {params.summary_link} {output.summary}; else echo 'Unknown feature type: %%GFF_FEATURE_TYPE%%'; exit 50; fi"
+        "if [ -f '{params.counts}' ]; then ln -s \"{params.counts_link}\" {output.counts}; ln -s \"{params.summary_link}\" {output.summary}; else echo 'Unknown feature type: %%GFF_FEATURE_TYPE%%'; exit 50; fi"
 
 rule create_conditions:
     output:
