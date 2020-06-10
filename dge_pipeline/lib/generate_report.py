@@ -16,6 +16,7 @@ def create_report(src_folder: Path, output_folder: Path, curare_version: str, ru
         copy_folder(src_folder / 'css', output_folder / '.report' / 'css')
         copy_folder(src_folder / 'js', output_folder / '.report' / 'js')
         copy_folder(src_folder / 'img', output_folder / '.report' / 'img')
+        copy_folder(src_folder / 'modules', output_folder / '.report' / 'modules')
 
         create_navigationbar_js_object(output_folder / '.report' / 'data' / 'versions.json',
                                        output_folder / '.report' / 'data' / 'navigation.js',
