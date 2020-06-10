@@ -50,11 +50,14 @@ plotHeatmap2 <- function(x, name = "no_name_set.pdf", row_subset = NA, distMetho
         gr.row <- NA
     }
 
-    pdf(name, width = 25, height = 25)
+    # no observations allowed with NAs
+    x <- x[complete.cases(x),]
     nCol <- 40
     mycol2 <- colorpanel(n = nCol, low = "green", mid = "black", high = "red")
-    mx <- max(abs(x))
-    pairs.breaks <- seq(- mx, mx, by = (2 * mx / nCol))
+    mx <- max(abs(x), na.rm = TRUE)
+    pairs.breaks <- seq(-mx, mx, by = (2 * mx / nCol))
+
+    pdf(name, width = 25, height = 25)
     if (is.na(row_subset[1])) {
         xx <- x
     }else {

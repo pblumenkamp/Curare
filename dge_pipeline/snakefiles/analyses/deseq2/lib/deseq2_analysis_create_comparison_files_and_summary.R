@@ -1,12 +1,16 @@
 # Source plotting file
 initial.options <- commandArgs(trailingOnly = FALSE)
+
 script.name <- sub(pattern = "--file=", 
                    replacement = "", 
                    x = initial.options[grep("--file=", initial.options)]
                    )
+
 script.basename <- dirname(script.name)
 utils.plotting <- file.path(script.basename,"utils/plotting.R")
+
 source(utils.plotting)
+
 # Parse arguments
 args <- commandArgs(TRUE)
 feature_counts_log_file <- args[match('--featcounts-log', args) + 1]
@@ -26,7 +30,7 @@ for (package in c("DESeq2")) {
 }
 
 # "Optional" packages
-for (package in c("BiocParallel", "ggplot2")) {
+for (package in c("BiocParallel", "ggplot2", "gplots")) {
     if (!(package %in% rownames(installed.packages()))) {
         stop(paste('Package "', package, '" not installed', sep=""))
     } else {
@@ -50,6 +54,7 @@ if ("BiocParallel" %in% rownames(installed.packages())) {
 }
 
 # Load R state in file
+# This is evil code! It overrides existing functions...
 load(file = r_data)
 
 # Create all DESeq2 comparisons
