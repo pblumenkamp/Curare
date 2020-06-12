@@ -1,4 +1,4 @@
-name: dge_pipeline
+name: curare_all
 channels:
 - conda-forge
 - bioconda
@@ -11,7 +11,7 @@ dependencies:
 - docopt
 - bowtie2>=2.3
 - bwa>=0.7.17
-#- segemehl>=0.3.4
+- segemehl>=0.3.4
 - trim-galore
 - fastqc>=0.11.7
 - multiqc>=1.5
@@ -20,8 +20,9 @@ dependencies:
 - subread>=1.6
 - pandas>=0.23
 - xlsxwriter>=1.0.5
-#- bioconductor-deseq2
-#- r-ggplot2
-#- r-reshape
-#- r-pheatmap
-#- r-gplots
+  # Solving of dependencies does not finish when including R packages
+  #- bioconductor-deseq2
+  #- r-ggplot2
+  #- r-reshape
+  #- r-pheatmap
+  #- r-gplots
