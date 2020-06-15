@@ -37,6 +37,7 @@ columns:
     label: "Condition"
     description: "Condition name of sequencing run. May contain any character but '/', '\\' and '#'"
     type: "string"
+    character_set: ['A-Z', 'a-z', '0-9', '_', ':', ';', '!', '@', '$', '^', '&', '(', ')', ',', '.', '[', ']', '-', ' ']
 
 
 single_end:
