@@ -59,7 +59,7 @@ import sys
 import yaml
 
 from pathlib import Path
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Tuple, Any, Optional
 from snakemake import snakemake
 from docopt import docopt
 from distutils.dir_util import copy_tree
@@ -79,25 +79,50 @@ GLOBAL_LIB: Path = CURARE_PATH / 'lib'
 GLOBAL_LIB_TARGET_DIR: Path = SNAKEFILES_TARGET_DIRECTORY / 'global_scripts'
 
 
+class ClColors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
 def main():
     start_time: datetime.datetime = datetime.datetime.utcnow()
-    args = parse_arguments()
-    used_modules, paired_end = load_config_file(args["--config"])
-    validate_argsfiles(args["--groups"], args["--config"])
-    groups = parse_groups_file(args["--groups"], used_modules, paired_end)
-    create_output_directory(args["--output"])
-    snakefile = create_snakefile(args["--output"], groups, used_modules, args["--use-conda"], args["--conda-prefix"], args["--config"])
+    try:
+        args = parse_arguments()
+        used_modules, paired_end = load_config_file(args["--config"])
+        groups = parse_groups_file(args["--groups"], used_modules, paired_end)
+        create_output_directory(args["--output"])
+        snakefile = create_snakefile(args["--output"], groups, used_modules, args["--use-conda"], args["--conda-prefix"], args["--config"])
+    except UnknownInputFileError as ex:
+        print(ClColors.FAIL + str(ex) + ClColors.ENDC, file=sys.stderr)
+        exit(1)
+    except InvalidConfigFileError as ex:
+        print(ClColors.FAIL + 'Error in {}:\n'.format(args["--config"].name) + str(ex) + ClColors.ENDC, file=sys.stderr)
+        exit(2)
+    except InvalidGroupsFileError as ex:
+        print(ClColors.FAIL + 'Error in {}:\n'.format(args["--groups"].name) + str(ex) + ClColors.ENDC, file=sys.stderr)
+        exit(3)
+    except NotADirectoryError as ex:
+        print(ClColors.FAIL + str(ex) + ClColors.ENDC, file=sys.stderr)
+        exit(4)
+    except Exception as ex:
+        print(ClColors.FAIL + "Unknown Error occured:\n" + str(ex) + ClColors.ENDC, file=sys.stderr)
+        exit(9)
+
     if args['--create-conda-envs-only']:
         if not snakemake(str(snakefile), workdir=str(args["--output"]), verbose=args["--verbose"], cores=1,
-                         use_conda=True, conda_prefix=args["--conda-prefix"],
-                         conda_create_envs_only=True):
-            exit(1)
+                         use_conda=True, conda_prefix=args["--conda-prefix"], conda_create_envs_only=True):
+            exit(98)
     else:
         if not snakemake(str(snakefile), cores=int(args["--cores"]), local_cores=int(args["--cores"]), nodes=int(args["--cluster-nodes"]), workdir=str(args["--output"]),
-                         verbose=args["--verbose"], printshellcmds=True, cluster=args["--cluster-command"],
-                         cluster_config=str(args["--cluster-config-file"]) if args["--cluster-config-file"] is not None else None,
+                         verbose=args["--verbose"], printshellcmds=True, cluster=args["--cluster-command"], cluster_config=args["--cluster-config-file"],
                          use_conda=args["--use-conda"], conda_prefix=args["--conda-prefix"], latency_wait=int(args["--latency-wait"])):
-            exit(1)
+            exit(99)
         finish_time: datetime.datetime = datetime.datetime.utcnow()
         if args["--use-conda"]:
             generate_report.create_report(
@@ -109,26 +134,26 @@ def main():
             )
 
 
-def check_columns(col_names: List[str], modules: Dict[str, List['Module']], paired_end: bool) -> List[Tuple[str, str]]:
-    col2module = [('', '') for _ in col_names]  # type: List[Tuple[str, str]]
+def check_columns(col_names: List[str], modules: Dict[str, List['Module']], paired_end: bool) -> List[Tuple[str, str, Optional[List[str]]]]:
+    col2module: List[Tuple[str, str, Optional[List[str]]]] = [('', '', []) for _ in col_names]
     if 'name' not in col_names:
         raise InvalidGroupsFileError('Groups file: Column "{}" is missing'.format('name'))
     else:
-        col2module[col_names.index('name')] = ('main', 'string')
+        col2module[col_names.index('name')] = ('main', 'string', ['A-Z', 'a-z', '0-9', '_'])
     if paired_end:
         if 'forward_reads' not in col_names:
             raise InvalidGroupsFileError('Groups file: Column "{}" is missing'.format('forward_reads'))
         else:
-            col2module[col_names.index('forward_reads')] = ('main', 'file')
+            col2module[col_names.index('forward_reads')] = ('main', 'file', None)
         if 'reverse_reads' not in col_names:
             raise InvalidGroupsFileError('Groups file: Column "{}" is missing'.format('reverse_reads'))
         else:
-            col2module[col_names.index('reverse_reads')] = ('main', 'file')
+            col2module[col_names.index('reverse_reads')] = ('main', 'file', None)
     else:
         if 'reads' not in col_names:
             raise InvalidGroupsFileError('Groups file: Column "{}" is missing'.format('reads'))
         else:
-            col2module[col_names.index('reads')] = ('main', 'file')
+            col2module[col_names.index('reads')] = ('main', 'file', None)
 
     for module in [module for module_list in modules.values() for module in module_list]:
         if len(module.columns) > 0:
@@ -136,31 +161,76 @@ def check_columns(col_names: List[str], modules: Dict[str, List['Module']], pair
                 if col_name not in col_names:
                     raise InvalidGroupsFileError('Groups file: Column "{}" is missing'.format(col_name))
                 else:
-                    col2module[col_names.index(col_name)] = (module.name, properties.type)
+                    col2module[col_names.index(col_name)] = (module.name, properties.type.lower(), properties.character_set)
     return col2module
 
 
 def parse_groups_file(groups_file: Path, modules: Dict[str, List['Module']], paired_end: bool) -> Dict[str, Dict[str, Dict[str, str]]]:
     table = {}  # type: Dict[str, Dict[str, Dict[str, str]]]
     with groups_file.open('r') as file:
-        col_names = file.readline().strip().split('\t')
-        col2module = check_columns(col_names, modules, paired_end)
+        line: str = file.readline()
+        while len(line.strip()) == 0 or line.startswith('#'):  # Ignore comments at the beginning of the TSV
+            line = file.readline()
+
+        col_names = line.strip().split('\t')
+        col2module: List[Tuple[str, str, Optional[List[str]]]] = check_columns(col_names, modules, paired_end)
         for line in file:
-            if len(line.strip()) == 0:
+            if len(line.strip()) == 0 or line.startswith('#'):
                 continue
-            columns = line.strip().split('\t')
-            entries = {}  # type: Dict[str, Dict[str, str]]
+            columns: List[str] = line.strip().split('\t')
+            entries: Dict[str, Dict[str, str]] = {}
             for index, col in enumerate(columns):
+                module_name, value_type, value_char_set = col2module[index]
+                if value_type == 'string' and value_char_set is not None:
+                    if not check_string_validity(col, value_char_set):
+                        raise InvalidGroupsFileError(
+                            'Column "{}" contains invalid entry ({}). Only these characters are allowed: {}'.format(
+                                col_names[index], col, value_char_set
+                            )
+                        )
+                if value_type == 'file':
+                    if col.startswith('/'):
+                        if not Path(col).resolve().exists():
+                            raise InvalidGroupsFileError(
+                                'Unknown file in Column "{}":\nUser input: {}\nResolved to: {}'.format(
+                                    col_names[index], col, (groups_file.parent / col).resolve()
+                                )
+                            )
+                    else:
+                        if not (groups_file.parent / col).resolve().exists():
+                            raise InvalidGroupsFileError(
+                                'Unknown file in Column "{}":\nUser input: {}\nResolved to: {}'.format(
+                                    col_names[index], col, (groups_file.parent / col).resolve()
+                                )
+                            )
+
                 if col2module[index] == '' or col2module[index] == 'name':
                     continue
-                elif col2module[index][0] not in entries:
-                    entries[col2module[index][0]] = {}
-                if col2module[index][1] == 'file' and not col.startswith('/'):
-                    entries[col2module[index][0]][col_names[index]] = str((groups_file.parent / col).resolve())
+                elif module_name not in entries:
+                    entries[module_name] = {}
+                if value_type == 'file' and not col.startswith('/'):
+                    entries[module_name][col_names[index]] = str((groups_file.parent / col).resolve())
                 else:
-                    entries[col2module[index][0]][col_names[index]] = col
+                    entries[module_name][col_names[index]] = col
             table[columns[0]] = entries
     return table
+
+
+def check_string_validity(string: str, character_set: List[str]):
+    character_set = character_set.copy()
+    if 'A-Z' in character_set:
+        del character_set[character_set.index('A-Z')]
+        character_set.extend([chr(x) for x in range(65, 91)])
+    if 'a-z' in character_set:
+        del character_set[character_set.index('a-z')]
+        character_set.extend([chr(x) for x in range(97, 123)])
+    if '0-9' in character_set:
+        del character_set[character_set.index('0-9')]
+        character_set.extend([chr(x) for x in range(48, 58)])
+    for character in string:
+        if character not in character_set:
+            return False
+    return True
 
 
 def load_config_file(config_file: Path) -> Tuple[Dict[str, List['Module']], bool]:
@@ -261,6 +331,8 @@ def get_setting(setting_name, setting_properties, user_settings, config_file_pat
         else:
             setting = str((config_file_path.parent / user_settings[setting_name]).resolve())
     elif setting_type == 'enum':
+        if user_settings[setting_name] not in setting_properties['choices']:
+            raise UnknownEnumError('{}: Unknown value "{}". Allowed choices:\n{}'.format(setting_name, user_settings[setting_name], ''.join([' + {}\n'.format(choice) for choice in setting_properties['choices'].keys()])))
         setting = setting_properties['choices'][user_settings[setting_name]]
     elif setting_type == 'number':
         value = user_settings[setting_name]
@@ -271,18 +343,18 @@ def get_setting(setting_name, setting_properties, user_settings, config_file_pat
             try:
                 value = int(value)
             except ValueError:
-                raise InvalidNumberTypeError("{} - \"{}\" cannot be converted into integer".format(setting_name, value))
+                raise InvalidNumberTypeError("{}: \"{}\" cannot be converted into an integer".format(setting_name, value))
         elif number_type == 'float':
             try:
                 value = float(value)
             except ValueError:
-                raise InvalidNumberTypeError("{} - \"{}\" cannot be converted into float".format(setting_name, value))
+                raise InvalidNumberTypeError("{}: \"{}\" cannot be converted into a float".format(setting_name, value))
         else:
-            raise InvalidConfigFileError("{} - Unknown number type".format(setting_name))
+            raise InvalidConfigFileError("{}: Unknown number type".format(setting_name))
         if min_value < value < max_value:
             setting = str(value)
         else:
-            raise OutOfBondError('Parameter: {} - Used value: {} - Range: {}-{}'.format(setting_name, user_settings[setting_name], min_value, max_value))
+            raise OutOfBondError('{}: Value out of valid range. Used value: {} - Range: {}-{}'.format(setting_name, user_settings[setting_name], min_value, max_value))
     elif setting_type == 'string':
         setting = user_settings[setting_name]
     else:
@@ -311,7 +383,7 @@ def load_module(category: str, module_name: str, user_settings: Dict[str, str], 
                         loaded_module.add_setting(setting_name, setting_properties['default'])
             if 'columns' in module_yaml:
                 for column_name, column_properties in module_yaml['columns'].items():
-                    loaded_module.add_column(column_name, ColumnProperties(column_properties['type'], column_properties['description']))
+                    loaded_module.add_column(column_name, ColumnProperties(column_properties['type'], column_properties['description'], column_properties.get('character_set', None)))
 
             if paired_end:
                 loaded_module.snakefile = SNAKEFILES_LIBRARY / category / module_name / module_yaml['paired_end']['snakefile']
@@ -329,7 +401,7 @@ def load_module(category: str, module_name: str, user_settings: Dict[str, str], 
                             loaded_module.add_setting(setting_name, setting_properties['default'])
                 if 'columns' in module_yaml['paired_end']:
                     for column_name, column_properties in module_yaml['paired_end']['columns'].items():
-                        loaded_module.add_column(column_name, ColumnProperties(column_properties['type'], column_properties['description']))
+                        loaded_module.add_column(column_name, ColumnProperties(column_properties['type'], column_properties['description'], column_properties.get('character_set', None)))
 
             else:
                 loaded_module.snakefile = SNAKEFILES_LIBRARY / category / module_name / module_yaml['single_end']['snakefile']
@@ -347,51 +419,41 @@ def load_module(category: str, module_name: str, user_settings: Dict[str, str], 
                             loaded_module.add_setting(setting_name, setting_properties['default'])
                 if 'columns' in module_yaml['single_end']:
                     for column_name, column_properties in module_yaml['single_end']['columns'].items():
-                        loaded_module.add_column(column_name, ColumnProperties(column_properties['type'], column_properties['description']))
+                        loaded_module.add_column(column_name, ColumnProperties(column_properties['type'], column_properties['description'], column_properties.get('character_set', None)))
 
         else:
             raise InvalidConfigFileError(category.capitalize() + ': Unknown module "' + module_name + '"')
     except InvalidConfigFileError as e:
-        print(e, file=sys.stderr)
-        sys.exit(1)
-    except InvalidNumberTypeError as e:
-        print("{}: {}".format(module_name, e), file=sys.stderr)
-        sys.exit(2)
-    except OutOfBondError as e:
-        print("{}: Value out of bond. ({})".format(module_name, e), file=sys.stderr)
-        sys.exit(2)
-    except Exception as e:
-        print(e, file=sys.stderr)
         raise e
-        sys.exit(999)
+    except InvalidNumberTypeError as e:
+        raise InvalidConfigFileError("Error in module {}:\n{}".format(module_name, e))
+    except OutOfBondError as e:
+        raise InvalidConfigFileError("Error in module {}:\n{}".format(module_name, e))
+    except UnknownEnumError as e:
+        raise InvalidConfigFileError("Error in module {}:\n{}".format(module_name, e))
+    except Exception as e:
+        raise InvalidConfigFileError("Unknown Error in module {}:\n{}".format(module_name, e))
 
     return loaded_module
-
-
-def validate_argsfiles(groups_file: Path, config_file: Path):
-    if not groups_file.is_file():
-        raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), str(groups_file))
-    if not config_file.is_file():
-        raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), str(config_file))
 
 
 def create_output_directory(output_path: Path):
     if not output_path.exists():
         output_path.mkdir(parents=True)
     elif not output_path.is_dir():
-        raise NotADirectoryError(filename=output_path)
+        raise NotADirectoryError("Cannot create directory: {}. File with this name found.".format(output_path))
 
     snakefiles_target_directory = output_path / SNAKEFILES_TARGET_DIRECTORY
     if not snakefiles_target_directory.exists():
         snakefiles_target_directory.mkdir(parents=True)
     elif not snakefiles_target_directory.is_dir():
-        raise NotADirectoryError(filename=snakefiles_target_directory)
+        raise NotADirectoryError("Cannot create directory: {}. File with this name found.".format(output_path))
 
     report_data_directory = output_path / REPORT_TARGET_DIRECTORY / 'data'
     if not report_data_directory.exists():
         report_data_directory.mkdir(parents=True)
     elif not report_data_directory.is_dir():
-        raise NotADirectoryError(filename=report_data_directory)
+        raise NotADirectoryError("Cannot create directory: {}. File with this name found.".format(output_path))
 
 
 def create_snakefile(output_folder: Path, groups: Dict[str, Dict[str, Dict[str, Any]]], modules: Dict[str, List['Module']], use_conda: bool,
@@ -491,9 +553,14 @@ def parse_arguments():
     args["--config"] = Path(args["--config"]).resolve()
     if args["--conda-prefix"]:
         args["--conda-prefix"] = Path(args["--conda-prefix"]).resolve()
-
-    if args["--cluster-config-file"] is not None:
+    if args["--cluster-config-file"]:
         args["--cluster-config-file"] = Path(args["--cluster-config-file"]).resolve()
+
+    for file in ["--groups", "--config", "--cluster-config-file"]:
+        if args[file]:
+            if not args[file].exists():
+                raise UnknownInputFileError("Command Arguments: Unknown file: {}".format(args[file]))
+
     return args
 
 
@@ -550,9 +617,10 @@ class ColumnProperties:
 
     """
 
-    def __init__(self, col_type: str, description: str):
+    def __init__(self, col_type: str, description: str, chr_set: List[str] = None):
         self.type = col_type
         self.description = description
+        self.character_set = chr_set
 
 
 class InvalidGroupsFileError(Exception):
@@ -577,6 +645,17 @@ class InvalidConfigFileError(Exception):
         super(InvalidConfigFileError, self).__init__(message)
 
 
+class UnknownInputFileError(Exception):
+    """Exception raised when input files as argument could not be found.
+
+        Attributes:
+            message -- message displayed
+    """
+
+    def __init__(self, message: str):
+        super(UnknownInputFileError, self).__init__(message)
+
+
 class OutOfBondError(Exception):
     """Exception raised for a value out of bond.
 
@@ -597,6 +676,17 @@ class InvalidNumberTypeError(Exception):
 
     def __init__(self, message: str):
         super(InvalidNumberTypeError, self).__init__(message)
+
+
+class UnknownEnumError(Exception):
+    """Exception raised when using unknown enum value.
+
+            Attributes:
+                message -- message displayed
+        """
+
+    def __init__(self, message: str):
+        super(UnknownEnumError, self).__init__(message)
 
 
 if __name__ == '__main__':
