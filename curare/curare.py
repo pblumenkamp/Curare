@@ -255,13 +255,13 @@ def load_config_file(config_file: Path) -> Tuple[Dict[str, List['Module']], bool
                     modules["preprocessing"].append('none')  # Add "None" module
             elif isinstance(config_module, list):
                 if len(config_module) > 1:
-                    raise InvalidConfigFileError("preprocessing: Too many preprocessing modules are selected (max 1)")
+                    raise InvalidConfigFileError('Error in catergory "preprocessing": Too many preprocessing modules are selected (max 1)')
                 if config_module:
                     modules["preprocessing"].append(config_module[0])
                 else:
                     modules["preprocessing"].append('none')  # Add "None" module
             else:
-                raise InvalidConfigFileError("preprocessing: Modules must be a list or a string containing the module")
+                raise InvalidConfigFileError('Error in catergory "preprocessing": Modules must be a list or a string containing the module')
         else:
             modules["preprocessing"].append('none')  # Add "None" module
     else:
@@ -276,21 +276,21 @@ def load_config_file(config_file: Path) -> Tuple[Dict[str, List['Module']], bool
             elif isinstance(config_module, str):
                 modules["premapping"].append(config_module)
             else:
-                raise InvalidConfigFileError("premapping: Modules must be a list or a string containing the module")
+                raise InvalidConfigFileError('Error in catergory "premapping": Modules must be a list or a string containing the module')
 
     if "mapping" in config:
         config_module = config["mapping"]["module"]
         if "module" in config["mapping"]:
             if isinstance(config_module, list):
                 if len(config_module) != 1:
-                    raise InvalidConfigFileError("mapping: Exactly one mapping module must be selected")
+                    raise InvalidConfigFileError('Error in catergory "mapping": Exactly one mapping module must be selected')
                 modules["mapping"].append(config_module[0])
             elif isinstance(config_module, str):
                 modules["mapping"].append(config_module)
             else:
-                raise InvalidConfigFileError("mapping: Modules must be a list or a string containing the module")
+                raise InvalidConfigFileError('Error in catergory "mapping": Modules must be a list or a string containing the module')
     else:
-        raise InvalidConfigFileError("mapping: No mapping module found")
+        raise InvalidConfigFileError('Error in catergory "mapping": No mapping module found')
 
     if "analyses" in config:
         config_module = config["analyses"]["modules"]
@@ -301,7 +301,7 @@ def load_config_file(config_file: Path) -> Tuple[Dict[str, List['Module']], bool
             elif isinstance(config_module, str):
                 modules["mapping"].append(config_module)
             else:
-                raise InvalidConfigFileError("analyses: Modules must be a list or a string containing the module")
+                raise InvalidConfigFileError('Error in catergory "analyses": Modules must be a list or a string containing the module')
 
     if "pipeline" in config:
         if "paired_end" in config["pipeline"]:
@@ -309,11 +309,11 @@ def load_config_file(config_file: Path) -> Tuple[Dict[str, List['Module']], bool
             if isinstance(config_paired_end, bool) or (config_paired_end.upper() in ['TRUE', 'FALSE']):
                 paired_end = config_paired_end
             else:
-                raise InvalidConfigFileError('Pipeline: paired_end value must either be "True" or "False"')
+                raise InvalidConfigFileError('Option "paired_end" must either be "True" or "False"')
         else:
-            raise InvalidConfigFileError('Pipeline: Option "paired_end" must be set')
+            raise InvalidConfigFileError('Option "paired_end" must be set')
     else:
-        raise InvalidConfigFileError('Pipeline: Option "paired_end" must be set')
+        raise InvalidConfigFileError('Option "paired_end" must be set')
 
     for category in modules:
         for module_name in modules[category]:
@@ -325,14 +325,15 @@ def load_config_file(config_file: Path) -> Tuple[Dict[str, List['Module']], bool
 
 def get_setting(setting_name, setting_properties, user_settings, config_file_path):
     setting_type = setting_properties['type']
-    if setting_type == 'file':
-        if user_settings[setting_name].startswith('/'):
-            setting = user_settings[setting_name]
-        else:
-            setting = str((config_file_path.parent / user_settings[setting_name]).resolve())
+    if setting_type.startswith('file'):
+        file: Path = Path(user_settings[setting_name]).resolve() if user_settings[setting_name].startswith('/') else (config_file_path.parent / user_settings[setting_name]).resolve()
+        if setting_type == 'file_input':
+            if not file.exists():
+                raise InvalidFileError('Error in option "{}": File does not exist.\nUser input: {}\nResolved to: {}'.format(setting_name, user_settings[setting_name], file))
+        setting = str(file)
     elif setting_type == 'enum':
         if user_settings[setting_name] not in setting_properties['choices']:
-            raise UnknownEnumError('{}: Unknown value "{}". Allowed choices:\n{}'.format(setting_name, user_settings[setting_name], ''.join([' + {}\n'.format(choice) for choice in setting_properties['choices'].keys()])))
+            raise UnknownEnumError('Error in option "{}": Unknown value "{}". Allowed choices:\n{}'.format(setting_name, user_settings[setting_name], ''.join([' + {}\n'.format(choice) for choice in setting_properties['choices'].keys()])))
         setting = setting_properties['choices'][user_settings[setting_name]]
     elif setting_type == 'number':
         value = user_settings[setting_name]
@@ -343,18 +344,18 @@ def get_setting(setting_name, setting_properties, user_settings, config_file_pat
             try:
                 value = int(value)
             except ValueError:
-                raise InvalidNumberTypeError("{}: \"{}\" cannot be converted into an integer".format(setting_name, value))
+                raise InvalidNumberTypeError('Error in option "{}": "{}" cannot be converted into an integer'.format(setting_name, value))
         elif number_type == 'float':
             try:
                 value = float(value)
             except ValueError:
-                raise InvalidNumberTypeError("{}: \"{}\" cannot be converted into a float".format(setting_name, value))
+                raise InvalidNumberTypeError('Error in option "{}": "{}" cannot be converted into a float'.format(setting_name, value))
         else:
-            raise InvalidConfigFileError("{}: Unknown number type".format(setting_name))
+            raise InvalidConfigFileError('Error in option "{}": Unknown number type'.format(setting_name))
         if min_value < value < max_value:
             setting = str(value)
         else:
-            raise OutOfBondError('{}: Value out of valid range. Used value: {} - Range: {}-{}'.format(setting_name, user_settings[setting_name], min_value, max_value))
+            raise OutOfBondError('Error in option "{}": Value out of valid range. Used value: {} - Range: {}-{}'.format(setting_name, user_settings[setting_name], min_value, max_value))
     elif setting_type == 'string':
         setting = user_settings[setting_name]
     else:
@@ -423,8 +424,10 @@ def load_module(category: str, module_name: str, user_settings: Dict[str, str], 
 
         else:
             raise InvalidConfigFileError(category.capitalize() + ': Unknown module "' + module_name + '"')
-    except InvalidConfigFileError as e:
+    except UnknownModuleError as e:
         raise e
+    except InvalidFileError as e:
+        raise InvalidConfigFileError("Error in module {}:\n{}".format(module_name, e))
     except InvalidNumberTypeError as e:
         raise InvalidConfigFileError("Error in module {}:\n{}".format(module_name, e))
     except OutOfBondError as e:
@@ -678,6 +681,17 @@ class InvalidNumberTypeError(Exception):
         super(InvalidNumberTypeError, self).__init__(message)
 
 
+class InvalidFileError(Exception):
+    """Exception raised when using an invalid file.
+
+        Attributes:
+            message -- message displayed
+    """
+
+    def __init__(self, message: str):
+        super(InvalidFileError, self).__init__(message)
+
+
 class UnknownEnumError(Exception):
     """Exception raised when using unknown enum value.
 
@@ -687,6 +701,16 @@ class UnknownEnumError(Exception):
 
     def __init__(self, message: str):
         super(UnknownEnumError, self).__init__(message)
+
+class UnknownModuleError(Exception):
+    """Exception raised when using unknown module.
+
+            Attributes:
+                message -- message displayed
+        """
+
+    def __init__(self, message: str):
+        super(UnknownModuleError, self).__init__(message)
 
 
 if __name__ == '__main__':

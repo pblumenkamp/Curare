@@ -6,12 +6,12 @@ required_settings:
   readxplorer_cli_path:
     label: "ReadXplorer CLI Path"
     description: "Path to ReadXplorer CLI executable"
-    type: file
+    type: "file_input"
 
   reference_genome:
     label: "Reference Genome"
     description: "Path to reference genome sequence"
-    type: file
+    type: "file_input"
 
 single_end:
   snakefile: "readxplorer_se"
