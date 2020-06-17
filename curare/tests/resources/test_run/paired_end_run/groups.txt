@@ -4,9 +4,9 @@
 # condition: Condition name of sequencing run. May contain any character but '/', '\' and '#'. [Value Type: String]
 
 name	forward_reads	reverse_reads	condition
-5535	../../input_data/ERR985535_R1.fastq	../../input_data/ERR985535_R2.fastq	05WTac0158!@$^&(),.[ ]-;:_
+5535	../../input_data/ERR985535_R1.fastq	../../input_data/ERR985535_R2.fastq	05WTac0158!@^(),.[ ]-;_
 5536	../../input_data/ERR985536_R1.fastq	../../input_data/ERR985536_R2.fastq	Mut
-5535_subset	../../input_data/ERR985535_subset_R1.fastq	../../input_data/ERR985535_subset_R2.fastq	05WTac0158!@$^&(),.[ ]-;:_
+5535_subset	../../input_data/ERR985535_subset_R1.fastq	../../input_data/ERR985535_subset_R2.fastq	05WTac0158!@^(),.[ ]-;_
 5536_subset	../../input_data/ERR985536_subset_R1.fastq	../../input_data/ERR985536_subset_R2.fastq	Mut
 mix	../../input_data/mix_R1.fastq	../../input_data/mix_R2.fastq	MIX
 mix_subset	../../input_data/mix_subset_R1.fastq	../../input_data/mix_subset_R2.fastq	MIX
