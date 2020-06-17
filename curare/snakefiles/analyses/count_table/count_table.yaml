@@ -16,7 +16,7 @@ required_settings:
   gff_path:
     label: "GFF File Path"
     description: "File path to gff file"
-    type: "file"
+    type: "file_input"
 
 
 optional_settings:

@@ -6,7 +6,7 @@ required_settings:
   genome_fasta:
     label: 'Reference Genome'
     description: 'Path to reference genome fasta file'
-    type: 'file'
+    type: 'file_input'
 
   alignment_type:
     label: 'Alignment Type'

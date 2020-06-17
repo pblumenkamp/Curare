@@ -6,7 +6,7 @@ required_settings:
   genome_fasta:
     label: 'Reference Genome'
     description: 'Path to genome fasta file'
-    type: 'file'
+    type: 'file_input'
 
 optional_settings:
   additional_bwa_options:
