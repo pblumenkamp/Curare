@@ -68,7 +68,7 @@ def check_paired_end() -> bool:
 
 def parse_snakefiles(snakefiles_folder: Path, is_paired_end: bool) -> Dict[str, Dict[str, Dict[str, Union[Dict[str, Dict[str, str]], str]]]]:
     settings: Dict[str, Dict[str, Dict[str, Union[Dict[str, Dict[str, str]], str]]]] = {}  # Dict[module_group, Dict[module_name, Dict[]]]
-    for group in ['analyses', 'mapping', 'premapping', 'preprocessing']:
+    for group in ['analysis', 'mapping', 'premapping', 'preprocessing']:
         for module in sorted((snakefiles_folder / group).iterdir()):
             module_settings = yaml.safe_load((module / (module.name + '.yaml')).open())
             sequencing_specific_settings: Dict = module_settings.get('paired_end' if is_paired_end else 'single_end', {})
@@ -128,14 +128,14 @@ def create_pipeline(all_modules: Dict[str, List[Dict[str, str]]]) -> Dict[str, L
 
     print()
 
-    print_modules('Select any number of analysis modules:', all_modules['analyses'], True)
+    print_modules('Select any number of analysis modules:', all_modules['analysis'], True)
     user_input: str = ''
-    while not check_multi_selection(user_input.upper(), 1, len(all_modules['analyses']), ['N']):
-        user_input = input('Select[1-{}; Comma-separated]: '.format(len(all_modules['analyses'])))
-    selected_modules['analyses'] = []
+    while not check_multi_selection(user_input.upper(), 1, len(all_modules['analysis']), ['N']):
+        user_input = input('Select[1-{}; Comma-separated]: '.format(len(all_modules['analysis'])))
+    selected_modules['analysis'] = []
     if user_input.upper() != 'N':
         for value in user_input.split(','):
-            selected_modules['analyses'].append(all_modules['analyses'][int(value) - 1])
+            selected_modules['analysis'].append(all_modules['analysis'][int(value) - 1])
 
     print()
 
@@ -213,7 +213,7 @@ def create_pipeline_file(selected_modules: Dict[str, List[Dict[str, str]]], all_
         out_write('paired_end: {}'.format('true' if is_paired_end else 'false'), 2)
         out_write()
 
-        for category in ['preprocessing', 'premapping', 'mapping', 'analyses']:
+        for category in ['preprocessing', 'premapping', 'mapping', 'analysis']:
             out_write(category + ':')
             modules:  List[Dict[str, str]] = selected_modules[category]
             out_write('modules: [{}]'.format(', '.join(['"' + module['name'] + '"' for module in modules])), 2)
@@ -230,7 +230,7 @@ def create_pipeline_file(selected_modules: Dict[str, List[Dict[str, str]]], all_
                     out_write('{}: <Insert Config Here>'.format(setting_name), 4)
                     out_write()
                 for setting_name, setting in module_settings.get('optional', {}).items():
-                    out_write('## {} [Value Type: {}'.format(setting['description'] if setting['description'].endswith('.') else setting['description'] + '.', setting['type'].capitalize()), 4)
+                    out_write('## {} [Value Type: {}]'.format(setting['description'] if setting['description'].endswith('.') else setting['description'] + '.', setting['type'].capitalize()), 4)
                     out_write('#{}: "{}"'.format(setting_name, setting['default']), 4)
                     out_write()
                 out_write()

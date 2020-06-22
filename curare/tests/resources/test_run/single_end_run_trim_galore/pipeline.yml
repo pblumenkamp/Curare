@@ -2,7 +2,7 @@ pipeline:
   paired_end: false
 
 preprocessing:
-  module: "trimgalore"
+  modules: "trimgalore"
 
   trimgalore:
     quality_threshold: 30
@@ -12,12 +12,12 @@ premapping:
   modules: []
 
 mapping:
-  module: "bowtie2"
+  modules: "bowtie2"
 
   bowtie2:
     genome_fasta: "../../reference/listeria_monocytogenes_egd_e.fasta"
     genome_annotation: "../../reference/listeria_monocytogenes_egd_e.gff3"
     alignment_type: "local"
 
-analyses:
+analysis:
   modules: []

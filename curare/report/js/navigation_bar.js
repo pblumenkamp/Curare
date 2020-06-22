@@ -2,7 +2,7 @@ Vue.component('navigation-bar', {
     props: ['modulesPath', 'mainHtml'],
     data: () => ({
         navigation: Curare.navigation,
-        analysis_steps: ['preprocessing', 'premapping', 'mapping', 'analyses']
+        analysis_steps: ['preprocessing', 'premapping', 'mapping', 'analysis']
     }),
     computed: {
         navigation_elements: function () {

@@ -2,18 +2,18 @@
 Customizable and Reproducible Analysis Pipeline for RNA-Seq Experiments (CURARE).
 
 Usage:
-    curare.py --groups <groups_file> --config <config_file> --output <output_folder>
+    curare.py --samples <samples_file> --pipeline <pipeline_file> --output <output_folder>
                  [--cluster-command <cluster_command>] [--cluster-config-file <config_file>] [--cluster-nodes <nodes>]
                  [--use-conda] [--conda-prefix <conda_prefix>] [--cores <cores>] [--latency-wait <seconds>] [--verbose]
-    curare.py --groups <groups_file> --config <config_file> --output <output_folder> --create-conda-envs-only [--conda-prefix <conda_prefix>] [--verbose]
+    curare.py --samples <samples_file> --pipeline <pipeline_file> --output <output_folder> --create-conda-envs-only [--conda-prefix <conda_prefix>] [--verbose]
     curare.py (--version | --help)
 
 Options:
     -h --help               Show this help message and exit
     --version               Show version and exit
 
-    --groups <groups_file>                          File containing information about each sample
-    --config <config_file>                          File containing information about the RNA-seq pipeline
+    --samples <samples_file>                        File containing information about each sample
+    --pipeline <pipeline_file>                      File containing information about the RNA-seq pipeline
     --output <output_folder>                        Output folder (will be created if not existing)
 
     --cluster-command <command>                     Command for cluster execution. , e.g. 'qsub'. For resource requests use also --cluster-config
@@ -94,18 +94,18 @@ def main():
     start_time: datetime.datetime = datetime.datetime.utcnow()
     try:
         args = parse_arguments()
-        used_modules, paired_end = load_config_file(args["--config"])
-        groups = parse_groups_file(args["--groups"], used_modules, paired_end)
+        used_modules, paired_end = load_pipeline_file(args["--pipeline"])
+        samples = parse_samples_file(args["--samples"], used_modules, paired_end)
         create_output_directory(args["--output"])
-        snakefile = create_snakefile(args["--output"], groups, used_modules, args["--use-conda"], args["--conda-prefix"], args["--config"])
+        snakefile = create_snakefile(args["--output"], samples, used_modules, args["--use-conda"], args["--conda-prefix"], args["--pipeline"])
     except UnknownInputFileError as ex:
         print(ClColors.FAIL + str(ex) + ClColors.ENDC, file=sys.stderr)
         exit(1)
-    except InvalidConfigFileError as ex:
-        print(ClColors.FAIL + 'Error in {}:\n'.format(args["--config"].name) + str(ex) + ClColors.ENDC, file=sys.stderr)
+    except InvalidPipelineFileError as ex:
+        print(ClColors.FAIL + 'Error in {}:\n'.format(args["--pipeline"].name) + str(ex) + ClColors.ENDC, file=sys.stderr)
         exit(2)
-    except InvalidGroupsFileError as ex:
-        print(ClColors.FAIL + 'Error in {}:\n'.format(args["--groups"].name) + str(ex) + ClColors.ENDC, file=sys.stderr)
+    except InvalidSamplesFileError as ex:
+        print(ClColors.FAIL + 'Error in {}:\n'.format(args["--samples"].name) + str(ex) + ClColors.ENDC, file=sys.stderr)
         exit(3)
     except NotADirectoryError as ex:
         print(ClColors.FAIL + str(ex) + ClColors.ENDC, file=sys.stderr)
@@ -130,28 +130,28 @@ def main():
                 output_folder=args["--output"],
                 curare_version=metadata.__version__,
                 runtime=finish_time - start_time,
-                curare_groups_file=args["--groups"]
+                curare_samples_file=args["--samples"]
             )
 
 
 def check_columns(col_names: List[str], modules: Dict[str, List['Module']], paired_end: bool) -> List[Tuple[str, str, Optional[List[str]]]]:
     col2module: List[Tuple[str, str, Optional[List[str]]]] = [('', '', []) for _ in col_names]
     if 'name' not in col_names:
-        raise InvalidGroupsFileError('Groups file: Column "{}" is missing'.format('name'))
+        raise InvalidSamplesFileError('Samples file: Column "{}" is missing'.format('name'))
     else:
         col2module[col_names.index('name')] = ('main', 'string', ['A-Z', 'a-z', '0-9', '_'])
     if paired_end:
         if 'forward_reads' not in col_names:
-            raise InvalidGroupsFileError('Groups file: Column "{}" is missing'.format('forward_reads'))
+            raise InvalidSamplesFileError('Samples file: Column "{}" is missing'.format('forward_reads'))
         else:
             col2module[col_names.index('forward_reads')] = ('main', 'file', None)
         if 'reverse_reads' not in col_names:
-            raise InvalidGroupsFileError('Groups file: Column "{}" is missing'.format('reverse_reads'))
+            raise InvalidSamplesFileError('Samples file: Column "{}" is missing'.format('reverse_reads'))
         else:
             col2module[col_names.index('reverse_reads')] = ('main', 'file', None)
     else:
         if 'reads' not in col_names:
-            raise InvalidGroupsFileError('Groups file: Column "{}" is missing'.format('reads'))
+            raise InvalidSamplesFileError('Samples file: Column "{}" is missing'.format('reads'))
         else:
             col2module[col_names.index('reads')] = ('main', 'file', None)
 
@@ -159,15 +159,15 @@ def check_columns(col_names: List[str], modules: Dict[str, List['Module']], pair
         if len(module.columns) > 0:
             for col_name, properties in module.columns.items():
                 if col_name not in col_names:
-                    raise InvalidGroupsFileError('Groups file: Column "{}" is missing'.format(col_name))
+                    raise InvalidSamplesFileError('Samples file: Column "{}" is missing'.format(col_name))
                 else:
                     col2module[col_names.index(col_name)] = (module.name, properties.type.lower(), properties.character_set)
     return col2module
 
 
-def parse_groups_file(groups_file: Path, modules: Dict[str, List['Module']], paired_end: bool) -> Dict[str, Dict[str, Dict[str, str]]]:
+def parse_samples_file(samples_file: Path, modules: Dict[str, List['Module']], paired_end: bool) -> Dict[str, Dict[str, Dict[str, str]]]:
     table = {}  # type: Dict[str, Dict[str, Dict[str, str]]]
-    with groups_file.open('r') as file:
+    with samples_file.open('r') as file:
         line: str = file.readline()
         while len(line.strip()) == 0 or line.startswith('#'):  # Ignore comments at the beginning of the TSV
             line = file.readline()
@@ -183,7 +183,7 @@ def parse_groups_file(groups_file: Path, modules: Dict[str, List['Module']], pai
                 module_name, value_type, value_char_set = col2module[index]
                 if value_type == 'string' and value_char_set is not None:
                     if not check_string_validity(col, value_char_set):
-                        raise InvalidGroupsFileError(
+                        raise InvalidSamplesFileError(
                             'Column "{}" contains invalid entry ({}). Only these characters are allowed: {}'.format(
                                 col_names[index], col, value_char_set
                             )
@@ -191,16 +191,16 @@ def parse_groups_file(groups_file: Path, modules: Dict[str, List['Module']], pai
                 if value_type == 'file':
                     if col.startswith('/'):
                         if not Path(col).resolve().exists():
-                            raise InvalidGroupsFileError(
+                            raise InvalidSamplesFileError(
                                 'Unknown file in Column "{}":\nUser input: {}\nResolved to: {}'.format(
-                                    col_names[index], col, (groups_file.parent / col).resolve()
+                                    col_names[index], col, (samples_file.parent / col).resolve()
                                 )
                             )
                     else:
-                        if not (groups_file.parent / col).resolve().exists():
-                            raise InvalidGroupsFileError(
+                        if not (samples_file.parent / col).resolve().exists():
+                            raise InvalidSamplesFileError(
                                 'Unknown file in Column "{}":\nUser input: {}\nResolved to: {}'.format(
-                                    col_names[index], col, (groups_file.parent / col).resolve()
+                                    col_names[index], col, (samples_file.parent / col).resolve()
                                 )
                             )
 
@@ -209,7 +209,7 @@ def parse_groups_file(groups_file: Path, modules: Dict[str, List['Module']], pai
                 elif module_name not in entries:
                     entries[module_name] = {}
                 if value_type == 'file' and not col.startswith('/'):
-                    entries[module_name][col_names[index]] = str((groups_file.parent / col).resolve())
+                    entries[module_name][col_names[index]] = str((samples_file.parent / col).resolve())
                 else:
                     entries[module_name][col_names[index]] = col
             table[columns[0]] = entries
@@ -233,100 +233,100 @@ def check_string_validity(string: str, character_set: List[str]):
     return True
 
 
-def load_config_file(config_file: Path) -> Tuple[Dict[str, List['Module']], bool]:
+def load_pipeline_file(pipeline_file: Path) -> Tuple[Dict[str, List['Module']], bool]:
     modules = {"preprocessing": [],
                "premapping": [],
                "mapping": [],
-               "analyses": []}  # type: Dict[str, List[str]]
+               "analysis": []}  # type: Dict[str, List[str]]
 
     used_modules = {"preprocessing": [],
                     "premapping": [],
                     "mapping": [],
-                    "analyses": []}  # type: Dict[str, List['Module']]
-    config = yaml.safe_load(config_file.open('r'))
+                    "analysis": []}  # type: Dict[str, List['Module']]
+    pipeline = yaml.safe_load(pipeline_file.open('r'))
 
-    if "preprocessing" in config:
-        if "module" in config["preprocessing"]:
-            config_module = config["preprocessing"]["module"]
-            if isinstance(config_module, str):
-                if config_module:
-                    modules["preprocessing"].append(config_module)
+    if "preprocessing" in pipeline:
+        if "modules" in pipeline["preprocessing"]:
+            pipeline_module = pipeline["preprocessing"]["modules"]
+            if isinstance(pipeline_module, str):
+                if pipeline_module:
+                    modules["preprocessing"].append(pipeline_module)
                 else:
                     modules["preprocessing"].append('none')  # Add "None" module
-            elif isinstance(config_module, list):
-                if len(config_module) > 1:
-                    raise InvalidConfigFileError('Error in catergory "preprocessing": Too many preprocessing modules are selected (max 1)')
-                if config_module:
-                    modules["preprocessing"].append(config_module[0])
+            elif isinstance(pipeline_module, list):
+                if len(pipeline_module) > 1:
+                    raise InvalidPipelineFileError('Error in catergory "preprocessing": Too many preprocessing modules are selected (max 1)')
+                if pipeline_module:
+                    modules["preprocessing"].append(pipeline_module[0])
                 else:
                     modules["preprocessing"].append('none')  # Add "None" module
             else:
-                raise InvalidConfigFileError('Error in catergory "preprocessing": Modules must be a list or a string containing the module')
+                raise InvalidPipelineFileError('Error in catergory "preprocessing": Modules must be a list or a string containing the module')
         else:
             modules["preprocessing"].append('none')  # Add "None" module
     else:
         modules["preprocessing"].append('none')  # Add "None" module
 
-    if "premapping" in config:
-        config_module = config["premapping"]["modules"]
-        if "modules" in config["premapping"]:
-            if isinstance(config_module, list):
-                for module in config_module:
+    if "premapping" in pipeline:
+        pipeline_module = pipeline["premapping"]["modules"]
+        if "modules" in pipeline["premapping"]:
+            if isinstance(pipeline_module, list):
+                for module in pipeline_module:
                     modules["premapping"].append(module)
-            elif isinstance(config_module, str):
-                modules["premapping"].append(config_module)
+            elif isinstance(pipeline_module, str):
+                modules["premapping"].append(pipeline_module)
             else:
-                raise InvalidConfigFileError('Error in catergory "premapping": Modules must be a list or a string containing the module')
+                raise InvalidPipelineFileError('Error in catergory "premapping": Modules must be a list or a string containing the module')
 
-    if "mapping" in config:
-        config_module = config["mapping"]["module"]
-        if "module" in config["mapping"]:
-            if isinstance(config_module, list):
-                if len(config_module) != 1:
-                    raise InvalidConfigFileError('Error in catergory "mapping": Exactly one mapping module must be selected')
-                modules["mapping"].append(config_module[0])
-            elif isinstance(config_module, str):
-                modules["mapping"].append(config_module)
+    if "mapping" in pipeline:
+        pipeline_module = pipeline["mapping"]["modules"]
+        if "modules" in pipeline["mapping"]:
+            if isinstance(pipeline_module, list):
+                if len(pipeline_module) != 1:
+                    raise InvalidPipelineFileError('Error in catergory "mapping": Exactly one mapping module must be selected')
+                modules["mapping"].append(pipeline_module[0])
+            elif isinstance(pipeline_module, str):
+                modules["mapping"].append(pipeline_module)
             else:
-                raise InvalidConfigFileError('Error in catergory "mapping": Modules must be a list or a string containing the module')
+                raise InvalidPipelineFileError('Error in catergory "mapping": Modules must be a list or a string containing the module')
     else:
-        raise InvalidConfigFileError('Error in catergory "mapping": No mapping module found')
+        raise InvalidPipelineFileError('Error in catergory "mapping": No mapping module found')
 
-    if "analyses" in config:
-        config_module = config["analyses"]["modules"]
-        if "modules" in config["analyses"]:
-            if isinstance(config_module, list):
-                for module in config_module:
-                    modules["analyses"].append(module)
-            elif isinstance(config_module, str):
-                modules["mapping"].append(config_module)
+    if "analysis" in pipeline:
+        pipeline_module = pipeline["analysis"]["modules"]
+        if "modules" in pipeline["analysis"]:
+            if isinstance(pipeline_module, list):
+                for module in pipeline_module:
+                    modules["analysis"].append(module)
+            elif isinstance(pipeline_module, str):
+                modules["mapping"].append(pipeline_module)
             else:
-                raise InvalidConfigFileError('Error in catergory "analyses": Modules must be a list or a string containing the module')
+                raise InvalidPipelineFileError('Error in catergory "analysis": Modules must be a list or a string containing the module')
 
-    if "pipeline" in config:
-        if "paired_end" in config["pipeline"]:
-            config_paired_end = config["pipeline"]["paired_end"]
-            if isinstance(config_paired_end, bool) or (config_paired_end.upper() in ['TRUE', 'FALSE']):
-                paired_end = config_paired_end
+    if "pipeline" in pipeline:
+        if "paired_end" in pipeline["pipeline"]:
+            pipeline_paired_end = pipeline["pipeline"]["paired_end"]
+            if isinstance(pipeline_paired_end, bool) or (pipeline_paired_end.upper() in ['TRUE', 'FALSE']):
+                paired_end = pipeline_paired_end
             else:
-                raise InvalidConfigFileError('Option "paired_end" must either be "True" or "False"')
+                raise InvalidPipelineFileError('Option "paired_end" must either be "True" or "False"')
         else:
-            raise InvalidConfigFileError('Option "paired_end" must be set')
+            raise InvalidPipelineFileError('Option "paired_end" must be set')
     else:
-        raise InvalidConfigFileError('Option "paired_end" must be set')
+        raise InvalidPipelineFileError('Option "paired_end" must be set')
 
     for category in modules:
         for module_name in modules[category]:
-            settings = config[category].get(module_name, {})
-            used_modules[category].append(load_module(category, module_name, settings, config_file, paired_end))
+            settings = pipeline[category].get(module_name, {})
+            used_modules[category].append(load_module(category, module_name, settings, pipeline_file, paired_end))
 
     return used_modules, paired_end
 
 
-def get_setting(setting_name, setting_properties, user_settings, config_file_path):
+def get_setting(setting_name, setting_properties, user_settings, pipeline_file_path):
     setting_type = setting_properties['type']
     if setting_type.startswith('file'):
-        file: Path = Path(user_settings[setting_name]).resolve() if user_settings[setting_name].startswith('/') else (config_file_path.parent / user_settings[setting_name]).resolve()
+        file: Path = Path(user_settings[setting_name]).resolve() if user_settings[setting_name].startswith('/') else (pipeline_file_path.parent / user_settings[setting_name]).resolve()
         if setting_type == 'file_input':
             if not file.exists():
                 raise InvalidFileError('Error in option "{}": File does not exist.\nUser input: {}\nResolved to: {}'.format(setting_name, user_settings[setting_name], file))
@@ -351,7 +351,7 @@ def get_setting(setting_name, setting_properties, user_settings, config_file_pat
             except ValueError:
                 raise InvalidNumberTypeError('Error in option "{}": "{}" cannot be converted into a float'.format(setting_name, value))
         else:
-            raise InvalidConfigFileError('Error in option "{}": Unknown number type'.format(setting_name))
+            raise InvalidPipelineFileError('Error in option "{}": Unknown number type'.format(setting_name))
         if min_value < value < max_value:
             setting = str(value)
         else:
@@ -364,7 +364,7 @@ def get_setting(setting_name, setting_properties, user_settings, config_file_pat
     return setting
 
 
-def load_module(category: str, module_name: str, user_settings: Dict[str, str], config_file_path: Path, paired_end: bool) -> 'Module':
+def load_module(category: str, module_name: str, user_settings: Dict[str, str], pipeline_file_path: Path, paired_end: bool) -> 'Module':
     loaded_module = Module(module_name)
     module_yaml_file = SNAKEFILES_LIBRARY / category / module_name / (module_name + '.yaml')
     try:
@@ -373,13 +373,13 @@ def load_module(category: str, module_name: str, user_settings: Dict[str, str], 
             if 'required_settings' in module_yaml:
                 for setting_name, setting_properties in module_yaml['required_settings'].items():
                     if setting_name in user_settings:
-                        loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, config_file_path))
+                        loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, pipeline_file_path))
                     else:
-                        raise InvalidConfigFileError(module_name.capitalize() + ': Required parameter "' + setting_name + '" is missing')
+                        raise InvalidPipelineFileError(module_name.capitalize() + ': Required parameter "' + setting_name + '" is missing')
             if 'optional_settings' in module_yaml:
                 for setting_name, setting_properties in module_yaml['optional_settings'].items():
                     if setting_name in user_settings:
-                        loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, config_file_path))
+                        loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, pipeline_file_path))
                     else:
                         loaded_module.add_setting(setting_name, setting_properties['default'])
             if 'columns' in module_yaml:
@@ -391,13 +391,13 @@ def load_module(category: str, module_name: str, user_settings: Dict[str, str], 
                 if 'required_settings' in module_yaml['paired_end']:
                     for setting_name, setting_properties in module_yaml['paired_end']['required_settings'].items():
                         if setting_name in user_settings:
-                            loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, config_file_path))
+                            loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, pipeline_file_path))
                         else:
-                            raise InvalidConfigFileError(module_name.capitalize() + ': Required parameter "' + setting_name + '" is missing')
+                            raise InvalidPipelineFileError(module_name.capitalize() + ': Required parameter "' + setting_name + '" is missing')
                 if 'optional_settings' in module_yaml['paired_end']:
                     for setting_name, setting_properties in module_yaml['paired_end']['optional_settings'].items():
                         if setting_name in user_settings:
-                            loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, config_file_path))
+                            loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, pipeline_file_path))
                         else:
                             loaded_module.add_setting(setting_name, setting_properties['default'])
                 if 'columns' in module_yaml['paired_end']:
@@ -409,13 +409,13 @@ def load_module(category: str, module_name: str, user_settings: Dict[str, str], 
                 if 'required_settings' in module_yaml['single_end']:
                     for setting_name, setting_properties in module_yaml['single_end']['required_settings'].items():
                         if setting_name in user_settings:
-                            loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, config_file_path))
+                            loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, pipeline_file_path))
                         else:
-                            raise InvalidConfigFileError(module_name.capitalize() + ': Required parameter "' + setting_name + '" is missing')
+                            raise InvalidPipelineFileError(module_name.capitalize() + ': Required parameter "' + setting_name + '" is missing')
                 if 'optional_settings' in module_yaml['single_end']:
                     for setting_name, setting_properties in module_yaml['single_end']['optional_settings'].items():
                         if setting_name in user_settings:
-                            loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, config_file_path))
+                            loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, pipeline_file_path))
                         else:
                             loaded_module.add_setting(setting_name, setting_properties['default'])
                 if 'columns' in module_yaml['single_end']:
@@ -423,19 +423,19 @@ def load_module(category: str, module_name: str, user_settings: Dict[str, str], 
                         loaded_module.add_column(column_name, ColumnProperties(column_properties['type'], column_properties['description'], column_properties.get('character_set', None)))
 
         else:
-            raise InvalidConfigFileError(category.capitalize() + ': Unknown module "' + module_name + '"')
+            raise UnknownModuleError(category.capitalize() + ': Unknown module "' + module_name + '"')
     except UnknownModuleError as e:
         raise e
     except InvalidFileError as e:
-        raise InvalidConfigFileError("Error in module {}:\n{}".format(module_name, e))
+        raise InvalidPipelineFileError("Error in module {}:\n{}".format(module_name, e))
     except InvalidNumberTypeError as e:
-        raise InvalidConfigFileError("Error in module {}:\n{}".format(module_name, e))
+        raise InvalidPipelineFileError("Error in module {}:\n{}".format(module_name, e))
     except OutOfBondError as e:
-        raise InvalidConfigFileError("Error in module {}:\n{}".format(module_name, e))
+        raise InvalidPipelineFileError("Error in module {}:\n{}".format(module_name, e))
     except UnknownEnumError as e:
-        raise InvalidConfigFileError("Error in module {}:\n{}".format(module_name, e))
+        raise InvalidPipelineFileError("Error in module {}:\n{}".format(module_name, e))
     except Exception as e:
-        raise InvalidConfigFileError("Unknown Error in module {}:\n{}".format(module_name, e))
+        raise InvalidPipelineFileError("Unknown Error in module {}:\n{}".format(module_name, e))
 
     return loaded_module
 
@@ -459,9 +459,9 @@ def create_output_directory(output_path: Path):
         raise NotADirectoryError("Cannot create directory: {}. File with this name found.".format(output_path))
 
 
-def create_snakefile(output_folder: Path, groups: Dict[str, Dict[str, Dict[str, Any]]], modules: Dict[str, List['Module']], use_conda: bool,
+def create_snakefile(output_folder: Path, samples: Dict[str, Dict[str, Dict[str, Any]]], modules: Dict[str, List['Module']], use_conda: bool,
                      conda_environment: Path, curare_pipeline_file: Path) -> Path:
-    config_file: Path = create_snakemake_config_file(output_folder, groups)
+    config_file: Path = create_snakemake_config_file(output_folder, samples)
     # find every rule name
     re_rule_name = re.compile('^rule (?P<rule_name>.*):$', re.MULTILINE)
     # find every lib reference
@@ -527,11 +527,11 @@ def create_snakefile(output_folder: Path, groups: Dict[str, Dict[str, Dict[str, 
     return snakefile_main_path
 
 
-def create_snakemake_config_file(output_folder: Path, groups: Dict[str, Dict[str, Dict[str, Any]]]) -> Path:
+def create_snakemake_config_file(output_folder: Path, samples: Dict[str, Dict[str, Dict[str, Any]]]) -> Path:
     config_path = output_folder / SNAKEFILES_TARGET_DIRECTORY / 'snakefile_config.yml'
     with config_path.open('w') as config_file:
         config_file.write('entries:\n')
-        for row, modules in groups.items():
+        for row, modules in samples.items():
             config_file.write('    "{}":\n'.format(row))
             for module_name, columns in modules.items():
                 config_file.write('        "{}":\n'.format(module_name))
@@ -551,15 +551,15 @@ def copy_lib(src_folder: Path, dest_folder: Path):
 
 def parse_arguments():
     args = docopt(__doc__, version=metadata.__version__)
-    args["--groups"] = Path(args["--groups"]).resolve()
+    args["--samples"] = Path(args["--samples"]).resolve()
     args["--output"] = Path(args["--output"])
-    args["--config"] = Path(args["--config"]).resolve()
+    args["--pipeline"] = Path(args["--pipeline"]).resolve()
     if args["--conda-prefix"]:
         args["--conda-prefix"] = Path(args["--conda-prefix"]).resolve()
     if args["--cluster-config-file"]:
         args["--cluster-config-file"] = Path(args["--cluster-config-file"]).resolve()
 
-    for file in ["--groups", "--config", "--cluster-config-file"]:
+    for file in ["--samples", "--pipeline", "--cluster-config-file"]:
         if args[file]:
             if not args[file].exists():
                 raise UnknownInputFileError("Command Arguments: Unknown file: {}".format(args[file]))
@@ -626,26 +626,26 @@ class ColumnProperties:
         self.character_set = chr_set
 
 
-class InvalidGroupsFileError(Exception):
-    """Exception raised for errors in the groups file.
+class InvalidSamplesFileError(Exception):
+    """Exception raised for errors in the samples file.
 
         Attributes:
             message -- message displayed
     """
 
     def __init__(self, message: str):
-        super(InvalidGroupsFileError, self).__init__(message)
+        super(InvalidSamplesFileError, self).__init__(message)
 
 
-class InvalidConfigFileError(Exception):
-    """Exception raised for errors in the config file.
+class InvalidPipelineFileError(Exception):
+    """Exception raised for errors in the pipeline file.
 
         Attributes:
             message -- message displayed
     """
 
     def __init__(self, message: str):
-        super(InvalidConfigFileError, self).__init__(message)
+        super(InvalidPipelineFileError, self).__init__(message)
 
 
 class UnknownInputFileError(Exception):

@@ -2,10 +2,10 @@ pipeline:
   paired_end: true
 
 preprocessing:
-  module: "none"
+  modules: "none"
 
 mapping:
-  module: "bowtie2"
+  modules: "bowtie2"
 
   bowtie2:
     genome_fasta: "../../reference/listeria_monocytogenes_egd_e.fasta"
@@ -14,7 +14,7 @@ mapping:
 premapping:
     modules: ["fastqc", "multiqc"]
 
-analyses:
+analysis:
   modules: ["count_table", "deseq2"]
 
   count_table:

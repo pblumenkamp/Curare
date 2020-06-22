@@ -32,7 +32,7 @@ ANALYSIS_STEPS: Tuple[str, str, str, str] = (
     'preprocessing',
     'premapping',
     'mapping',
-    'analyses',     # should be analysis
+    'analysis'
 )
 
 
@@ -42,11 +42,12 @@ def parse_config_yml(pipeline_file: Path):
         yaml_config: Dict[Any, Any] = yaml.load(yaml_config, Loader=yaml.BaseLoader)
         for step in ANALYSIS_STEPS:
             if step in yaml_config:
-                if 'module' in yaml_config[step]:
-                    steps[yaml_config[step]['module']] = step
-                elif 'modules' in yaml_config[step]:
-                    for module in yaml_config[step]['modules']:
-                        steps[module] = step
+                if 'modules' in yaml_config[step]:
+                    if isinstance(yaml_config[step]['modules'], str):
+                        steps[yaml_config[step]['modules']] = step
+                    else:
+                        for module in yaml_config[step]['modules']:
+                            steps[module] = step
     return steps
 
 
