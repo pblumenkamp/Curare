@@ -2,19 +2,19 @@ pipeline:
   paired_end: true
 
 preprocessing:
-  module: ""
+  modules: ""
 
 premapping:
   modules: ["fastqc", "multiqc"]
 
 mapping:
-  module: "bowtie2"
+  modules: "bowtie2"
 
   bowtie2:
     genome_fasta: "../../reference/listeria_monocytogenes_egd_e.fasta"
     alignment_type: "local"
 
-analyses:
+analysis:
   modules: ["readxplorer", "count_table", "deseq2"]
 
   count_table:

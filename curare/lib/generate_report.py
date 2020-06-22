@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Dict, List
 
 
-def create_report(src_folder: Path, output_folder: Path, curare_version: str, runtime: timedelta, curare_groups_file: Path):
+def create_report(src_folder: Path, output_folder: Path, curare_version: str, runtime: timedelta, curare_samples_file: Path):
     # Copy report-specific files such as the HTML, CSS, and JS files.
     try:
         shutil.copy(str(src_folder / 'report.html'), str(output_folder))
@@ -22,7 +22,7 @@ def create_report(src_folder: Path, output_folder: Path, curare_version: str, ru
                                        output_folder / '.report' / 'data' / 'navigation.js',
                                        output_folder)
 
-        create_summary_js_object(output_folder / '.report' / 'data' / 'curare_summary.js', curare_version, runtime, curare_groups_file)
+        create_summary_js_object(output_folder / '.report' / 'data' / 'curare_summary.js', curare_version, runtime, curare_samples_file)
 
         create_versions_js_object(output_folder / '.report' / 'data' / 'versions.json',
                                   output_folder / '.report' / 'data' / 'versions.js')
@@ -56,10 +56,9 @@ def create_navigationbar_js_object(versions_json: Path, navigation_output: Path,
         f.write('}());')
 
 
-def create_summary_js_object(output_path: Path, curare_version: str, runtime: timedelta, curare_groups_file: Path):
-    with curare_groups_file.open() as groups_file:
-        groups = groups_file.readlines()
-        groups = [line.strip().split('\t') for line in groups]
+def create_summary_js_object(output_path: Path, curare_version: str, runtime: timedelta, curare_samples_file: Path):
+    with curare_samples_file.open() as groups_file:
+        groups = [line.strip().split('\t') for line in groups_file if not line.startswith('#')]
 
     with output_path.open('w') as f:
         f.write('window.Curare.summary = (function() {\n')

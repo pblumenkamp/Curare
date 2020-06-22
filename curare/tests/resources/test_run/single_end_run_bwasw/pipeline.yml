@@ -2,18 +2,18 @@ pipeline:
   paired_end: false
 
 preprocessing:
-  module: ""
+  modules: ""
 
 premapping:
   modules: ["fastqc", "multiqc"]
 
 mapping:
-  module: "bwa-sw"
+  modules: "bwa-sw"
 
   bwa-sw:
     genome_fasta: "../../reference/listeria_monocytogenes_egd_e.fasta"
 
-analyses:
+analysis:
   modules: ["readxplorer", "count_table", "deseq2"]
 
   count_table:

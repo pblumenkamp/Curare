@@ -4,4 +4,4 @@ SCRIPTPATH=`readlink -f $0`
 SCRIPTDIR=`dirname $SCRIPTPATH`
 
 rm -r ${SCRIPTDIR}/output_dir
-python3 ${SCRIPTDIR}/../../../../curare.py --groups ${SCRIPTDIR}/groups.txt --config ${SCRIPTDIR}/pipeline.yml --output ${SCRIPTDIR}/output_dir -t 4
+python3 ${SCRIPTDIR}/../../../../curare.py --samples ${SCRIPTDIR}/samples.tsv --pipeline ${SCRIPTDIR}/pipeline.yml --output ${SCRIPTDIR}/output_dir -t 4
