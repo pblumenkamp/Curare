@@ -2,7 +2,7 @@ pipeline:
   paired_end: true
 
 preprocessing:
-  modules: ""
+  modules: []
 
 premapping:
   modules: ["fastqc", "multiqc"]
