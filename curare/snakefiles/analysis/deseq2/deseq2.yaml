@@ -31,6 +31,12 @@ optional_settings:
     type: "string"
     default: ''
 
+  omit_features:
+    label: "Features to omit for FeatureCounts"
+    description: "List of features, which should be omitted from being analyzed by FeatureCounts"
+    type: "string"
+    default: ''
+
 
 columns:
   condition:

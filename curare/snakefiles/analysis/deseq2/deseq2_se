@@ -4,6 +4,22 @@ from os.path import isfile
 def getConditions():
     return set([seqRun['deseq2']['condition'] for seqRun in config['entries'].values()])
 
+def list_of_all_features(gff_path):
+  features = set()
+  
+  with open(gff_path, "r") as f2r:
+      for line in f2r.readlines():
+        if line.startswith("#"): #skip lines starting with #
+          continue
+        if not line or line.isspace():
+          continue
+
+        features.add(line.strip().split("\t")[2]) #feature
+  
+  # remove user specified features
+  features = features.difference("%%OMIT_FEATURES%%".split(",")) 
+  return(list(features))
+
 localrules: deseq2__create_conditions
 
 DUMP = "analyses/deseq2/deseq2.RData" 
@@ -40,12 +56,11 @@ rule get_possible_annotation_types:
     shell:
         "grep -v '^#' {input.annotation} | awk 'NF {{print $3}}' | sort | uniq -c | sort -n > {output.list}"
 
-rule make_count_tables:
+rule make_count_tables_improved:
     input:
-        annotation="analyses/deseq2/annotation_types.txt",
-        mappings=expand("mapping/{A}.bam", A=sorted(config['entries'].keys()))
+        mappings = expand("mapping/{A}.bam", A=sorted(config['entries'].keys()))
     output:
-        list=touch("analyses/deseq2/count_tables/.count_tables")
+        featcounts = "analyses/deseq2/count_tables/{feature}.txt"
     params:
         output="analyses/deseq2/count_tables/"
     conda:
@@ -55,12 +70,30 @@ rule make_count_tables:
     threads:
         1
     log:
-        log=directory("analyses/deseq2/logs/count_tables")
+        log="analyses/deseq2/logs/count_tables/{feature}.log"
     shell:
-        "mkdir -p {log.log}; mkdir -p {params.output};"
-        "awk 'NF {{print $2}}' {input.annotation} | while read line; do "
-        "featureCounts -T {threads} %%ADDITIONAL_FEATCOUNTS_OPTIONS%% -t ${{line}} -g '%%GFF_FEATURE_NAME%%' -a %%GFF_PATH%% -o \"{params.output}/${{line}}.txt\" {input.mappings} 2>&1 |"
-        "tee {log.log}/${{line}}.log; done;"
+        """
+          featureCounts -T {threads} %%ADDITIONAL_FEATCOUNTS_OPTIONS%% -t {wildcards.feature} -g '%%GFF_FEATURE_NAME%%' -a %%GFF_PATH%% -o "{output.featcounts}" {input.mappings} 2>&1 |\
+          tee {log.log};
+        """
+
+
+rule collect_count_tables:
+    input:
+        count_tables=expand( "analyses/deseq2/count_tables/{feature}.txt", feature = list_of_all_features("%%GFF_PATH%%"))
+    output:
+        "analyses/deseq2/count_tables/.count_tables"
+    log:
+        log="analyses/deseq2/logs/count_tables/collect_count_tables.log"
+    group:
+        "count_reads"
+    shell:
+        """
+        for i in {input.count_tables}; do
+          echo $i >> {output};
+        done
+        """
+
 
 rule visualize_assignments:
     input:
@@ -76,14 +109,11 @@ rule visualize_assignments:
 
 rule count_reads:
     input:
-        "analyses/deseq2/count_tables/.count_tables"
+        counts = "analyses/deseq2/count_tables/%%GFF_FEATURE_TYPE%%.txt",
+        summary= "analyses/deseq2/count_tables/%%GFF_FEATURE_TYPE%%.txt.summary"
     output:
         counts = "analyses/deseq2/counts.txt",
         summary = "analyses/deseq2/counts.txt.summary"
-    params:
-        counts_link="count_tables/%%GFF_FEATURE_TYPE%%.txt",
-        summary_link="count_tables/%%GFF_FEATURE_TYPE%%.txt.summary",
-        counts="analyses/deseq2/count_tables/%%GFF_FEATURE_TYPE%%.txt",
     conda:
         "../lib/conda_env.yaml"
     group:
@@ -91,7 +121,10 @@ rule count_reads:
     threads:
         1
     shell:
-        "if [ -f '{params.counts}' ]; then ln -s \"{params.counts_link}\" {output.counts}; ln -s \"{params.summary_link}\" {output.summary}; else echo 'Unknown feature type: %%GFF_FEATURE_TYPE%%'; exit 50; fi"
+        """
+          cp {input.counts} {output.counts}
+          cp {input.summary} {output.summary}
+        """
 
 rule create_conditions:
     output:
