@@ -1,5 +1,6 @@
 name: "deseq2"
 label: "DESeq2"
+description: "A differential gene expression analysis using DESeq2 for statistical tests. As a pre-step, featureCounts is used for assigning the alignments to a genomic feature."
 
 required_settings:
   gff_feature_type:

@@ -1,5 +1,6 @@
 name: "fastqc"
-Label: "FastQC"
+label: "FastQC"
+description: "Summarizes the statistics of each sequencing run individually. (https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)"
 
 single_end:
   snakefile: "fastqc_se"

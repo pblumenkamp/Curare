@@ -1,5 +1,6 @@
 name: "readxplorer"
 label: "ReadXplorer"
+description: "This module creates a ReadXplorer database of the new created mappings."
 
 required_settings:
 

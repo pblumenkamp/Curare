@@ -106,7 +106,7 @@ def create_pipeline(all_modules: Dict[str, List[Dict[str, str]]]) -> Dict[str, L
         user_input = input('Select[1-{}]: '.format(len(all_modules['preprocessing'])-1))
     selected_modules['preprocessing'] = [preprocessing_modules[int(user_input)-1]] if user_input.upper() != 'N' else [none_module]
 
-    print()
+    print("\n")
 
     print_modules('Select any number of premapping modules:', all_modules['premapping'], True)
     user_input: str = ''
@@ -117,7 +117,7 @@ def create_pipeline(all_modules: Dict[str, List[Dict[str, str]]]) -> Dict[str, L
         for value in user_input.split(','):
             selected_modules['premapping'].append(all_modules['premapping'][int(value) - 1])
 
-    print()
+    print("\n")
 
     mapping_modules: List[Dict[str, str]] = all_modules['mapping']
     print_modules('Select a mapping module:', mapping_modules)
@@ -126,7 +126,7 @@ def create_pipeline(all_modules: Dict[str, List[Dict[str, str]]]) -> Dict[str, L
         user_input = input('Select[1-{}]: '.format(len(mapping_modules)))
     selected_modules['mapping'] = [mapping_modules[int(user_input) - 1]]
 
-    print()
+    print("\n")
 
     print_modules('Select any number of analysis modules:', all_modules['analysis'], True)
     user_input: str = ''
@@ -137,7 +137,7 @@ def create_pipeline(all_modules: Dict[str, List[Dict[str, str]]]) -> Dict[str, L
         for value in user_input.split(','):
             selected_modules['analysis'].append(all_modules['analysis'][int(value) - 1])
 
-    print()
+    print("\n")
 
     return selected_modules
 
@@ -147,9 +147,11 @@ def print_modules(title: str, modules: List[Dict[str, str]], include_none: bool 
     for i, module in enumerate(modules):
         print('[{:2d}] {}'.format(i + 1, module['label']))
         print('     {}'.format(module['description']))
+        print()
     if include_none:
         print('[{:>2s}] {}'.format('N', 'None'))
         print('     {}'.format("Don't use any module."))
+        print()
 
 
 def check_selection(value: str, min_value: int, max_value: int, characters: List[str] = ()) -> bool:

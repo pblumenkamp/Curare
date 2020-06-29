@@ -1,5 +1,6 @@
-name: count_table
+name: "count_table"
 label: "Count Table"
+description: "This module creates ONLY the count table including reads per genomic feature (featureCounts)."
 
 required_settings:
 

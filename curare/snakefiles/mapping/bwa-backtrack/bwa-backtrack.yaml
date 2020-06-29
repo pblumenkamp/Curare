@@ -1,5 +1,7 @@
 name: 'bwa-backtrack'
 label: 'BWA-Backtrack'
+description: "Uses the Backtrack algorithm of BWA for read alignment. Recommended for Illumina reads up to 100bp. (http://bio-bwa.sourceforge.net)"
+
 
 required_settings:
 
