@@ -1,5 +1,6 @@
 name: 'bowtie2'
 label: 'Bowtie2'
+description: "Use Bowtie2 for read alignment. (http://bowtie-bio.sourceforge.net/bowtie2)"
 
 required_settings:
 

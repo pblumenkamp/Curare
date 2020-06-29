@@ -1,5 +1,7 @@
 name: 'segemehl'
 label: 'Segemehl'
+description: "Use Segemehl for read alignment. (https://www.bioinf.uni-leipzig.de/Software/segemehl/)"
+
 
 required_settings:
 

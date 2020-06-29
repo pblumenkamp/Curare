@@ -1,5 +1,7 @@
 name: 'bwa-sw'
 label: 'BWA-SW'
+description: "Uses the BWA-SW algorithm of BWA for read alignment. Like BWA-MEM, recommended for longer reads ranged from 70bp to 1Mbp. If possible, switch to BWA-MEM! (http://bio-bwa.sourceforge.net)"
+
 
 required_settings:
 
