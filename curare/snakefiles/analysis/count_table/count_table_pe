@@ -3,21 +3,21 @@ from os.path import isfile
 
 rule all:
     input:
-        "analyses/count_table/counts.txt",
+        "analysis/count_table/counts.txt",
         ".report/modules/count_table.html"
 
 rule count_reads:
     input:
         expand("mapping/{A}.bam", A=config['entries'].keys())
     output:
-        table="analyses/count_table/counts.txt",
-        stats="analyses/count_table/counts.txt.summary"
+        table="analysis/count_table/counts.txt",
+        stats="analysis/count_table/counts.txt.summary"
     conda:
         "../lib/conda_env.yaml"
     group:
         "count_reads"
     log:
-        log="analyses/count_table/logs/featurecounts.log"
+        log="analysis/count_table/logs/featurecounts.log"
     threads:
         1
     shell:
@@ -26,7 +26,7 @@ rule count_reads:
 
 rule generate_report_data:
     input:
-        stats="analyses/count_table/counts.txt.summary",
+        stats="analysis/count_table/counts.txt.summary",
     output:
         count_table_data=".report/data/count_table_data.js",
         count_table_html=".report/modules/count_table.html",

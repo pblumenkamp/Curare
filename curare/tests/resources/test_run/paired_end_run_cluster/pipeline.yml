@@ -15,14 +15,14 @@ premapping:
     modules: ["fastqc", "multiqc"]
 
 analysis:
-  modules: ["count_table", "deseq2"]
+  modules: ["count_table", "dge_analysis"]
 
   count_table:
     gff_feature_type: "gene"
     gff_feature_name: "ID"
     gff_path: "../../reference/listeria_monocytogenes_egd_e.gff3"
 
-  deseq2:
+  dge_analysis:
     gff_feature_type: "gene"
     gff_feature_name: "ID"
     gff_path: "../../reference/listeria_monocytogenes_egd_e.gff3"

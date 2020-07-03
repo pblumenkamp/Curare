@@ -3,13 +3,13 @@ from os.path import isfile
 
 rule all:
     input:
-        "analyses/readxplorer/readxplorer.h2.db"
+        "analysis/readxplorer/readxplorer.h2.db"
 
 rule copy_bam_as_symlink:
     input:
         bam="mapping/{A}.bam"
     output:
-        bam=temp("analyses/readxplorer/{A}.bam")
+        bam=temp("analysis/readxplorer/{A}.bam")
     threads:
         1
     shell:
@@ -17,13 +17,13 @@ rule copy_bam_as_symlink:
 
 rule readxplorer_import:
     input:
-        expand("analyses/readxplorer/{A}.bam", A=config['entries'].keys())
+        expand("analysis/readxplorer/{A}.bam", A=config['entries'].keys())
     output:
-        "analyses/readxplorer/readxplorer.h2.db"
+        "analysis/readxplorer/readxplorer.h2.db"
     log:
-        "analyses/readxplorer/logs/readxplorer.log"
+        "analysis/readxplorer/logs/readxplorer.log"
     threads:
         32
     shell:
-        "%%READXPLORER_CLI_PATH%% --threads {threads} --reads 'analyses/readxplorer/' --db analyses/readxplorer/readxplorer --ref %%REFERENCE_GENOME%% 2>&1 |"
+        "%%READXPLORER_CLI_PATH%% --threads {threads} --reads 'analysis/readxplorer/' --db analysis/readxplorer/readxplorer --ref %%REFERENCE_GENOME%% 2>&1 |"
         "tee {log}"
