@@ -1,5 +1,5 @@
-name: "deseq2"
-label: "DESeq2"
+name: "dge_analysis"
+label: "DGE Analysis with DESeq2"
 description: "A differential gene expression analysis using DESeq2 for statistical tests. As a pre-step, featureCounts is used for assigning the alignments to a genomic feature."
 
 required_settings:
@@ -42,10 +42,10 @@ columns:
 
 
 single_end:
-  snakefile: "deseq2_se"
+  snakefile: "dge_analysis_se"
 
 
 paired_end:
-  snakefile: "deseq2_pe"
+  snakefile: "dge_analysis_pe"
 
 

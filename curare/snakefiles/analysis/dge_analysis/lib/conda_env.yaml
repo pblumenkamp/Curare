@@ -1,4 +1,4 @@
-# module: deseq2
+# module: dge_analysis
 channels:
   - conda-forge
   - bioconda
