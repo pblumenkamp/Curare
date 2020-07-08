@@ -38,7 +38,7 @@ rule get_possible_annotation_types:
     output:
         list=temp("analysis/dge_analysis/annotation_types.txt")
     shell:
-        "grep -v '^#' {input.annotation} | awk 'NF {{print $3}}' | sort | uniq -c | sort -n > {output.list}"
+        "grep -v '^#' {input.annotation} | awk 'BEGIN {{FS=\"\t\"}}; NF {{print $3}}' | sort | uniq -c | sort -n > {output.list}"
 
 rule make_count_tables:
     input:
