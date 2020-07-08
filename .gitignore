@@ -7,6 +7,9 @@ __pycache__/
 # Ignore snakemake folder
 .snakemake/
 
+# Ignore user test-case
+curare_user_testcase.zip
+
 # Ignore conda environments for test cases
 /curare/tests/**/envs
 
