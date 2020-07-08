@@ -5,12 +5,12 @@ new Vue({
     data: {
         versionsData: Curare.versions,
         curare_summary: Curare.summary,
-        analysis_steps: ['preprocessing', 'premapping', 'mapping', 'analyses'],
+        analysis_steps: ['preprocessing', 'premapping', 'mapping', 'analysis'],
         showAllDependencies: {
             'preprocessing': {},
             'premapping': {},
             'mapping': {},
-            'analyses': {}
+            'analysis': {}
         }
     },
     computed: {
