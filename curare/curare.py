@@ -508,6 +508,7 @@ def create_snakefile(output_folder: Path, samples: Dict[str, Dict[str, Dict[str,
 
         # copy parse_versions snakefile to parse conda versions for report.
         if use_conda:
+            conda_environment = conda_environment if conda_environment is not None else Path(".snakemake/conda")
             # copy parse_versions.py script
             copy_tree(str(GLOBAL_LIB), str(output_folder / GLOBAL_LIB_TARGET_DIR), preserve_symlinks=True)
             with (SNAKEFILES_LIBRARY / 'misc' / 'parse_versions').open() as versions_snakefile:
