@@ -54,9 +54,9 @@ conda activate curare
 ```
 
 ### Creating a pipeline
-The easiest way to create a new pipeline is using the Curare wizard. It will guide through all steps and create the two necessary files (`samples.tsv` and `pipeline.yml`) at the end. These files can then be edited with a standard file editor for customization to your own data and analysis.  
+The easiest way to create a new pipeline is by using the Curare wizard. It will guide through all steps and create the two necessary files (`samples.tsv` and `pipeline.yml`). These files can then be edited with a standard file editor for customizing your data and analysis.  
 ```commandline
-# Current working directory inside of root tool directory
+# Current working directory is inside of tool directory
 cd curare
 python3 curare_wizard.py --samples target_directory/samples.tsv --pipeline target_directory/pipeline.yml
 ```
@@ -64,18 +64,18 @@ python3 curare_wizard.py --samples target_directory/samples.tsv --pipeline targe
 ### Samples File
 The samples file (`samples.tsv`) is a tab-separated file collecting all necessary information about the used biological samples. This includes a unique identifier (`name`), a file path to the sequencing data (`forward_reads`/`reverse reads` on paired-end data, `reads` on single-end data), and depending on used modules further information like the condition. Every line starting with a # is a comment line and will be ignored by Curare. These lines are just helpful information for correctly writing this file.
 
-**Name column**: A unique identifier used throughout the whole pipeline for this sample. To prevent any side-effects on the file system or in the used scripts, only alphanumerical characters and '_' are allowed.
+**Name column**: A unique identifier used throughout the whole pipeline for this sample. To prevent any side-effects on the file system or in the used scripts, only alphanumerical characters and '_' are allowed for sample names.
 
-**Reads columns**: Here you define the file path to the responding sequencing data. For paired-end datasets two columns must be set (`forward_reads` and `reverse_reads`), for single-end data only one column (`reads`). The file path can either be a relative path (relative to this file) or an absolute path (starting with '/').
+**Reads columns**: Here, you define the file path to the responding sequencing data. For paired-end datasets, two columns must be set (`forward_reads` and `reverse_reads`), for single-end data only one column (`reads`). The file path can either be a relative path (relative to this file) or an absolute path (starting with '/').
 
-**Additional columns**: Every selected module can define additional columns. The Curare wizard automatically creates a `samples.tsv` containing all required columns. So just fill out all open fields in the created file and everything will work. You can find a description of all additional columns in the header of the created file.
+**Additional columns**: Every selected module can define additional columns. The Curare wizard automatically creates a `samples.tsv` containing all required columns. So just fill out all open fields in the generated file, and everything will work. You can find a description of all additional columns in the header of the created file.
 
 **Example**         
 ```tsv
 # name: Unique sample name. Only use alphanumeric characters and '_'. [Value Type: String]
-# forward_reads: File path to fastq file containing forward reads. Either as absolute path or relative to this file. [Value Type: Path]
-# reverse_reads: File path to fastq file containing reverse reads. Either as absolute path or relative to this file. [Value Type: Path]
-# condition: Condition name of sequencing run. May contain [A-Z, a-z, 0-9, _;!@^(),.[]-, Whitespace]. [Value Type: String]
+# forward_reads: File path to fastq file containing forward reads. Either as an absolute path or relative to this file. [Value Type: Path]
+# reverse_reads: File path to fastq file containing reverse reads. Either as an absolute path or relative to this file. [Value Type: Path]
+# condition: Condition name of the sequencing run. May contain [A-Z, a-z, 0-9, _;!@^(),.[]-, Whitespace]. [Value Type: String]
 
 name    forward_reads   reverse_reads   condition
 wt_1    data/wt_1_R1.fastq  data/wt_1_R2.fastq  WT
@@ -90,7 +90,7 @@ starvation_3    data/wt_3_R1.fastq  data/wt_3_R2.fastq  Starvation
 ```
 
 ### Pipeline File
-The pipeline file (`pipeline.yml`) defines the used modules and their parameters in the newly created workflow. As a typical YAML file everything is structured in categories. There are catergories for each workflow step (`preprocessing`, `premapping`, `mapping`, and `analysis`) and a main category for the whole pipeline (`pipeline`). Each of the four workflow categories has a parameter `modules` defining the used modules in this step. Since many modules need additional information, like a file path to the reference genome or a quality threshold, modules have their own block in their category for specifying these values. 
+The pipeline file (`pipeline.yml`) defines the used modules and their parameters in the newly created workflow. As a typical YAML file, everything is structured in categories. There are categories for each workflow step (`preprocessing`, `premapping`, `mapping`, and `analysis`) and the main category for the whole pipeline (`pipeline`). Each of the four workflow categories has a parameter `modules` defining the used modules in this step. Since many modules need additional information, like a file path to the reference genome or a quality threshold, modules have their own block in their category for specifying these values. 
 
 One differentiates between mandatory and optional settings. Mandatory settings follow the structure `gff_feature_type: <Insert Config Here>`. It is necessary to replace `<Insert Config Here>` with a real value (like in the `samples.tsv`, the file path can either be relative to this file or absolute). Optional settings are commented out with a single #. For using other values than its default value, just remove the #.         
 
@@ -98,8 +98,8 @@ One differentiates between mandatory and optional settings. Mandatory settings f
 ```yaml
 ## Curare Pipeline File
 ## This is an automatically created pipeline file for Curare.
-## All required parameters must be set (replace <Insert Config Here> with a real value).
-## All optional parameters are commented out with a single '#'. For including these parameters just remove the '#'.
+## All required parameters must be set (replace <Insert Config Here> with real value).
+## All optional parameters are commented out with a single '#'. For including these parameters, just remove the '#'.
 
 pipeline:
   paired_end: true
@@ -120,7 +120,7 @@ preprocessing:
     ## Additional options to use in shell command. [Value Type: String
     #additional_parameter: ""
 
-    ## Adapter sequence to be trimmed. If not specified explicitly, Trim Galore will try to auto-detect whether the Illumina universal, Nextera transposase or Illumina small RNA adapter sequence was used. [Value Type: String
+    ## Adapter sequence to be trimmed. If not specified explicitly, Trim Galore will try to auto-detect whether the Illumina universal, Nextera transposase, or Illumina small RNA adapter sequence was used. [Value Type: String
     #adapter_forward: ""
 
     ## adapter sequence to be trimmed off read 2 of paired-end files. [Value Type: String
@@ -178,8 +178,8 @@ analysis:
 ```yaml
 ## Curare Pipeline File
 ## This is an automatically created pipeline file for Curare.
-## All required parameters must be set (replace <Insert Config Here> with a real value).
-## All optional parameters are commented out with a single '#'. For including these parameters just remove the '#'.
+## All required parameters must be set (replace <Insert Config Here> with real value).
+## All optional parameters are commented out with a single '#'. For including these parameters, just remove the '#'.
 
 pipeline:
   paired_end: true
@@ -200,7 +200,7 @@ preprocessing:
     ## Additional options to use in shell command. [Value Type: String]
     #additional_parameter: ""
 
-    ## Adapter sequence to be trimmed. If not specified explicitly, Trim Galore will try to auto-detect whether the Illumina universal, Nextera transposase or Illumina small RNA adapter sequence was used. [Value Type: String]
+    ## Adapter sequence to be trimmed. If not specified explicitly, Trim Galore will try to auto-detect whether the Illumina universal, Nextera transposase, or Illumina small RNA adapter sequence was used. [Value Type: String]
     #adapter_forward: ""
 
     ## adapter sequence to be trimmed off read 2 of paired-end files. [Value Type: String]
@@ -266,7 +266,7 @@ python3 curare.py --samples target_directory/samples.tsv --pipeline target_direc
 All results, including the conda environments and a final report, will be written in `results_directory`.
 
 ### Results
-Curare structures all the results by categories and modules. As an example, here are the top two levels of test case results (directories are surounded by *).
+Curare structures all the results by categories and modules. As an example, here is the summarized directory structure of the test-case results (directories are surrounded by *).
 ```
 ├── *analysis*
 │   └── *dge_analysis*
