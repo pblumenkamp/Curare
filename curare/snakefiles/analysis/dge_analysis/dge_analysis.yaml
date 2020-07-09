@@ -36,7 +36,7 @@ optional_settings:
 columns:
   condition:
     label: "Condition"
-    description: "Condition name of sequencing run. May contain [A-Z, a-z, 0-9, _;!@^(),.[]-, Whitespace]"
+    description: "Condition name of the sequencing run. May contain [A-Z, a-z, 0-9, _;!@^(),.[]-, Whitespace]"
     type: "string"
     character_set: ['A-Z', 'a-z', '0-9', '_', ';', '!', '@', '^', '(', ')', ',', '.', '[', ']', '-', ' ']
 
