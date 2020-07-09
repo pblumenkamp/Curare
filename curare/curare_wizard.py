@@ -192,8 +192,8 @@ def create_groups_file(selected_modules: Dict[str, List[Dict[str, str]]], all_mo
     with output.open('w') as out:
         out.write('# name: Unique sample name. Only use alphanumeric characters and \'_\'. [Value Type: String]\n')
         if is_paired_end:
-            out.write('# forward_reads: File path to fastq file containing forward reads. Either as absolute path or relative to this file. [Value Type: Path]\n')
-            out.write('# reverse_reads: File path to fastq file containing reverse reads. Either as absolute path or relative to this file. [Value Type: Path]\n')
+            out.write('# forward_reads: File path to fastq file containing forward reads. Either as an absolute path or relative to this file. [Value Type: Path]\n')
+            out.write('# reverse_reads: File path to fastq file containing reverse reads. Either as an absolute path or relative to this file. [Value Type: Path]\n')
         else:
             out.write('# reads: File path to fastq file containing reads. Either as absolute path or relative to this file. [Value Type: Path]\n')
         for col in necessary_columns:
@@ -208,8 +208,8 @@ def create_pipeline_file(selected_modules: Dict[str, List[Dict[str, str]]], all_
         out_write: Callable = lambda text='', indent=0: out.write(' ' * indent + text + '\n')
         out_write("## Curare Pipeline File")
         out_write("## This is an automatically created pipeline file for Curare.")
-        out_write('## All required parameters must be set (replace <Insert Config Here> with a real value).')
-        out_write("## All optional parameters are commented out with a single '#'. For including these parameters just remove the '#'.")
+        out_write('## All required parameters must be set (replace <Insert Config Here> with real value).')
+        out_write("## All optional parameters are commented out with a single '#'. For including these parameters, just remove the '#'.")
         out_write()
         out_write('pipeline:')
         out_write('paired_end: {}'.format('true' if is_paired_end else 'false'), 2)

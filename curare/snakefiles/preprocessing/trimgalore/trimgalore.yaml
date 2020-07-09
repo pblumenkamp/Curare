@@ -45,7 +45,7 @@ single_end:
   optional_settings:
     adapter:
       label: 'Adapter Sequence'
-      description: "Adapter sequence to be trimmed. If not specified explicitly, Trim Galore will try to auto-detect whether the Illumina universal, Nextera transposase or Illumina small RNA adapter sequence was used."
+      description: "Adapter sequence to be trimmed. If not specified explicitly, Trim Galore will try to auto-detect whether the Illumina universal, Nextera transposase, or Illumina small RNA adapter sequence was used."
       type: 'string'
       default: ''
 
@@ -55,7 +55,7 @@ paired_end:
   optional_settings:
     adapter_forward:
       label: 'Adapter Sequence Forward'
-      description: "Adapter sequence to be trimmed. If not specified explicitly, Trim Galore will try to auto-detect whether the Illumina universal, Nextera transposase or Illumina small RNA adapter sequence was used."
+      description: "Adapter sequence to be trimmed. If not specified explicitly, Trim Galore will try to auto-detect whether the Illumina universal, Nextera transposase, or Illumina small RNA adapter sequence was used."
       type: 'string'
       default: ''
 
