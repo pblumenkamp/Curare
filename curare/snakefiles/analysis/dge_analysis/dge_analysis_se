@@ -4,6 +4,22 @@ from os.path import isfile
 def getConditions():
     return set([seqRun['dge_analysis']['condition'] for seqRun in config['entries'].values()])
 
+def list_of_all_features(gff_path):
+  features = set()
+  with open(gff_path, "r") as f2r:
+      for line in f2r.readlines():
+        if line.startswith("#"): #skip lines starting with #
+          continue
+        if not line or line.isspace():
+          continue
+
+        features.add(line.strip().split("\t")[2]) #feature
+
+  # remove unnecessary features
+  if "%%ADDITIONAL_FEATCOUNTS_FEATURES%%":
+    features = features.intersection("%%ADDITIONAL_FEATCOUNTS_FEATURES%%".split(","))
+  return(list(features))
+
 localrules: dge_analysis__create_conditions
 
 DUMP = "analysis/dge_analysis/deseq2.RData"
@@ -32,20 +48,12 @@ rule summary_tsv_to_xslx:
         "python3 lib/deseq2_summary_tsv_to_xlsx.py --tsv \"{input}\" --conditions \"{params.number_conditions}\" --gff '%%GFF_PATH%%' --identifier \"%%GFF_FEATURE_NAME%%\" "
         "--feature \"%%GFF_FEATURE_TYPE%%\" --attributes \"%%ATTRIBUTE_COLUMNS%%\" --output \"{output}\""
 
-rule get_possible_annotation_types:
-    input:
-        annotation="%%GFF_PATH%%"
-    output:
-        list=temp("analysis/dge_analysis/annotation_types.txt")
-    shell:
-        "grep -v '^#' {input.annotation} | awk 'BEGIN {{FS=\"\t\"}}; NF {{print $3}}' | sort | uniq -c | sort -n > {output.list}"
-
 rule make_count_tables:
     input:
-        annotation="analysis/dge_analysis/annotation_types.txt",
         mappings=expand("mapping/{A}.bam", A=sorted(config['entries'].keys()))
     output:
-        list=touch("analysis/dge_analysis/count_tables/.count_tables")
+        featcounts="analysis/dge_analysis/count_tables/{feature}.txt",
+        featcounts_summary="analysis/dge_analysis/count_tables/{feature}.txt.summary"
     params:
         output="analysis/dge_analysis/count_tables/"
     conda:
@@ -55,12 +63,22 @@ rule make_count_tables:
     threads:
         1
     log:
-        log=directory("analysis/dge_analysis/logs/count_tables")
+        log="analysis/dge_analysis/logs/count_tables/{feature}.log"
     shell:
-        "mkdir -p {log.log}; mkdir -p {params.output};"
-        "awk 'NF {{print $2}}' {input.annotation} | while read line; do "
-        "featureCounts -T {threads} %%ADDITIONAL_FEATCOUNTS_OPTIONS%% -t ${{line}} -g '%%GFF_FEATURE_NAME%%' -a %%GFF_PATH%% -o \"{params.output}/${{line}}.txt\" {input.mappings} 2>&1 |"
-        "tee {log.log}/${{line}}.log; done;"
+        "featureCounts -T {threads} %%ADDITIONAL_FEATCOUNTS_OPTIONS%% -t {wildcards.feature} -g '%%GFF_FEATURE_NAME%%' -a %%GFF_PATH%% -o '{output.featcounts}' {input.mappings} 2>&1 | "
+        "tee {log.log};"
+
+rule collect_count_tables:
+    input:
+        count_tables=expand("analysis/dge_analysis/count_tables/{feature}.txt", feature = list_of_all_features("%%GFF_PATH%%"))
+    output:
+        "analysis/dge_analysis/count_tables/.count_tables"
+    log:
+        log="analysis/dge_analysis/logs/count_tables/collect_count_tables.log"
+    group:
+        "count_reads"
+    shell:
+        "for i in {input.count_tables}; do echo $i >> {output}; done"
 
 rule visualize_assignments:
     input:
@@ -76,14 +94,11 @@ rule visualize_assignments:
 
 rule count_reads:
     input:
-        "analysis/dge_analysis/count_tables/.count_tables"
+        counts = "analysis/dge_analysis/count_tables/%%GFF_FEATURE_TYPE%%.txt",
+        summary= "analysis/dge_analysis/count_tables/%%GFF_FEATURE_TYPE%%.txt.summary"
     output:
         counts = "analysis/dge_analysis/counts.txt",
         summary = "analysis/dge_analysis/counts.txt.summary"
-    params:
-        counts_link="count_tables/%%GFF_FEATURE_TYPE%%.txt",
-        summary_link="count_tables/%%GFF_FEATURE_TYPE%%.txt.summary",
-        counts="analysis/dge_analysis/count_tables/%%GFF_FEATURE_TYPE%%.txt",
     conda:
         "../lib/conda_env.yaml"
     group:
@@ -91,7 +106,7 @@ rule count_reads:
     threads:
         1
     shell:
-        "if [ -f '{params.counts}' ]; then ln -s \"{params.counts_link}\" {output.counts}; ln -s \"{params.summary_link}\" {output.summary}; else echo 'Unknown feature type: %%GFF_FEATURE_TYPE%%'; exit 50; fi"
+        "cp {input.counts} {output.counts}; cp {input.summary} {output.summary}"
 
 rule create_conditions:
     output:
