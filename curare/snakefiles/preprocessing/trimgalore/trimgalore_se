@@ -49,10 +49,8 @@ rule collect_paired_reads:
         reads_forward="preprocessing/trim_galore/{sample}_trimmed.fq",
     output:
         "preprocessing/{sample}.fastq"
-    params:
-        symlink_path=lambda wildcard: getSymlinkPath(wildcard.sample, os.path.join("trim_galore"))
     shell:
-        "ln -s {params.symlink_path} {output}"
+        "ln ./{input} {output}"
 
 rule stats_file_list_for_report:
     input:

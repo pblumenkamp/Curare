@@ -17,7 +17,7 @@ rule all:
         expand("preprocessing/{sample}_R2.fastq", sample=config['entries'].keys())
 
 
-rule create_symlink:
+rule create_hardlink:
     input:
         lambda wildcards: getPath(wildcards.sample)
     output:
@@ -25,4 +25,4 @@ rule create_symlink:
     threads:
         1
     shell:
-        "ln -s `readlink -f {input}` {output}"
+        "ln `readlink -f {input}` {output}"
