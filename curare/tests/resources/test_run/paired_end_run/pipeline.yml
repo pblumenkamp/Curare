@@ -35,4 +35,5 @@ analysis:
     gff_path: "../../reference/listeria_monocytogenes_egd_e.gff3"
     additional_featcounts_options: "-B"
     attribute_columns: "'name' 'product'"
+    additional_featcounts_features: "CDS,rRNA,tRNA"
 
