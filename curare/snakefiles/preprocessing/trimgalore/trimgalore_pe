@@ -58,11 +58,8 @@ rule collect_paired_reads:
     output:
         reads_forward="preprocessing/{sample, [^/]*}_R1.fastq",
         reads_reverse="preprocessing/{sample, [^/]*}_R2.fastq"
-    params:
-        symlink_path_forward=lambda wildcard, input, output: os.path.relpath(input.reads_forward, os.path.dirname(output.reads_forward)),
-        symlink_path_reverse=lambda wildcard, input, output: os.path.relpath(input.reads_reverse, os.path.dirname(output.reads_reverse))
     shell:
-        "ln -s {params.symlink_path_forward} {output.reads_forward} && ln -s {params.symlink_path_reverse} {output.reads_reverse}"
+        "ln ./{input.reads_forward} {output.reads_forward} && ln ./{input.reads_reverse} {output.reads_reverse}"
 
 rule stats_file_list_for_report:
     input:

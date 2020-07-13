@@ -13,7 +13,7 @@ rule copy_bam_as_symlink:
     threads:
         1
     shell:
-        "ln -s `readlink -f {input.bam}` {output.bam}; touch -h {output.bam}"
+        "ln `readlink -f {input.bam}` {output.bam}; touch -h {output.bam}"
 
 rule readxplorer_import:
     input:
