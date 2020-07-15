@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Customizable and Reproducible Analysis Pipeline for RNA-Seq Experiments (CURARE).
 
