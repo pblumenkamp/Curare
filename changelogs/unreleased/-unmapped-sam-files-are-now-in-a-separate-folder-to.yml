@@ -1,5 +1,0 @@
----
-title: "Moved the sam files containing all unmapped reads into a seperate directory. This was done to prevent a bug if the sample names end with '_unmapped'"
-type: fixed
- 
-
