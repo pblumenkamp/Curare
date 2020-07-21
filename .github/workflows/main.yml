@@ -69,12 +69,13 @@ jobs:
         # remove-profiles: # optional, default is true
         # Experimental. Use mamba (https://github.com/QuantStack/mamba) as a faster drop-in replacement for conda installs. Disabled by default. To enable, use "*" or a "x.y" version string.
         # mamba-version: # optional, default is 
-    - name: conda env creation
+    - name: curare_wizard help
       run: |
         conda --version
         which python
         # conda env create --file curare_env.yml
-        # conda activate curare
+        conda activate curare
+        which python
         conda env list
         cd curare
         python3 curare_wizard.py --help
