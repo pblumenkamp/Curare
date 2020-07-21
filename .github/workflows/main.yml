@@ -70,6 +70,7 @@ jobs:
         # Experimental. Use mamba (https://github.com/QuantStack/mamba) as a faster drop-in replacement for conda installs. Disabled by default. To enable, use "*" or a "x.y" version string.
         # mamba-version: # optional, default is 
     - name: curare_wizard help
+      shell: bash -l {0}
       run: |
         conda --version
         which python
