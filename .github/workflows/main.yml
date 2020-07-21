@@ -37,7 +37,7 @@ jobs:
         # python-version: # optional, default is default
         # Additional channels like 'conda-forge' which can be used to install packages
         # conda-channels: # optional, default is 
-        run:|
+        run: |
           conda --version
           which python
           conda env create --file curare_env.yml
