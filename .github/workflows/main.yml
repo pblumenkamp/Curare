@@ -25,7 +25,14 @@ jobs:
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
-
+    - name: Cache conda
+      uses: actions/cache@v1
+      env:
+        # Increase this value to reset cache if etc/example-environment.yml has not changed
+        CACHE_NUMBER: 0
+      with:
+        path: ~/conda_pkgs_dir
+        key: ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{ hashFiles('curare_env.yml') }}
     - name: Setup Miniconda
       uses: goanpeca/setup-miniconda@v1.6.0
       with:
@@ -58,13 +65,13 @@ jobs:
         # Conda configuration. Whenever you use the -c or --channel flag to give conda a channel name that is not a URL, conda prepends the channel_alias to the name that it was given. The default channel_alias is https://conda.anaconda.org. See https://docs.conda.io/projects/conda/en/latest/user-guide/configuration/use-condarc.html#set-a-channel-alias-channel-alias for more information.
         # channel-alias: # optional, default is 
         # Conda configuration. Accepts values of "strict", "flexible", and "disabled". The default value is "flexible". With strict channel priority, packages in lower priority channels are not considered if a package with the same name appears in a higher priority channel. With flexible channel priority, the solver may reach into lower priority channels to fulfill dependencies, rather than raising an unsatisfiable error. With channel priority disabled, package version takes precedence, and the configured priority of channels is used only to break ties. In previous versions of conda, this parameter was configured as either "true" or "false". "true" is now an alias to "flexible". See https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-channels.html#strict-channel-priority for more information.
-        # channel-priority: # optional, default is 
+        channel-priority: strict # optional, default is 
         # Conda configuration. Comma separated list of channels to use in order of priority. See https://docs.conda.io/projects/conda/en/latest/user-guide/configuration/ for more information.
         # channels: # optional, default is 
         # Conda configuration. Show channel URLs when displaying what is going to be downloaded and in conda list. The default is "false". See https://docs.conda.io/projects/conda/en/latest/user-guide/configuration/use-condarc.html#show-channel-urls-show-channel-urls for more information.
         # show-channel-urls: # optional, default is 
         # Conda configuration. Conda 4.7 introduced a new .conda package file format. .conda is a more compact and faster alternative to .tar.bz2 packages. It is thus the preferred file format to use where available. Nevertheless, it is possible to force conda to only download .tar.bz2 packages by setting the use_only_tar_bz2 boolean to "true". The default is "false". See https://docs.conda.io/projects/conda/en/latest/user-guide/configuration/use-condarc.html#force-conda-to-download-only-tar-bz2-packages-use-only-tar-bz2 for more information.
-        # use-only-tar-bz2: # optional, default is 
+        use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly! optional, default is 
         # Advanced. Prior to runnning "conda init" all shell profiles will be removed from the runner. Default is "true".
         # remove-profiles: # optional, default is true
         # Experimental. Use mamba (https://github.com/QuantStack/mamba) as a faster drop-in replacement for conda installs. Disabled by default. To enable, use "*" or a "x.y" version string.
@@ -80,14 +87,4 @@ jobs:
         conda env list
         cd curare
         python3 curare_wizard.py --help
-
-#     # Runs a single command using the runners shell
-#     - name: Run a one-line script
-#       run: echo Hello, world!
-
-#     # Runs a set of commands using the runners shell
-#     - name: Run a multi-line script
-#       run: |
-#         echo Add other actions to build,
-#         echo test, and deploy your project.
 
