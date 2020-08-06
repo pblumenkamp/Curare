@@ -1,9 +1,7 @@
 import csv
-import matplotlib.pyplot as plt
 import pandas as pd
 import sys
 
-from matplotlib import rcParams
 from pathlib import Path
 from typing import Dict, List, Union
 

@@ -1,9 +1,11 @@
 import csv
+import matplotlib
+matplotlib.use('Agg')
+matplotlib.rcParams.update({'figure.autolayout': True})
 import matplotlib.pyplot as plt
 import pandas as pd
 import sys
 
-from matplotlib import rcParams
 from pathlib import Path
 from typing import Dict, List, Union
 
@@ -32,7 +34,6 @@ def create_charts(df: pd.DataFrame, output_dir: Path):
                                                               "aligned_conc_more_than_1_times": "Aligned Conc. >1 Times",
                                                               "aligned_disconc_1_time": "Aligned Disconc.",
                                                               "pairs_aligned_0_times_conc_or_disconc": "Not Aligned Conc. Or Disconc."})
-    rcParams.update({'figure.autolayout': True})
     ax = absolute_alignments.plot(kind='bar', stacked=True, alpha=0.7)
     ax.legend(loc='lower center', bbox_to_anchor=(0.5, 1.05), fancybox=True, shadow=False, ncol=2)
 
