@@ -31,6 +31,7 @@ rule all:
         "analysis/dge_analysis/deseq2.RData",
         'analysis/dge_analysis/visualization/feature_assignments',
         expand('analysis/dge_analysis/summary/{COND}.xlsx', COND=getConditions()),
+        "analysis/dge_analysis/genexvis_conditions.txt",
         ".report/modules/dge_analysis.html"
 
 rule summary_tsv_to_xslx:
@@ -115,6 +116,17 @@ rule create_conditions:
         with(open(output[0], 'w')) as output_file:
             for name in sorted(config['entries'].keys()):
                 output_file.write('{}\t{}\n'.format(name, config['entries'][name]['dge_analysis']['condition']))
+
+rule genexvis_condition_file:
+    output:
+        "analysis/dge_analysis/genexvis_conditions.txt"
+    run:
+        conditions = set()
+        for name in sorted(config['entries'].keys()):
+            conditions.add(config['entries'][name]['dge_analysis']['condition'])
+        with(open(output[0], 'w')) as output_file:
+            for cond in conditions:
+                output_file.write('{}\n'.format(cond))
 
 rule deseq2_normalize_counts:
     input:
