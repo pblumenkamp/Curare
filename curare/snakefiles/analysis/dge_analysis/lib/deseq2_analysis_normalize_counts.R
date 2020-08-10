@@ -66,7 +66,7 @@ deseqDataset <- DESeqDataSetFromMatrix(countData = countdata, colData = conditio
 # Write normalized count table
 deseqDataset <- estimateSizeFactors(deseqDataset)
 countdata.normalized <- counts(deseqDataset, normalized = TRUE)
-write.table(countdata.normalized, file = output_count, sep = "\t", row.names = TRUE, col.names = NA)
+write.table(data.frame("geneid"=rownames(countdata.normalized),countdata.normalized, check.names=FALSE), file = output_count, sep = "\t", row.names = FALSE)
 
 # Often called dds
 deseq.results <- DESeq(object = deseqDataset, parallel = TRUE)
