@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CURARE Report</title>
+  <link rel="stylesheet" type="text/css" href="../css/buefy.min.css"/>
+  <link rel="stylesheet" type="text/css" href="../css/modules/dge_analysis.css"/>
+
+  <script type="text/javascript" charset="utf8" src="../js/Chart.min.js"></script>
+  <script type="text/javascript" charset="utf8" src="../js/vue.min.js"></script>
+  <script type="text/javascript" charset="utf8" src="../js/buefy.min.js"></script>
+  <script defer src="../js/fontawesome.all.min.js"></script>
+  <script>
+      window.Curare = {}
+  </script>
+</head>
+
+<body class="has-navbar-fixed-top">
+<section>
+  <div id="navigation">
+    <navigation-bar modules-path="../modules/" main-html="../../report.html"></navigation-bar>
+  </div>
+</section>
+
+<section class="hero is-primary is-small is-bold">
+  <div class="hero-body">
+    <div class="container has-text-centered">
+      <h1 class="title is-size-1">CURARE</h1>
+      <h2 class="subtitle is-size-3">Pipeline Report</h2>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div id="deseq2" class="container">
+    <div class="columns" style="max-width: 100%">
+      <div class="column is-1"></div>
+      <div class="column" style="max-width: 100%">
+        <div class="content">
+          <section id="deseq2-body">
+            <h2>Differential Gene Expression Analysis</h2>
+            <div class="columns" style="max-width: 100%">
+              <div class="column is-11" style="max-width: 100%">
+                <h3>FeatureCount Assignment</h3>
+              </div>
+              <div class="column field">
+                <b-switch id="in-percent" type="is-info" v-model="counttable_in_percent"><p>in %</p></b-switch>
+              </div>
+            </div>
+            <canvas id='stacked_barchart' style="padding-top: 1rem"></canvas>
+            <div class="columns" style="max-width: 100%; padding-top: 1rem">
+              <div class="column is-11" style="max-width: 100%">
+                <div></div>
+              </div>
+              <div class="column field">
+                <b-switch id="in-percent" type="is-info" v-model="counttable_in_percent"><p>in %</p></b-switch>
+              </div>
+            </div>
+            <b-table :data="counttable_table" :columns="counttable_columns" scrollable></b-table>
+
+            <hr>
+
+            <h3 style="padding-top: 2rem">Type Assignment</h3>
+            <b-tabs v-model="active_feature_assignment_tab" :animated="false" multiline size="is-medium" type="is-toggle">
+              <template v-for="(tab, tab_index) in Object.keys(feature_assignment)">
+                <b-tab-item :key="tab" :label="tab">
+                  <img :src="'../img/modules/dge_analysis/feature_assignment/' + feature_assignment[tab]"
+                       :alt="'Feature Type Distribution for ' + tab"
+                       style="margin-left: auto; margin-right: auto; display: block; padding-top: 1.5rem"
+                       width="85%">
+                </b-tab-item>
+              </template>
+            </b-tabs>
+
+            <hr>
+
+            <h3 style="padding-top: 2rem">Principal Component Analysis</h3>
+            <img src="../img/modules/dge_analysis/pca.svg"
+                 alt="Principle Component Analysis"
+                 style="margin-left: auto; margin-right: auto; display: block; padding-top: 1.5rem"
+                 width="75%">
+
+            <hr>
+
+            <h3 style="padding-top: 2rem">Sample Correlation</h3>
+            <img src="../img/modules/dge_analysis/correlation_heatmap.svg"
+                 alt="Sample Correlation"
+                 style="margin-left: auto; margin-right: auto; display: block; padding-top: 1.5rem"
+                 width="75%">
+
+            <hr>
+
+            <h3 style="padding-top: 2rem">DESeq2 Summary</h3>
+            <b-tabs v-model="activeComparisonTab" :animated="false" multiline size="is-medium" type="is-toggle">
+              <template v-for="(tab, tab_index) in deseq2_comparisons">
+                <b-tab-item :key="tab.comparison" :label="tab.comparison">
+                  <b-table :data="deseq2_summary_table[tab_index]">
+                    <template slot-scope="props">
+                      <b-table-column field="user.key" label="Key">
+                        <template slot="header" slot-scope="{ column }"></template>
+                        {{ props.row.key }}
+                      </b-table-column>
+                      <b-table-column field="user.value" label="Value">
+                        <template slot="header" slot-scope="{ column }"></template>
+                        {{ props.row.value }}
+                      </b-table-column>
+                    </template>
+                    <template slot="footer">
+                      <div></div>
+                    </template>
+                  </b-table>
+                  <h4 style="padding-top: 2rem">Log2 Fold Change Distribution</h4>
+                  <canvas :id=`lfc_distribution_${tab_index}` style="padding-top: 2rem"></canvas>
+                </b-tab-item>
+              </template>
+            </b-tabs>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<footer class="footer">
+  <div class="content has-text-centered">
+    <p><strong>CURARE</strong> by <a href="mailto:patrick.blumenkamp@computational.bio.uni-giessen.de">Patrick Blumenkamp</a>.</p>
+    <p style="margin-top: 1rem;">
+      <a href="http://bulma.io">
+        <img src="../img/made-with-bulma.png" alt="made with Bulma" style="height: 24px; width: auto; padding-right: 1rem" width="128" height="24">
+      </a>
+      and
+      <a href="https://buefy.org/">
+        <img src="../img/buefy-logo.png" alt="Buefy Logo" style="height: 24px; width: auto; padding-left: 1rem">
+      </a>
+    </p>
+  </div>
+</footer>
+
+<script type="text/javascript" charset="utf8" src="../data/navigation.js"></script>
+<script type="text/javascript" charset="utf8" src="../js/navigation_bar.js"></script>
+<script type="text/javascript" charset="utf8" src="../data/dge_analysis_data.js"></script>
+<script type="text/javascript" charset="utf8" src="../js/modules/dge_analysis.js"></script>
+
+</body>
+</html>

@@ -1,9 +1,0 @@
-name: "multiqc"
-
-single_end:
-  snakefile: "multiqc_se"
-
-paired_end:
-  snakefile: "multiqc_pe"
-
-

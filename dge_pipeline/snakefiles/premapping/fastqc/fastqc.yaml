@@ -1,9 +1,0 @@
-name: "fastqc"
-
-single_end:
-  snakefile: "fastqc_se"
-
-paired_end:
-  snakefile: "fastqc_pe"
-
-

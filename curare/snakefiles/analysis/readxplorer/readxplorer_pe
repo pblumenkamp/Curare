@@ -1,0 +1,29 @@
+from os import listdir
+from os.path import isfile
+
+rule all:
+    input:
+        "analysis/readxplorer/readxplorer.h2.db"
+
+rule copy_bam_as_symlink:
+    input:
+        bam="mapping/{A}.bam"
+    output:
+        bam=temp("analysis/readxplorer/{A}.bam")
+    threads:
+        1
+    shell:
+        "ln `readlink -f {input.bam}` {output.bam}; touch -h {output.bam}"
+
+rule readxplorer_import:
+    input:
+        expand("analysis/readxplorer/{A}.bam", A=config['entries'].keys())
+    output:
+        "analysis/readxplorer/readxplorer.h2.db"
+    log:
+        "analysis/readxplorer/logs/readxplorer.log"
+    threads:
+        32
+    shell:
+        "%%READXPLORER_CLI_PATH%% --threads {threads} --reads 'analysis/readxplorer/' --db analysis/readxplorer/readxplorer --ref %%REFERENCE_GENOME%% -p 2>&1 |"
+        "tee {log}"

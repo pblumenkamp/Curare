@@ -1,0 +1,115 @@
+from os import listdir
+from os.path import isfile, splitext
+
+rule all:
+    input:
+        "mapping/stats/mapping_stats.xlsx",
+        expand("mapping/{A}.bam", A=sorted(config['entries'].keys())),
+        ".report/modules/segemehl.html"
+
+
+rule mapping_stats_xlsx:
+    input:
+        "mapping/stats/mapping_stats.tsv"
+    output:
+        "mapping/stats/mapping_stats.xlsx"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "segemehl_statistics"
+    shell:
+        "python3 lib/se_mapping_stats_tsv_to_xlsx.py {input} {output}"
+
+
+rule mapping_stats_tsv:
+    input:
+        expand("mapping/logs/segemehl_mapping.{name}.log", name=config['entries'].keys())
+    output:
+        tsv="mapping/stats/mapping_stats.tsv"
+    group:
+        "segemehl_statistics"
+    run:
+        lines = ["Sample\tTotal_Reads\tMapped_Reads\tMapped_Reads[%]\tUniquely_Mapped_Reads\tUniquely_Mapped_Reads[%]\tMulti_Mapped_Reads\tMulti_Mapped_Reads[%]\tSplit_Mapped_Reads\tSplit_Mapped_Reads[%]"]
+        with open(output.tsv, "w") as summary_file:
+          for file in input:
+            name = file.rstrip(".log").lstrip("mapping/logs/segemehl_mapping.")
+            with open(file, 'r') as stats:
+              stat_row = [name]
+              for line in stats:
+                if line.startswith("all"):
+                  stat_row.extend([entry.strip("%") for entry in line.strip().split("\t")[1:]])
+            lines.append("\t".join(stat_row))
+          summary_file.writelines([l + "\n" for l in lines])
+
+
+rule segemehl_index:
+    input:
+        genome="%%GENOME_FASTA%%"
+    output:
+        splitext("%%GENOME_FASTA%%")[0] + ".idx"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "segemehl_index"
+    log:
+        "mapping/logs/segemehl_index.log"
+    shell:
+        "segemehl.x -x {output} -d {input.genome} 2>&1 |"
+        "tee {log}"
+
+
+rule segemehl_mapping:
+    input:
+        genome="%%GENOME_FASTA%%",
+        genome_index=splitext("%%GENOME_FASTA%%")[0] + ".idx",
+        reads="preprocessing/{name}.fastq"
+    output:
+        temp("mapping/sam/{name}.sam")
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "segemehl_mapping"
+    log:
+        "mapping/logs/segemehl_mapping.{name}.log"
+    threads:
+        2
+    shell:
+        "segemehl.x -t {threads} -o {output} -i {input.genome_index} -d {input.genome} -q {input.reads} 2>&1 |"
+        "tee {log}"
+
+
+rule index_bam:
+    input:
+        "mapping/sam/{sample}.sam"
+    output:
+        bam="mapping/{sample}.bam",
+        bai="mapping/{sample}.bam.bai",
+        bam_unmapped="mapping/unmapped/{sample}_unmapped.bam"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "segemehl_mapping"
+    threads:
+        2
+    shell:
+        "samtools view -F 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam} - && samtools index {output.bam};"
+        "samtools view -f 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam_unmapped} -"
+
+
+rule generate_report_data:
+    input:
+        stats_tsv="mapping/stats/mapping_stats.tsv"
+    output:
+        segemehl_data=".report/data/segemehl_data.js",
+        segemehl_html=".report/modules/segemehl.html",
+        segemehl_js=".report/js/modules/segemehl.js",
+        segemehl_css=".report/css/modules/segemehl.css",
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "segemehl_report"
+    shell:
+        "python3 lib/generate_report_data.py --stats {input.stats_tsv} --output {output.segemehl_data} && "
+        "cp lib/report/segemehl.html {output.segemehl_html} && "
+        "cp lib/report/segemehl.js {output.segemehl_js} && "
+        "cp lib/report/segemehl.css {output.segemehl_css}"

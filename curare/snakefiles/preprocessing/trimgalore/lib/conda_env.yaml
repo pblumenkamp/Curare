@@ -1,0 +1,12 @@
+# module: trimgalore
+channels:
+  - conda-forge
+  - bioconda
+  - anaconda
+  - defaults
+dependencies:
+  - trim-galore
+  - python>=3.6
+  - docopt>=0.6
+  - pandas>=0.23
+

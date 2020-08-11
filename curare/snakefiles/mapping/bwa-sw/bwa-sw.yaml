@@ -1,0 +1,28 @@
+name: 'bwa-sw'
+label: 'BWA-SW'
+description: "Uses the BWA-SW algorithm of BWA for read alignment. Like BWA-MEM, recommended for longer reads ranged from 70bp to 1Mbp. If possible, switch to BWA-MEM! (http://bio-bwa.sourceforge.net)"
+
+
+required_settings:
+
+  genome_fasta:
+    label: 'Reference Genome'
+    description: 'Path to genome fasta file'
+    type: 'file_input'
+
+optional_settings:
+  additional_bwa_options:
+    label: 'Additional BWA Options'
+    description: "Additional options to use in shell command"
+    type: "string"
+    default: ''
+
+
+single_end:
+  snakefile: 'bwa-sw_se'
+
+paired_end:
+  snakefile: 'bwa-sw_pe'
+
+
+

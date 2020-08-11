@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CURARE Report</title>
+  <link rel="stylesheet" type="text/css" href="../css/buefy.min.css"/>
+
+  <script type="text/javascript" charset="utf8" src="../js/vue.min.js"></script>
+  <script type="text/javascript" charset="utf8" src="../js/buefy.min.js"></script>
+  <script defer src="../js/fontawesome.all.min.js"></script>
+  <script>
+      window.Curare = {}
+  </script>
+</head>
+<body class="has-navbar-fixed-top">
+<section>
+  <div id="navigation">
+    <navigation-bar modules-path="../modules/" main-html="../../report.html"></navigation-bar>
+  </div>
+</section>
+
+<section class="hero is-primary is-small is-bold">
+  <div class="hero-body">
+    <div class="container has-text-centered">
+      <h1 class="title is-size-1">CURARE</h1>
+      <h2 class="subtitle is-size-3">Pipeline Report</h2>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div id="fastqc" class="container">
+    <div class="columns" style="max-width: 100%">
+      <div class="column is-1"></div>
+      <div class="column" style="max-width: 100%">
+        <div class="content">
+          <section id="fastqc-body">
+            <h2>FastQC</h2>
+
+            <b-table v-if="paired_end" :data="table_data">
+              <template slot-scope="props">
+                <b-table-column field="name" label="Sample">
+                  {{ props.row.name }}
+                </b-table-column>
+                <b-table-column field="forward" label="Forward">
+                  <a
+                    :href="props.row.forward"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Open Reports...
+                  </a>
+                </b-table-column>
+                <b-table-column field="reverse" label="Reverse">
+                  <a
+                    :href="props.row.reverse"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Open Reports...
+                  </a>
+                </b-table-column>
+              </template>
+            </b-table>
+            <b-table v-else :data="table_data">
+              <template slot-scope="props">
+                <b-table-column field="name" label="Sample">
+                  {{ props.row.name }}
+                </b-table-column>
+                <b-table-column field="forward" label="Forward">
+                  <a
+                    :href="props.row.forward"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Open Reports...
+                  </a>
+                </b-table-column>
+              </template>
+            </b-table>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<footer class="footer">
+  <div class="content has-text-centered">
+    <p><strong>CURARE</strong> by <a href="mailto:patrick.blumenkamp@computational.bio.uni-giessen.de">Patrick Blumenkamp</a>.</p>
+    <p style="margin-top: 1rem;">
+      <a href="http://bulma.io">
+        <img src="../img/made-with-bulma.png" alt="made with Bulma" style="height: 24px; width: auto; padding-right: 1rem" width="128" height="24">
+      </a>
+      and
+      <a href="https://buefy.org/">
+        <img src="../img/buefy-logo.png" alt="Buefy Logo" style="height: 24px; width: auto; padding-left: 1rem">
+      </a>
+    </p>
+  </div>
+</footer>
+
+<script type="text/javascript" charset="utf8" src="../data/navigation.js"></script>
+<script type="text/javascript" charset="utf8" src="../js/navigation_bar.js"></script>
+<script type="text/javascript" charset="utf8" src="../data/fastqc_data.js"></script>
+<script type="text/javascript" charset="utf8" src="../js/modules/fastqc.js"></script>
+
+</body>
+</html>
