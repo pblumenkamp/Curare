@@ -1,0 +1,11 @@
+name: "multiqc"
+label: "MultiQC"
+description: "An aggregated report of all sequencing runs in one HTML document. This module includes all results of FastQC. (https://multiqc.info/)"
+
+single_end:
+  snakefile: "multiqc_se"
+
+paired_end:
+  snakefile: "multiqc_pe"
+
+

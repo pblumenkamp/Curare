@@ -1,9 +1,0 @@
-name: 'gunzip'
-
-single_end:
-  snakefile: "gunzip_se"
-
-paired_end:
-  snakefile: "gunzip_pe"
-
-

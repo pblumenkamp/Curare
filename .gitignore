@@ -7,8 +7,66 @@ __pycache__/
 # Ignore snakemake folder
 .snakemake/
 
+# Ignore user test-case
+curare_user_testcase.zip
+
+# Ignore conda environments for test cases
+/curare/tests/**/envs
+
 # Ignore test run results
-/dge_pipeline/tests/ressources/reference/*.bt2
-/dge_pipeline/tests/ressources/reference/*.fai
-/dge_pipeline/tests/ressources/paired_end_run/output_dir
-/dge_pipeline/tests/ressources/single_end_run/output_dir
+/tests/resources/reference/*.bt2
+/tests/resources/reference/*.fai
+/tests/resources/reference/*.idx
+/tests/resources/**/output_dir*/
+
+#bwa index files
+/tests/resources/reference/*.amb
+/tests/resources/reference/*.ann
+/tests/resources/reference/*.bwt
+/tests/resources/reference/*.pac
+/tests/resources/reference/*.sa
+
+# Ignore report node_modules
+/curare/report/node_modules*
+
+# Core latex/pdflatex auxiliary files:
+*.aux
+*.lof
+*.log
+*.lot
+*.fls
+*.out
+*.toc
+*.fmt
+*.fot
+*.cb
+*.cb2
+.*.lb
+
+## Intermediate documents:
+*.dvi
+*.xdv
+*-converted-to.*
+# these rules might exclude image files for figures etc.
+*.ps
+*.eps
+*.pdf
+
+*.bbl
+*.bcf
+*.blg
+*-blx.aux
+*-blx.bib
+*.run.xml
+
+# Build tool auxiliary files:
+*.fdb_latexmk
+*.synctex
+*.synctex(busy)
+*.synctex.gz
+*.synctex.gz(busy)
+*.pdfsync
+
+# Text editor files
+
+.*.swp

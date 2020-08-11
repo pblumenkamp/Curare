@@ -1,0 +1,18 @@
+from os import listdir
+from os.path import isfile, dirname
+
+localrules: none__create_symlink
+
+rule all:
+    input:
+        expand("preprocessing/{sample}.fastq", sample=config['entries'].keys())
+
+rule create_hardlink:
+    input:
+        lambda wildcards: config['entries'][wildcards.sample]['main']['reads']
+    output:
+        "preprocessing/{sample}.fastq"
+    threads:
+        1
+    shell:
+        "ln `readlink -f {input}` {output}"

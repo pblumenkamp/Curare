@@ -1,0 +1,24 @@
+name: "readxplorer"
+label: "ReadXplorer"
+description: "This module creates a ReadXplorer database of the new created mappings."
+
+required_settings:
+
+  readxplorer_cli_path:
+    label: "ReadXplorer CLI Path"
+    description: "Path to ReadXplorer CLI executable"
+    type: "file_input"
+
+  reference_genome:
+    label: "Reference Genome"
+    description: "Path to reference genome sequence"
+    type: "file_input"
+
+single_end:
+  snakefile: "readxplorer_se"
+
+
+paired_end:
+  snakefile: "readxplorer_pe"
+
+

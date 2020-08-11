@@ -1,0 +1,9 @@
+# module: count_table
+channels:
+  - conda-forge
+  - bioconda
+  - anaconda
+  - defaults
+dependencies:
+  - subread>=1.6
+  - docopt>=0.6

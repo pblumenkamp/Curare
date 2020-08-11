@@ -1,0 +1,31 @@
+"__default__":
+  "name": "dge_pipeline"
+  "slots": 1
+  "queue": "idle"
+  "virtual_free": "2G"
+
+"bowtie2_index":
+  "name": "dge_pipeline_bowtie2_index"
+  "virtual_free": "400M"
+  "slots": 8
+
+"bowtie2_mapping":
+  "name": "dge_pipeline_bowtie2_mapping"
+  "virtual_free": "500M"
+  "slots": 2
+
+"count_reads":
+  "name": "dge_pipeline_count_reads"
+  "virtual_free": "4G"
+
+"deseq2":
+  "name": "dge_pipeline_deseq2"
+  "virtual_free": "2G"
+
+"multiqc":
+  "name": "dge_pipeline_multiqc"
+  "virtual_free": "1G"
+
+"fastqc":
+  "name": "dge_pipeline_fastqc"
+  "virtual_free": "2G"

@@ -1,0 +1,10 @@
+name: "none"
+label: "None"
+
+single_end:
+  snakefile: "none_se"
+
+paired_end:
+  snakefile: "none_pe"
+
+

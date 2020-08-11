@@ -1,0 +1,24 @@
+pipeline:
+  paired_end: true
+
+preprocessing:
+  modules: "trimgalore"
+
+  trimgalore:
+    quality_threshold: 30
+    #adapter_forward: 'ATCTACTACTCACTCCC'
+    #adapter_reverse: 'CCCTCATCGGGCGGCTA'
+
+premapping:
+  modules: []
+
+mapping:
+  modules: "bowtie2"
+
+  bowtie2:
+    genome_fasta: "../../reference/listeria_monocytogenes_egd_e.fasta"
+    genome_annotation: "../../reference/listeria_monocytogenes_egd_e.gff3"
+    alignment_type: "local"
+
+analysis:
+  modules: []

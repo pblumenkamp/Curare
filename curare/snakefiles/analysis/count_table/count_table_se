@@ -1,0 +1,41 @@
+from os import listdir
+from os.path import isfile
+
+rule all:
+    input:
+        "analysis/count_table/counts.txt",
+        ".report/modules/count_table.html"
+
+rule count_reads:
+    input:
+        expand("mapping/{A}.bam", A=config['entries'].keys())
+    output:
+        table="analysis/count_table/counts.txt",
+        stats="analysis/count_table/counts.txt.summary"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "count_reads"
+    log:
+        log="analysis/count_table/logs/featurecounts.log"
+    threads:
+        1
+    shell:
+        "featureCounts -T 4 %%ADDITIONAL_OPTIONS%% -t '%%GFF_FEATURE_TYPE%%' -g '%%GFF_FEATURE_NAME%%' -a %%GFF_PATH%% -o {output.table} {input} 2>&1 |"
+        "tee {log}"
+
+rule generate_report_data:
+    input:
+        stats="analysis/count_table/counts.txt.summary",
+    output:
+        count_table_data=".report/data/count_table_data.js",
+        count_table_html=".report/modules/count_table.html",
+        count_table_js=".report/js/modules/count_table.js",
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "count_table_report"
+    shell:
+        "python3 lib/generate_report_data.py --stats {input.stats} --output {output.count_table_data} && "
+        "cp lib/report/count_table.html {output.count_table_html} && "
+        "cp lib/report/count_table.js {output.count_table_js}"
