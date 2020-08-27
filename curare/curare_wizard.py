@@ -189,6 +189,7 @@ def create_groups_file(selected_modules: Dict[str, List[Dict[str, str]]], all_mo
                     necessary_columns.append(column)
 
     table_header: str = 'name\t' + ('reads' if not is_paired_end else 'forward_reads\treverse_reads')
+    output.parent.mkdir(parents=True, exist_ok=True)
     with output.open('w') as out:
         out.write('# name: Unique sample name. Only use alphanumeric characters and \'_\'. [Value Type: String]\n')
         if is_paired_end:
@@ -204,6 +205,7 @@ def create_groups_file(selected_modules: Dict[str, List[Dict[str, str]]], all_mo
 
 
 def create_pipeline_file(selected_modules: Dict[str, List[Dict[str, str]]], all_modules: Dict[str, Dict[str, Dict[str, Union[Dict[str, Dict[str, str]], str]]]], output: Path, is_paired_end: bool) -> None:
+    output.parent.mkdir(parents=True, exist_ok=True)
     with output.open('w') as out:
         out_write: Callable = lambda text='', indent=0: out.write(' ' * indent + text + '\n')
         out_write("## Curare Pipeline File")
