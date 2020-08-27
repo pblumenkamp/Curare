@@ -103,7 +103,7 @@ def create_pipeline(all_modules: Dict[str, List[Dict[str, str]]]) -> Dict[str, L
     print_modules('Select a preprocessing module:', preprocessing_modules, True)
     user_input: str = ''
     while not check_selection(user_input.upper(), 1, len(all_modules['preprocessing'])-1, ['N']):
-        user_input = input('Select[1-{}]: '.format(len(all_modules['preprocessing'])-1))
+        user_input = input('Select[1-{}, N]: '.format(len(all_modules['preprocessing'])-1))
     selected_modules['preprocessing'] = [preprocessing_modules[int(user_input)-1]] if user_input.upper() != 'N' else [none_module]
 
     print("\n")
@@ -111,7 +111,7 @@ def create_pipeline(all_modules: Dict[str, List[Dict[str, str]]]) -> Dict[str, L
     print_modules('Select any number of premapping modules:', all_modules['premapping'], True)
     user_input: str = ''
     while not check_multi_selection(user_input.upper(), 1, len(all_modules['premapping']), ['N']):
-        user_input = input('Select[1-{}; Comma-separated]: '.format(len(all_modules['premapping'])))
+        user_input = input('Select[1-{}, N; Comma-separated]: '.format(len(all_modules['premapping'])))
     selected_modules['premapping'] = []
     if user_input.upper() != 'N':
         for value in user_input.split(','):
@@ -131,7 +131,7 @@ def create_pipeline(all_modules: Dict[str, List[Dict[str, str]]]) -> Dict[str, L
     print_modules('Select any number of analysis modules:', all_modules['analysis'], True)
     user_input: str = ''
     while not check_multi_selection(user_input.upper(), 1, len(all_modules['analysis']), ['N']):
-        user_input = input('Select[1-{}; Comma-separated]: '.format(len(all_modules['analysis'])))
+        user_input = input('Select[1-{}, N; Comma-separated]: '.format(len(all_modules['analysis'])))
     selected_modules['analysis'] = []
     if user_input.upper() != 'N':
         for value in user_input.split(','):
