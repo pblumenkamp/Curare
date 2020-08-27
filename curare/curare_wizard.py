@@ -14,7 +14,7 @@ Options:
     --samples <samples>                             Path for output samples file (Default Name: <output_folder>/samples.tsv)
     --pipeline <pipeline>                           Path for output pipeline file (Default Name: <output_folder>/pipeline.yaml)
 
-    --snakefiles <snakefiles>                       Folder containing all Curare snakefiles [default: snakefiles]
+    --snakefiles <snakefiles>                       Folder containing all Curare snakefiles. Uses default curare snakefiles if not specified.
     -v --verbose                                    Print additional information
 """
 
@@ -251,7 +251,10 @@ def main() -> None:
     else:
         args["--samples"] = Path(args["--samples"]).resolve()
         args["--pipeline"] = Path(args["--pipeline"]).resolve()
-    args["--snakefiles"] = Path(args["--snakefiles"]).resolve()
+    if args["--snakefiles"] is None:
+        args["--snakefiles"] = Path(__file__).resolve().parent / "snakefiles"  
+    else:
+        args["--snakefiles"] = Path(args["--snakefiles"]).resolve()
 
     print()
 
