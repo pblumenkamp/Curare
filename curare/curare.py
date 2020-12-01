@@ -316,8 +316,8 @@ def load_pipeline_file(pipeline_file: Path) -> Tuple[Dict[str, List['Module']], 
     else:
         raise InvalidPipelineFileError('Option "paired_end" must be set')
 
-    for category in modules:
-        for module_name in modules[category]:
+    for category, category_modules in modules.items():
+        for module_name in category_modules:
             settings = pipeline[category].get(module_name, {})
             used_modules[category].append(load_module(category, module_name, settings, pipeline_file, paired_end))
 
@@ -373,13 +373,13 @@ def load_module(category: str, module_name: str, user_settings: Dict[str, str], 
             module_yaml = yaml.safe_load(module_yaml_file.open('r'))
             if 'required_settings' in module_yaml:
                 for setting_name, setting_properties in module_yaml['required_settings'].items():
-                    if setting_name in user_settings:
+                    if user_settings and setting_name in user_settings:
                         loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, pipeline_file_path))
                     else:
                         raise InvalidPipelineFileError(module_name.capitalize() + ': Required parameter "' + setting_name + '" is missing')
             if 'optional_settings' in module_yaml:
                 for setting_name, setting_properties in module_yaml['optional_settings'].items():
-                    if setting_name in user_settings:
+                    if user_settings and setting_name in user_settings:
                         loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, pipeline_file_path))
                     else:
                         loaded_module.add_setting(setting_name, setting_properties['default'])
@@ -391,13 +391,13 @@ def load_module(category: str, module_name: str, user_settings: Dict[str, str], 
                 loaded_module.snakefile = SNAKEFILES_LIBRARY / category / module_name / module_yaml['paired_end']['snakefile']
                 if 'required_settings' in module_yaml['paired_end']:
                     for setting_name, setting_properties in module_yaml['paired_end']['required_settings'].items():
-                        if setting_name in user_settings:
+                        if user_settings and setting_name in user_settings:
                             loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, pipeline_file_path))
                         else:
                             raise InvalidPipelineFileError(module_name.capitalize() + ': Required parameter "' + setting_name + '" is missing')
                 if 'optional_settings' in module_yaml['paired_end']:
                     for setting_name, setting_properties in module_yaml['paired_end']['optional_settings'].items():
-                        if setting_name in user_settings:
+                        if user_settings and setting_name in user_settings:
                             loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, pipeline_file_path))
                         else:
                             loaded_module.add_setting(setting_name, setting_properties['default'])
@@ -409,13 +409,13 @@ def load_module(category: str, module_name: str, user_settings: Dict[str, str], 
                 loaded_module.snakefile = SNAKEFILES_LIBRARY / category / module_name / module_yaml['single_end']['snakefile']
                 if 'required_settings' in module_yaml['single_end']:
                     for setting_name, setting_properties in module_yaml['single_end']['required_settings'].items():
-                        if setting_name in user_settings:
+                        if user_settings and setting_name in user_settings:
                             loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, pipeline_file_path))
                         else:
                             raise InvalidPipelineFileError(module_name.capitalize() + ': Required parameter "' + setting_name + '" is missing')
                 if 'optional_settings' in module_yaml['single_end']:
                     for setting_name, setting_properties in module_yaml['single_end']['optional_settings'].items():
-                        if setting_name in user_settings:
+                        if user_settings and setting_name in user_settings:
                             loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, pipeline_file_path))
                         else:
                             loaded_module.add_setting(setting_name, setting_properties['default'])
