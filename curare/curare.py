@@ -5,8 +5,8 @@ Customizable and Reproducible Analysis Pipeline for RNA-Seq Experiments (CURARE)
 Usage:
     curare.py --samples <samples_file> --pipeline <pipeline_file> --output <output_folder>
                  [--cluster-command <cluster_command>] [--cluster-config-file <config_file>] [--cluster-nodes <nodes>]
-                 [--use-conda] [--conda-prefix <conda_prefix>] [--cores <cores>] [--latency-wait <seconds>] [--verbose]
-    curare.py --samples <samples_file> --pipeline <pipeline_file> --output <output_folder> --create-conda-envs-only [--conda-prefix <conda_prefix>] [--verbose]
+                 [--use-conda] [--conda-frontend <frontend>] [--conda-prefix <conda_prefix>] [--cores <cores>] [--latency-wait <seconds>] [--verbose]
+    curare.py --samples <samples_file> --pipeline <pipeline_file> --output <output_folder> --create-conda-envs-only [--conda-frontend <frontend>] [--conda-prefix <conda_prefix>] [--verbose]
     curare.py (--version | --help)
 
 Options:
@@ -22,6 +22,7 @@ Options:
                                                     See also: https://snakemake.readthedocs.io/en/stable/snakefiles/configuration.html#cluster-configuration
     --cluster-nodes <nodes>                         Maximal number of parallel jobs send to the cluster. Only used in cluster mode is used. [Default: 1]
     --use-conda                                     Install and use separate conda environments for pipeline modules [Default: False]
+    --conda-frontend <frontend>                     Choose conda frontend for creating and installing conda environments (conda, mamba) [Default: conda]
     --conda-prefix <conda_prefix>                   The directory in which conda environments will be created. Relative paths will be relative to output folder! (Default: Output_folder)
     --create-conda-envs-only                        Only download and create conda environments.
     -t <cores> --cores <cores>                      Number of threads/cores. Defines locales cores in cluster mode. [Default: 1]
@@ -117,12 +118,13 @@ def main():
 
     if args['--create-conda-envs-only']:
         if not snakemake(str(snakefile), workdir=str(args["--output"]), verbose=args["--verbose"], cores=1,
-                         use_conda=True, conda_prefix=args["--conda-prefix"], conda_create_envs_only=True):
+                         use_conda=True, conda_prefix=args["--conda-prefix"], conda_create_envs_only=True,
+                         conda_frontend=args["--conda-frontend"]):
             exit(98)
     else:
         if not snakemake(str(snakefile), cores=int(args["--cores"]), local_cores=int(args["--cores"]), nodes=int(args["--cluster-nodes"]), workdir=str(args["--output"]),
                          verbose=args["--verbose"], printshellcmds=True, cluster=args["--cluster-command"], cluster_config=args["--cluster-config-file"],
-                         use_conda=args["--use-conda"], conda_prefix=args["--conda-prefix"], latency_wait=int(args["--latency-wait"])):
+                         use_conda=args["--use-conda"], conda_prefix=args["--conda-prefix"], conda_frontend=args["--conda-frontend"], latency_wait=int(args["--latency-wait"])):
             exit(99)
         finish_time: datetime.datetime = datetime.datetime.utcnow()
         if args["--use-conda"]:
@@ -561,11 +563,13 @@ def parse_arguments():
         args["--conda-prefix"] = Path(args["--conda-prefix"]).resolve()
     if args["--cluster-config-file"]:
         args["--cluster-config-file"] = Path(args["--cluster-config-file"]).resolve()
+    if args["--conda-frontend"] not in ["conda", "mamba"]:
+        raise UnknownCommandLineArgumentError("Command Line Arguments: Argument {} unknown for command line option '{}'".format(args["--conda-frontend"], "--conda-frontend"))
 
     for file in ["--samples", "--pipeline", "--cluster-config-file"]:
         if args[file]:
             if not args[file].exists():
-                raise UnknownInputFileError("Command Arguments: Unknown file: {}".format(args[file]))
+                raise UnknownInputFileError("Command Line Arguments: Unknown file: {}".format(args[file]))
 
     return args
 
@@ -715,6 +719,15 @@ class UnknownModuleError(Exception):
     def __init__(self, message: str):
         super(UnknownModuleError, self).__init__(message)
 
+class UnknownCommandLineArgumentError(Exception):
+    """Exception raised when using unknown command line argument.
+
+            Attributes:
+                message -- message displayed
+        """
+
+    def __init__(self, message: str):
+        super(UnknownmCommandLineArgumentError, self).__init__(message)
 
 if __name__ == '__main__':
     main()
