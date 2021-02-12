@@ -173,20 +173,21 @@ def parse_samples_file(samples_file: Path, modules: Dict[str, List['Module']], p
         while len(line.strip()) == 0 or line.startswith('#'):  # Ignore comments at the beginning of the TSV
             line = file.readline()
 
-        col_names = line.strip().split('\t')
+        col_names = [word.strip() for word in line.strip().split('\t')]
         col2module: List[Tuple[str, str, Optional[List[str]]]] = check_columns(col_names, modules, paired_end)
         for line in file:
             if len(line.strip()) == 0 or line.startswith('#'):
                 continue
-            columns: List[str] = line.strip().split('\t')
+            columns: List[str] = [word.strip() for word in line.strip().split('\t')]
             entries: Dict[str, Dict[str, str]] = {}
             for index, col in enumerate(columns):
                 module_name, value_type, value_char_set = col2module[index]
                 if value_type == 'string' and value_char_set is not None:
-                    if not check_string_validity(col, value_char_set):
+                    is_valid, character = check_string_validity(col, value_char_set)
+                    if not is_valid:
                         raise InvalidSamplesFileError(
-                            'Column "{}" contains invalid entry ({}). Only these characters are allowed: {}'.format(
-                                col_names[index], col, value_char_set
+                            'Column "{}" contains invalid character "{}" in entry "{}". Only these characters are allowed: {}'.format(
+                                col_names[index], character, col, value_char_set
                             )
                         )
                 if value_type == 'file':
@@ -217,7 +218,7 @@ def parse_samples_file(samples_file: Path, modules: Dict[str, List['Module']], p
     return table
 
 
-def check_string_validity(string: str, character_set: List[str]):
+def check_string_validity(string: str, character_set: List[str]) -> Tuple[bool, Optional[str]]:
     character_set = character_set.copy()
     if 'A-Z' in character_set:
         del character_set[character_set.index('A-Z')]
@@ -230,8 +231,8 @@ def check_string_validity(string: str, character_set: List[str]):
         character_set.extend([chr(x) for x in range(48, 58)])
     for character in string:
         if character not in character_set:
-            return False
-    return True
+            return False, character
+    return True, None
 
 
 def load_pipeline_file(pipeline_file: Path) -> Tuple[Dict[str, List['Module']], bool]:
