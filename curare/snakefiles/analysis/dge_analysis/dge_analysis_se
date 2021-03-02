@@ -1,19 +1,25 @@
 from os import listdir
 from os.path import isfile
 
+import gzip
+
 def getConditions():
     return set([seqRun['dge_analysis']['condition'] for seqRun in config['entries'].values()])
 
 def list_of_all_features(gff_path):
   features = set()
-  with open(gff_path, "r") as f2r:
-      for line in f2r.readlines():
-        if line.startswith("#"): #skip lines starting with #
-          continue
-        if not line or line.isspace():
-          continue
+  if gff_path.endswith(".gz"):
+    f2r = gzip.open(gff_path, "rt")
+  else:
+    f2r = open(gff_path, "r")
 
-        features.add(line.strip().split("\t")[2]) #feature
+  for line in f2r.readlines():
+    if line.startswith("#"): #skip lines starting with #
+      continue
+    if not line or line.isspace():
+      continue
+    features.add(line.strip().split("\t")[2]) #feature
+  f2r.close()
 
   # remove unnecessary features
   if "%%ADDITIONAL_FEATCOUNTS_FEATURES%%":
