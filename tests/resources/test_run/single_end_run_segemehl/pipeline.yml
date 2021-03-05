@@ -23,7 +23,7 @@ analysis:
 
   readxplorer:
     reference_genome: "../../reference/listeria_monocytogenes_egd_e.gff3"
-    readxplorer_cli_path: "../../../../../../../../bioinformatics/tools/readxplorer/bin/readxplorer-cli"
+    readxplorer_cli_path: "../../../../../../../../bioinformatics/tools/readxplorer-cli/bin/readxplorer-cli"
 
   dge_analysis:
     gff_feature_type: "gene"

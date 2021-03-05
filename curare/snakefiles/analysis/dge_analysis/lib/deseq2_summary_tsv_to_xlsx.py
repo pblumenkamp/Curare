@@ -37,8 +37,8 @@ def parse_arguments():
     parser.add_argument('--gff', help="GFF file used for creating the TSV")
     parser.add_argument('--identifier', help="GFF identifier, e.g. ID")
     parser.add_argument('--feature', help="Used GFF feature, e.g. gene or CDS")
-    parser.add_argument('--attributes', nargs='*', type=str, default=[],
-                        help="GFF attributes (e.g product) to show as columns at the beginning of the XLSX file")
+    parser.add_argument('--attributes', type=str, default="",
+                        help="Comma-seperated GFF attributes (e.g product,locus_tag) to show as columns at the beginning of the XLSX file")
     parser.add_argument('--output', help="Output path for XLSX file")
     return parser.parse_args()
 
@@ -63,7 +63,7 @@ def main():
     identifier = args.identifier.upper()
     # e.g. gene or CDS
     feature = args.feature
-    wanted_gff_attributes = [arg.upper() for arg in args.attributes]
+    wanted_gff_attributes = [arg.upper() for arg in args.attributes.split(",")]
 
     annotations = {}
     with open(gff_file, "r") as gff:
