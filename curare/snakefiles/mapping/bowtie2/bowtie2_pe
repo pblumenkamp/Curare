@@ -142,4 +142,4 @@ rule generate_report_data:
         "cp lib/report/bowtie2.html {output.bw2_html} && "
         "cp lib/report/bowtie2.js {output.bw2_js} && "
         "cp lib/report/bowtie2.css {output.bw2_css} &&"
-        "cp {input.images} {output.bw2_images}"
+        "mkdir -p {output.bw2_images} && cp {input.images} {output.bw2_images}"
