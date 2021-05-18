@@ -43,6 +43,8 @@ import sys
 from typing import Any, Callable, Dict, IO, List, Union
 import yaml
 
+import metadata
+
 PP = pprint.PrettyPrinter(indent=2)
 
 
@@ -245,7 +247,7 @@ def print_verbose(text: Any = '', file: IO = sys.stderr) -> None:
 
 
 def main() -> None:
-    args = docopt(__doc__, version="1.0")
+    args = docopt(__doc__, version=metadata.__version__)
     if args["--output"] is not None:
         args["--output"] = Path(args["--output"]).resolve()
         args["--samples"]: Path = args['--output'] / 'samples.tsv'
