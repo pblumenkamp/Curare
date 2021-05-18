@@ -1,3 +1,22 @@
+## 0.2.2
+
+### Added (3 changes)
+
+- Added mamba support
+- Added support of gff.gz files (DGE Analysis Module)
+- Added 'N' (None) option at module selection (Curare Wizard)
+
+### Fixed (4 changes)
+
+- Fixed bug when all options in a module are optional
+- Fixed parsing errors of pipeline and samples file
+- Check and create missing output folders
+- Use curare snakefiles folder as default (Curare Wizard)
+
+### Changed (1 change)
+
+- Changed '--attribute' list from space-seperated to comma-seperated (DGE Analysis Module)
+
 ## 0.2.1
 
 
