@@ -1,8 +1,12 @@
 ## 0.2.2
 
+### Hints
+
+- Removed ReadXplorer from module development since RX-CLI is deprecated
+
 ### Added (3 changes)
 
-- Added mamba support
+- Added mamba support and made mamba default when using conda
 - Added support of gff.gz files (DGE Analysis Module)
 - Added 'N' (None) option at module selection (Curare Wizard)
 
