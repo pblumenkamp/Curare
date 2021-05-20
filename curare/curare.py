@@ -22,7 +22,7 @@ Options:
                                                     See also: https://snakemake.readthedocs.io/en/stable/snakefiles/configuration.html#cluster-configuration
     --cluster-nodes <nodes>                         Maximal number of parallel jobs send to the cluster. Only used in cluster mode is used. [Default: 1]
     --use-conda                                     Install and use separate conda environments for pipeline modules [Default: False]
-    --conda-frontend <frontend>                     Choose conda frontend for creating and installing conda environments (conda, mamba) [Default: conda]
+    --conda-frontend <frontend>                     Choose conda frontend for creating and installing conda environments (conda, mamba) [Default: mamba]
     --conda-prefix <conda_prefix>                   The directory in which conda environments will be created. Relative paths will be relative to output folder! (Default: Output_folder)
     --create-conda-envs-only                        Only download and create conda environments.
     -t <cores> --cores <cores>                      Number of threads/cores. Defines locales cores in cluster mode. [Default: 1]
