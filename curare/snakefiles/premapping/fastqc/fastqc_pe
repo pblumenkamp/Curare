@@ -48,7 +48,7 @@ rule generate_report:
     group:
         "fastqc_report"
     shell:
-        "cp {input.reports} {output.fastqc_reports} && "
+        "mkdir -p {output.fastqc_reports} && cp {input.reports} {output.fastqc_reports} && "
         "python3 lib/generate_report_data.py --reports {input.reports_list} --output {output.fastqc_data} --paired-end && "
         "cp lib/report/fastqc.html {output.fastqc_html} && "
         "cp lib/report/fastqc.js {output.fastqc_js}"

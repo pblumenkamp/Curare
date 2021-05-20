@@ -15,6 +15,7 @@ import importlib.util
 import sys
 import csv
 import argparse
+import gzip
 
 from importlib import util
 
@@ -37,8 +38,8 @@ def parse_arguments():
     parser.add_argument('--gff', help="GFF file used for creating the TSV")
     parser.add_argument('--identifier', help="GFF identifier, e.g. ID")
     parser.add_argument('--feature', help="Used GFF feature, e.g. gene or CDS")
-    parser.add_argument('--attributes', nargs='*', type=str, default=[],
-                        help="GFF attributes (e.g product) to show as columns at the beginning of the XLSX file")
+    parser.add_argument('--attributes', type=str, default="",
+                        help="Comma-seperated GFF attributes (e.g product,locus_tag) to show as columns at the beginning of the XLSX file")
     parser.add_argument('--output', help="Output path for XLSX file")
     return parser.parse_args()
 
@@ -63,35 +64,39 @@ def main():
     identifier = args.identifier.upper()
     # e.g. gene or CDS
     feature = args.feature
-    wanted_gff_attributes = [arg.upper() for arg in args.attributes]
+    wanted_gff_attributes = [arg.upper() for arg in args.attributes.split(",")]
 
     annotations = {}
-    with open(gff_file, "r") as gff:
-        for line in gff:
-            try:
-                if line.startswith("#"):
-                    continue
-                columns = line.strip().split("\t")
-                if len(columns) != 9:
-                    continue
-                if columns[2] == feature:
-                    attributes_string = columns[8]
-                    attributes = {a.upper(): b for a, b in [att.split("=", maxsplit=1) for att in attributes_string.split(";")] if
-                                  a.upper() in wanted_gff_attributes + [identifier]}
-                    annotations[attributes[identifier]] = {}
-                    annotations[attributes[identifier]]['attr'] = attributes_string.replace(';', '; ')
-                    annotations[attributes[identifier]]['gff_start'] = columns[3]
-                    annotations[attributes[identifier]]['gff_stop'] = columns[4]
-                    annotations[attributes[identifier]]['gff_strand'] = columns[6]
-                    for attr in wanted_gff_attributes:
-                        if attr in attributes:
-                            annotations[attributes[identifier]][attr] = attributes[attr]
-                        else:
-                            annotations[attributes[identifier]][attr] = "-"
-            except Exception as e:
-                print('Error while reading GFF file "{}"'.format(gff_file), file=sys.stderr)
-                print(e, file=sys.stderr)
-                sys.exit(1)
+    if gff_file.endswith(".gz"):
+        gff = gzip.open(gff_file, "rt")
+    else:
+        gff = open(gff_file, "r")
+    for line in gff:
+        try:
+            if line.startswith("#"):
+                continue
+            columns = line.strip().split("\t")
+            if len(columns) != 9:
+                continue
+            if columns[2] == feature:
+                attributes_string = columns[8]
+                attributes = {a.upper(): b for a, b in [att.split("=", maxsplit=1) for att in attributes_string.split(";")] if
+                              a.upper() in wanted_gff_attributes + [identifier]}
+                annotations[attributes[identifier]] = {}
+                annotations[attributes[identifier]]['attr'] = attributes_string.replace(';', '; ')
+                annotations[attributes[identifier]]['gff_start'] = columns[3]
+                annotations[attributes[identifier]]['gff_stop'] = columns[4]
+                annotations[attributes[identifier]]['gff_strand'] = columns[6]
+                for attr in wanted_gff_attributes:
+                    if attr in attributes:
+                        annotations[attributes[identifier]][attr] = attributes[attr]
+                    else:
+                        annotations[attributes[identifier]][attr] = "-"
+        except Exception as e:
+            print('Error while reading GFF file "{}"'.format(gff_file), file=sys.stderr)
+            print(e, file=sys.stderr)
+            sys.exit(1)
+    gff.close()
     if len(annotations) == 0:
         print('No identifier "{}" found in GFF file "{}"'.format(identifier, gff_file), file=sys.stderr)
         sys.exit(2)
