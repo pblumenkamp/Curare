@@ -15,7 +15,7 @@ mapping:
     alignment_type: "local"
 
 analysis:
-  modules: ["readxplorer", "count_table", "dge_analysis"]
+  modules: ["count_table", "dge_analysis"]
 
   count_table:
     gff_feature_type: "gene"

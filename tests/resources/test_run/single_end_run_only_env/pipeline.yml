@@ -16,7 +16,7 @@ mapping:
     additional_bowtie2_options: "-k 2"
 
 analysis:
-  modules: ["readxplorer", "count_table", "dge_analysis"]
+  modules: ["count_table", "dge_analysis"]
 
   count_table:
     gff_feature_type: "gene"
