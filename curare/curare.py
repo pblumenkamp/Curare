@@ -5,8 +5,8 @@ Customizable and Reproducible Analysis Pipeline for RNA-Seq Experiments (CURARE)
 Usage:
     curare.py --samples <samples_file> --pipeline <pipeline_file> --output <output_folder>
                  [--cluster-command <cluster_command>] [--cluster-config-file <config_file>] [--cluster-nodes <nodes>]
-                 [--use-conda] [--conda-prefix <conda_prefix>] [--cores <cores>] [--latency-wait <seconds>] [--verbose]
-    curare.py --samples <samples_file> --pipeline <pipeline_file> --output <output_folder> --create-conda-envs-only [--conda-prefix <conda_prefix>] [--verbose]
+                 [--use-conda] [--conda-frontend <frontend>] [--conda-prefix <conda_prefix>] [--cores <cores>] [--latency-wait <seconds>] [--verbose]
+    curare.py --samples <samples_file> --pipeline <pipeline_file> --output <output_folder> --create-conda-envs-only [--conda-frontend <frontend>] [--conda-prefix <conda_prefix>] [--verbose]
     curare.py (--version | --help)
 
 Options:
@@ -22,6 +22,7 @@ Options:
                                                     See also: https://snakemake.readthedocs.io/en/stable/snakefiles/configuration.html#cluster-configuration
     --cluster-nodes <nodes>                         Maximal number of parallel jobs send to the cluster. Only used in cluster mode is used. [Default: 1]
     --use-conda                                     Install and use separate conda environments for pipeline modules [Default: False]
+    --conda-frontend <frontend>                     Choose conda frontend for creating and installing conda environments (conda, mamba) [Default: mamba]
     --conda-prefix <conda_prefix>                   The directory in which conda environments will be created. Relative paths will be relative to output folder! (Default: Output_folder)
     --create-conda-envs-only                        Only download and create conda environments.
     -t <cores> --cores <cores>                      Number of threads/cores. Defines locales cores in cluster mode. [Default: 1]
@@ -117,12 +118,13 @@ def main():
 
     if args['--create-conda-envs-only']:
         if not snakemake(str(snakefile), workdir=str(args["--output"]), verbose=args["--verbose"], cores=1,
-                         use_conda=True, conda_prefix=args["--conda-prefix"], conda_create_envs_only=True):
+                         use_conda=True, conda_prefix=args["--conda-prefix"], conda_create_envs_only=True,
+                         conda_frontend=args["--conda-frontend"]):
             exit(98)
     else:
         if not snakemake(str(snakefile), cores=int(args["--cores"]), local_cores=int(args["--cores"]), nodes=int(args["--cluster-nodes"]), workdir=str(args["--output"]),
                          verbose=args["--verbose"], printshellcmds=True, cluster=args["--cluster-command"], cluster_config=args["--cluster-config-file"],
-                         use_conda=args["--use-conda"], conda_prefix=args["--conda-prefix"], latency_wait=int(args["--latency-wait"])):
+                         use_conda=args["--use-conda"], conda_prefix=args["--conda-prefix"], conda_frontend=args["--conda-frontend"], latency_wait=int(args["--latency-wait"])):
             exit(99)
         finish_time: datetime.datetime = datetime.datetime.utcnow()
         if args["--use-conda"]:
@@ -173,20 +175,21 @@ def parse_samples_file(samples_file: Path, modules: Dict[str, List['Module']], p
         while len(line.strip()) == 0 or line.startswith('#'):  # Ignore comments at the beginning of the TSV
             line = file.readline()
 
-        col_names = line.strip().split('\t')
+        col_names = [word.strip() for word in line.strip().split('\t')]
         col2module: List[Tuple[str, str, Optional[List[str]]]] = check_columns(col_names, modules, paired_end)
         for line in file:
             if len(line.strip()) == 0 or line.startswith('#'):
                 continue
-            columns: List[str] = line.strip().split('\t')
+            columns: List[str] = [word.strip() for word in line.strip().split('\t')]
             entries: Dict[str, Dict[str, str]] = {}
             for index, col in enumerate(columns):
                 module_name, value_type, value_char_set = col2module[index]
                 if value_type == 'string' and value_char_set is not None:
-                    if not check_string_validity(col, value_char_set):
+                    is_valid, character = check_string_validity(col, value_char_set)
+                    if not is_valid:
                         raise InvalidSamplesFileError(
-                            'Column "{}" contains invalid entry ({}). Only these characters are allowed: {}'.format(
-                                col_names[index], col, value_char_set
+                            'Column "{}" contains invalid character "{}" in entry "{}". Only these characters are allowed: {}'.format(
+                                col_names[index], character, col, value_char_set
                             )
                         )
                 if value_type == 'file':
@@ -217,7 +220,7 @@ def parse_samples_file(samples_file: Path, modules: Dict[str, List['Module']], p
     return table
 
 
-def check_string_validity(string: str, character_set: List[str]):
+def check_string_validity(string: str, character_set: List[str]) -> Tuple[bool, Optional[str]]:
     character_set = character_set.copy()
     if 'A-Z' in character_set:
         del character_set[character_set.index('A-Z')]
@@ -230,8 +233,8 @@ def check_string_validity(string: str, character_set: List[str]):
         character_set.extend([chr(x) for x in range(48, 58)])
     for character in string:
         if character not in character_set:
-            return False
-    return True
+            return False, character
+    return True, None
 
 
 def load_pipeline_file(pipeline_file: Path) -> Tuple[Dict[str, List['Module']], bool]:
@@ -316,8 +319,8 @@ def load_pipeline_file(pipeline_file: Path) -> Tuple[Dict[str, List['Module']], 
     else:
         raise InvalidPipelineFileError('Option "paired_end" must be set')
 
-    for category in modules:
-        for module_name in modules[category]:
+    for category, category_modules in modules.items():
+        for module_name in category_modules:
             settings = pipeline[category].get(module_name, {})
             used_modules[category].append(load_module(category, module_name, settings, pipeline_file, paired_end))
 
@@ -373,13 +376,13 @@ def load_module(category: str, module_name: str, user_settings: Dict[str, str], 
             module_yaml = yaml.safe_load(module_yaml_file.open('r'))
             if 'required_settings' in module_yaml:
                 for setting_name, setting_properties in module_yaml['required_settings'].items():
-                    if setting_name in user_settings:
+                    if user_settings and setting_name in user_settings:
                         loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, pipeline_file_path))
                     else:
                         raise InvalidPipelineFileError(module_name.capitalize() + ': Required parameter "' + setting_name + '" is missing')
             if 'optional_settings' in module_yaml:
                 for setting_name, setting_properties in module_yaml['optional_settings'].items():
-                    if setting_name in user_settings:
+                    if user_settings and setting_name in user_settings:
                         loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, pipeline_file_path))
                     else:
                         loaded_module.add_setting(setting_name, setting_properties['default'])
@@ -391,13 +394,13 @@ def load_module(category: str, module_name: str, user_settings: Dict[str, str], 
                 loaded_module.snakefile = SNAKEFILES_LIBRARY / category / module_name / module_yaml['paired_end']['snakefile']
                 if 'required_settings' in module_yaml['paired_end']:
                     for setting_name, setting_properties in module_yaml['paired_end']['required_settings'].items():
-                        if setting_name in user_settings:
+                        if user_settings and setting_name in user_settings:
                             loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, pipeline_file_path))
                         else:
                             raise InvalidPipelineFileError(module_name.capitalize() + ': Required parameter "' + setting_name + '" is missing')
                 if 'optional_settings' in module_yaml['paired_end']:
                     for setting_name, setting_properties in module_yaml['paired_end']['optional_settings'].items():
-                        if setting_name in user_settings:
+                        if user_settings and setting_name in user_settings:
                             loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, pipeline_file_path))
                         else:
                             loaded_module.add_setting(setting_name, setting_properties['default'])
@@ -409,13 +412,13 @@ def load_module(category: str, module_name: str, user_settings: Dict[str, str], 
                 loaded_module.snakefile = SNAKEFILES_LIBRARY / category / module_name / module_yaml['single_end']['snakefile']
                 if 'required_settings' in module_yaml['single_end']:
                     for setting_name, setting_properties in module_yaml['single_end']['required_settings'].items():
-                        if setting_name in user_settings:
+                        if user_settings and setting_name in user_settings:
                             loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, pipeline_file_path))
                         else:
                             raise InvalidPipelineFileError(module_name.capitalize() + ': Required parameter "' + setting_name + '" is missing')
                 if 'optional_settings' in module_yaml['single_end']:
                     for setting_name, setting_properties in module_yaml['single_end']['optional_settings'].items():
-                        if setting_name in user_settings:
+                        if user_settings and setting_name in user_settings:
                             loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, pipeline_file_path))
                         else:
                             loaded_module.add_setting(setting_name, setting_properties['default'])
@@ -560,11 +563,13 @@ def parse_arguments():
         args["--conda-prefix"] = Path(args["--conda-prefix"]).resolve()
     if args["--cluster-config-file"]:
         args["--cluster-config-file"] = Path(args["--cluster-config-file"]).resolve()
+    if args["--conda-frontend"] not in ["conda", "mamba"]:
+        raise UnknownCommandLineArgumentError("Command Line Arguments: Argument {} unknown for command line option '{}'".format(args["--conda-frontend"], "--conda-frontend"))
 
     for file in ["--samples", "--pipeline", "--cluster-config-file"]:
         if args[file]:
             if not args[file].exists():
-                raise UnknownInputFileError("Command Arguments: Unknown file: {}".format(args[file]))
+                raise UnknownInputFileError("Command Line Arguments: Unknown file: {}".format(args[file]))
 
     return args
 
@@ -714,6 +719,15 @@ class UnknownModuleError(Exception):
     def __init__(self, message: str):
         super(UnknownModuleError, self).__init__(message)
 
+class UnknownCommandLineArgumentError(Exception):
+    """Exception raised when using unknown command line argument.
+
+            Attributes:
+                message -- message displayed
+        """
+
+    def __init__(self, message: str):
+        super(UnknownmCommandLineArgumentError, self).__init__(message)
 
 if __name__ == '__main__':
     main()

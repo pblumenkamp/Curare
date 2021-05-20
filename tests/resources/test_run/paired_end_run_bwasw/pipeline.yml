@@ -14,7 +14,7 @@ mapping:
     genome_fasta: "../../reference/listeria_monocytogenes_egd_e.fasta"
 
 analysis:
-  modules: ["readxplorer", "count_table", "dge_analysis"]
+  modules: ["count_table", "dge_analysis"]
 
   count_table:
     gff_feature_type: "gene"
@@ -23,12 +23,12 @@ analysis:
 
   readxplorer:
     reference_genome: "../../reference/listeria_monocytogenes_egd_e.gff3"
-    readxplorer_cli_path: "../../../../../../../../bioinformatics/tools/readxplorer/bin/readxplorer-cli"
+    readxplorer_cli_path: "../../../../../../../../bioinformatics/tools/readxplorer-cli/bin/readxplorer-cli"
 
   dge_analysis:
     gff_feature_type: "gene"
     gff_feature_name: "ID"
     gff_path: "../../reference/listeria_monocytogenes_egd_e.gff3"
     additional_featcounts_options: "-B"
-    attribute_columns: "'name' 'product'"
+    attribute_columns: "'name','product'"
 

@@ -14,7 +14,7 @@ Options:
     --samples <samples>                             Path for output samples file (Default Name: <output_folder>/samples.tsv)
     --pipeline <pipeline>                           Path for output pipeline file (Default Name: <output_folder>/pipeline.yaml)
 
-    --snakefiles <snakefiles>                       Folder containing all Curare snakefiles [default: snakefiles]
+    --snakefiles <snakefiles>                       Folder containing all Curare snakefiles. Uses default curare snakefiles if not specified.
     -v --verbose                                    Print additional information
 """
 
@@ -42,6 +42,8 @@ import pprint
 import sys
 from typing import Any, Callable, Dict, IO, List, Union
 import yaml
+
+import metadata
 
 PP = pprint.PrettyPrinter(indent=2)
 
@@ -103,7 +105,7 @@ def create_pipeline(all_modules: Dict[str, List[Dict[str, str]]]) -> Dict[str, L
     print_modules('Select a preprocessing module:', preprocessing_modules, True)
     user_input: str = ''
     while not check_selection(user_input.upper(), 1, len(all_modules['preprocessing'])-1, ['N']):
-        user_input = input('Select[1-{}]: '.format(len(all_modules['preprocessing'])-1))
+        user_input = input('Select[1-{}, N]: '.format(len(all_modules['preprocessing'])-1))
     selected_modules['preprocessing'] = [preprocessing_modules[int(user_input)-1]] if user_input.upper() != 'N' else [none_module]
 
     print("\n")
@@ -111,7 +113,7 @@ def create_pipeline(all_modules: Dict[str, List[Dict[str, str]]]) -> Dict[str, L
     print_modules('Select any number of premapping modules:', all_modules['premapping'], True)
     user_input: str = ''
     while not check_multi_selection(user_input.upper(), 1, len(all_modules['premapping']), ['N']):
-        user_input = input('Select[1-{}; Comma-separated]: '.format(len(all_modules['premapping'])))
+        user_input = input('Select[1-{}, N; Comma-separated]: '.format(len(all_modules['premapping'])))
     selected_modules['premapping'] = []
     if user_input.upper() != 'N':
         for value in user_input.split(','):
@@ -131,7 +133,7 @@ def create_pipeline(all_modules: Dict[str, List[Dict[str, str]]]) -> Dict[str, L
     print_modules('Select any number of analysis modules:', all_modules['analysis'], True)
     user_input: str = ''
     while not check_multi_selection(user_input.upper(), 1, len(all_modules['analysis']), ['N']):
-        user_input = input('Select[1-{}; Comma-separated]: '.format(len(all_modules['analysis'])))
+        user_input = input('Select[1-{}, N; Comma-separated]: '.format(len(all_modules['analysis'])))
     selected_modules['analysis'] = []
     if user_input.upper() != 'N':
         for value in user_input.split(','):
@@ -189,6 +191,7 @@ def create_groups_file(selected_modules: Dict[str, List[Dict[str, str]]], all_mo
                     necessary_columns.append(column)
 
     table_header: str = 'name\t' + ('reads' if not is_paired_end else 'forward_reads\treverse_reads')
+    output.parent.mkdir(parents=True, exist_ok=True)
     with output.open('w') as out:
         out.write('# name: Unique sample name. Only use alphanumeric characters and \'_\'. [Value Type: String]\n')
         if is_paired_end:
@@ -204,6 +207,7 @@ def create_groups_file(selected_modules: Dict[str, List[Dict[str, str]]], all_mo
 
 
 def create_pipeline_file(selected_modules: Dict[str, List[Dict[str, str]]], all_modules: Dict[str, Dict[str, Dict[str, Union[Dict[str, Dict[str, str]], str]]]], output: Path, is_paired_end: bool) -> None:
+    output.parent.mkdir(parents=True, exist_ok=True)
     with output.open('w') as out:
         out_write: Callable = lambda text='', indent=0: out.write(' ' * indent + text + '\n')
         out_write("## Curare Pipeline File")
@@ -243,7 +247,7 @@ def print_verbose(text: Any = '', file: IO = sys.stderr) -> None:
 
 
 def main() -> None:
-    args = docopt(__doc__, version="1.0")
+    args = docopt(__doc__, version=metadata.__version__)
     if args["--output"] is not None:
         args["--output"] = Path(args["--output"]).resolve()
         args["--samples"]: Path = args['--output'] / 'samples.tsv'
@@ -251,7 +255,10 @@ def main() -> None:
     else:
         args["--samples"] = Path(args["--samples"]).resolve()
         args["--pipeline"] = Path(args["--pipeline"]).resolve()
-    args["--snakefiles"] = Path(args["--snakefiles"]).resolve()
+    if args["--snakefiles"] is None:
+        args["--snakefiles"] = Path(__file__).resolve().parent / "snakefiles"  
+    else:
+        args["--snakefiles"] = Path(args["--snakefiles"]).resolve()
 
     print()
 

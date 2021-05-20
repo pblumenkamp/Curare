@@ -5,8 +5,9 @@ channels:
   - anaconda
   - defaults
 dependencies:
-   - snakemake>=5
-   - python>=3.6
-   - yaml>=0.1.7
-   - docopt>=0.6
+   - snakemake=6.3
+   - mamba=0.13
+   - python=3.9
+   - yaml=0.2.5
+   - docopt=0.6.2
 
