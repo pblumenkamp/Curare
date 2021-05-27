@@ -208,7 +208,7 @@ rule generate_report_data:
     group:
         "dge_analysis_report"
     shell:
-        "python3 lib/generate_report_data.py --fc_stats {input.stats} --comparison_dir {input.comparisons} --visualization {params.visualization} --output {output.dge_analysis_data} && "
+        "python3 lib/generate_report_data.py --fc_stats {input.stats} --fc_main_feature '%%GFF_FEATURE_TYPE%%' --comparison_dir {input.comparisons} --visualization {params.visualization} --output {output.dge_analysis_data} && "
         "cp lib/report/dge_analysis.html {output.dge_analysis_html} && "
         "cp lib/report/dge_analysis.js {output.dge_analysis_js} &&"
         "cp lib/report/dge_analysis.css {output.dge_analysis_css} &&"

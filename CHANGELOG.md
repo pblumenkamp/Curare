@@ -1,5 +1,9 @@
 ## 0.2.3
 
+### Added (1 change)
+
+- Added main GFF feature to assignment chart title (Report - DGE Analysis)
+
 ### Changed (1 change)
 
 - GFF feature 'region' will now be ignored if not specified in 'ADDITIONAL_FEATCOUNTS_FEATURES' (DGE Analysis Module)
