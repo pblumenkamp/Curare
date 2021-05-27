@@ -19,6 +19,9 @@ def list_of_all_features(gff_path):
     features.add(line.strip().split("\t")[2]) #feature
   f2r.close()
 
+  # ignore unusable region tag
+  features = features.difference(["region"])
+
   # remove unnecessary features
   if "%%ADDITIONAL_FEATCOUNTS_FEATURES%%":
     features = features.intersection("%%ADDITIONAL_FEATCOUNTS_FEATURES%%".split(","))
