@@ -1,0 +1,7 @@
+# module: normalized_coverage
+channels:
+  - bioconda
+  - anaconda
+  - defaults
+dependencies:
+  - deeptools=3.5.1
