@@ -1,3 +1,9 @@
+## 0.2.3
+
+### Changed (1 change)
+
+- GFF feature 'region' will now be ignored if not specified in 'ADDITIONAL_FEATCOUNTS_FEATURES' (DGE Analysis Module)
+
 ## 0.2.2
 
 ### Hints
