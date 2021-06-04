@@ -31,76 +31,66 @@
 </section>
 
 <section class="section">
-  <div id="trim-galore" class="container">
-    <div class="columns" style="max-width: 100%">
-      <div class="column is-1"></div>
-      <div class="column" style="max-width: 100%">
-        <div class="content">
-          <section id="trim-galore-body">
-            <h2>Trim-Galore</h2>
-            <b-tabs v-model="activeTab" :animated="false" multiline size="is-large" type="is-toggle">
-              <template v-for="(tab, tab_index) in samples">
-                <b-tab-item :key="tab" :label="tab">
-                  <h3 style="padding-top: 1rem">Runtime Parameters</h3>
-                  <b-table :data="run_parameters[tab_index]">
-                    <template slot-scope="props">
-                      <b-table-column field="user.key" label="Key">
-                        <template slot="header" slot-scope="{ column }"></template>
-                        {{ props.row.key }}
-                      </b-table-column>
-                      <b-table-column field="user.value" label="Value">
-                        <template slot="header" slot-scope="{ column }"></template>
-                        {{ props.row.value }}
-                      </b-table-column>
-                    </template>
-                    <template slot="footer">
-                      <div></div>
-                    </template>
-                  </b-table>
+  <div id="trim-galore">
+    <div class="container">
+      <div class="columns" style="max-width: 100%">
+        <div class="column is-1"></div>
+        <div class="column" style="max-width: 100%">
+          <div class="content">
+            <section id="trim-galore-body">
+              <h2>Trim-Galore</h2>
+              <div style="display:flex; flex-direction: row-reverse;">
+                <b-dropdown 
+                  aria-role="list" 
+                  :scrollable="true"
+                  :max-height="200"
+                  v-model="active_sample_menu">
+                  
+                  <template #trigger>
+                    <b-button
+                        type="is-primary"
+                        size="is-medium"
+                        icon-pack="fas"
+                        icon-right="sort-down">
 
-                  <h3 style="padding-top: 2rem">Summary</h3>
-                  <template v-if="paired_end">
-                    <div class="columns">
-                      <div class="column">
-                        <h4>Forward Reads</h4>
-                        <b-table :data="summary[tab_index][0]">
-                          <template slot-scope="props">
-                            <b-table-column field="user.key" label="Key">
-                              <template slot="header" slot-scope="{ column }"></template>
-                              {{ props.row.key }}
-                            </b-table-column>
-                            <b-table-column field="user.value" label="Value">
-                              <template slot="header" slot-scope="{ column }"></template>
-                              {{ props.row.value }}
-                            </b-table-column>
-                          </template>
-                          <template slot="footer">
-                            <div></div>
-                          </template>
-                        </b-table>
-                      </div>
-                      <div class="column">
-                        <h4>Reverse Reads</h4>
-                        <b-table :data="summary[tab_index][1]">
-                          <template slot-scope="props">
-                            <b-table-column field="user.key" label="Key">
-                              <template slot="header" slot-scope="{ column }"></template>
-                              {{ props.row.key }}
-                            </b-table-column>
-                            <b-table-column field="user.value" label="Value">
-                              <template slot="header" slot-scope="{ column }"></template>
-                              {{ props.row.value }}
-                            </b-table-column>
-                          </template>
-                          <template slot="footer">
-                            <div></div>
-                          </template>
-                        </b-table>
-                      </div>
-                    </div>
+                      Sample: 
+                      {{ samples[active_sample_menu] }}
+                    </b-button>
                   </template>
-                  <template v-else>
-                    <b-table :data="summary[tab_index][0]">
+                  
+                  <template v-for="(menu, menu_index) in samples">
+                    <b-dropdown-item
+                      :key="menu_index"
+                      :value="menu_index" aria-role="listitem">
+                      {{ menu }}
+                    </b-dropdown-item>
+                  </template>
+                </b-dropdown>
+              </div>
+
+              <h3>Runtime Parameters</h3>
+              <b-table :data="run_parameters[active_sample_menu]">
+                <template slot-scope="props">
+                  <b-table-column field="user.key" label="Key">
+                    <template slot="header" slot-scope="{ column }"></template>
+                    {{ props.row.key }}
+                  </b-table-column>
+                  <b-table-column field="user.value" label="Value">
+                    <template slot="header" slot-scope="{ column }"></template>
+                    {{ props.row.value }}
+                  </b-table-column>
+                </template>
+                <template slot="footer">
+                  <div></div>
+                </template>
+              </b-table>
+
+              <h3 style="padding-top: 2rem">Summary</h3>
+              <template v-if="paired_end">
+                <div class="columns">
+                  <div class="column">
+                    <h4>Forward Reads</h4>
+                    <b-table :data="summary[active_sample_menu][0]">
                       <template slot-scope="props">
                         <b-table-column field="user.key" label="Key">
                           <template slot="header" slot-scope="{ column }"></template>
@@ -115,48 +105,105 @@
                         <div></div>
                       </template>
                     </b-table>
-                  </template>
-
-                  <h3 style="padding-top: 2rem">Adapter</h3>
-                  <template v-if="paired_end">
-                    <div class="columns">
-                      <div class="column" v-for="(header, index) in ['Forward Reads', 'Reverse Reads']">
-                        <h4>{{ header }}</h4>
-                        <h6>Overview</h6>
-                        <b-table :data="adapter_overview[tab_index][index]" :columns="adapter_overview_columns"></b-table>
-                        <h6 style="padding-top: 2rem">Allowed Errors</h6>
-                        <b-table :data="adapter_allowed_errors[tab_index][index]" :columns="allowed_errors_columns"></b-table>
-                        <h6 style="padding-top: 2rem">Bases Preceeding Adapter</h6>
-                        <canvas :id=`preceeding_bases_${tab_index}_${index}` style="padding-top: 1rem; padding-bottom: 1rem"></canvas>
-                        <b-table :data="adapter_preceeding_bases[tab_index][index]" :columns="preceeding_bases_columns"></b-table>
-                        <h6 style="padding-top: 2rem">Removed Sequences</h6>
-                        <canvas :id=`removed_sequences_${tab_index}_${index}` style="padding-top: 1rem"></canvas>
-                        <b-table :data="adapter_removed_sequences[tab_index][index]" :columns="removed_sequences_columns"></b-table>
-                      </div>
-                    </div>
-                  </template>
-                  <template v-else>
-                    <h6>Overview</h6>
-                    <b-table :data="adapter_overview[tab_index][0]" :columns="adapter_overview_columns"></b-table>
-                    <h6 style="padding-top: 2rem">Allowed Errors</h6>
-                    <b-table :data="adapter_allowed_errors[tab_index][0]" :columns="allowed_errors_columns"></b-table>
-                    <h6 style="padding-top: 2rem">Bases Preceeding Adapter</h6>
-                    <canvas :id=`preceeding_bases_${tab_index}_0` style="padding-top: 1rem; padding-bottom: 1rem"></canvas>
-                    <b-table :data="adapter_preceeding_bases[tab_index][0]" :columns="preceeding_bases_columns"></b-table>
-                    <h6 style="padding-top: 2rem">Removed Sequences</h6>
-                    <canvas :id=`removed_sequences_${tab_index}_0` style="padding-top: 1rem"></canvas>
-                    <b-table :data="adapter_removed_sequences[tab_index][0]" :columns="removed_sequences_columns"></b-table>
-                  </template>
-                </b-tab-item>
+                  </div>
+                  <div class="column">
+                    <h4>Reverse Reads</h4>
+                    <b-table :data="summary[active_sample_menu][1]">
+                      <template slot-scope="props">
+                        <b-table-column field="user.key" label="Key">
+                          <template slot="header" slot-scope="{ column }"></template>
+                          {{ props.row.key }}
+                        </b-table-column>
+                        <b-table-column field="user.value" label="Value">
+                          <template slot="header" slot-scope="{ column }"></template>
+                          {{ props.row.value }}
+                        </b-table-column>
+                      </template>
+                      <template slot="footer">
+                        <div></div>
+                      </template>
+                    </b-table>
+                  </div>
+                </div>
               </template>
-            </b-tabs>
+              <template v-else>
+                <b-table :data="summary[active_sample_menu][0]">
+                  <template slot-scope="props">
+                    <b-table-column field="user.key" label="Key">
+                      <template slot="header" slot-scope="{ column }"></template>
+                      {{ props.row.key }}
+                    </b-table-column>
+                    <b-table-column field="user.value" label="Value">
+                      <template slot="header" slot-scope="{ column }"></template>
+                      {{ props.row.value }}
+                    </b-table-column>
+                  </template>
+                  <template slot="footer">
+                    <div></div>
+                  </template>
+                </b-table>
+              </template>
 
-          </section>
+              <h3 style="padding-top: 2rem">Adapter</h3>
+              <template v-if="paired_end">
+                <div class="columns">
+                  <div class="column" v-for="(header, index) in ['Forward', 'Reverse']">
+                    <h4>{{ (header === "Forward") ? "Forward Reads" : "Reverse Reads" }}</h4>
+                    <h6>Overview</h6>
+                    <b-table :data="adapter_overview[active_sample_menu][index]" :columns="adapter_overview_columns"></b-table>
+                    <h6 style="padding-top: 2rem">Allowed Errors</h6>
+                    <b-table :data="adapter_allowed_errors[active_sample_menu][index]" :columns="allowed_errors_columns"></b-table>
+                    <h6 style="padding-top: 2rem">Bases Preceeding Adapter</h6>
+                    <div style="width: 25rem; margin: 0 auto;">
+                      <canvas :id="`preceeding_bases_chart_${header}`" style="padding-top: 1rem; padding-bottom: 1rem; "></canvas>
+                    </div>
+                    <b-table :data="adapter_preceeding_bases[active_sample_menu][index]" :columns="preceeding_bases_columns"></b-table>
+                    <h6 style="padding-top: 2rem">Removed Sequences</h6>
+                    <div style="width: 35rem; margin: 0 auto;">
+                      <canvas :id="`removed_sequences_chart_${header}`" style="padding-top: 1rem; padding-bottom: 1rem; "></canvas>
+                    </div>
+                    <b-table 
+                        :data="adapter_removed_sequences[active_sample_menu][index]" 
+                        :columns="removed_sequences_columns"
+                        paginated=true
+                        per-page=20
+                        pagination-simple=true
+                        :current-page.sync="currentPage[index]"
+                        icon-pack="fas"
+                    ></b-table>
+                  </div>
+                </div>
+              </template>
+              <template v-else>
+                <h6>Overview</h6>
+                <b-table :data="adapter_overview[active_sample_menu][0]" :columns="adapter_overview_columns"></b-table>
+                <h6 style="padding-top: 2rem">Allowed Errors</h6>
+                <b-table :data="adapter_allowed_errors[active_sample_menu][0]" :columns="allowed_errors_columns"></b-table>
+                <h6 style="padding-top: 2rem">Bases Preceeding Adapter</h6>
+                <div style="width: 25rem; margin: 0 auto;">
+                  <canvas id='preceeding_bases_chart_Forward' style="padding-top: 1rem; padding-bottom: 1rem; "></canvas>
+                </div>
+                <b-table :data="adapter_preceeding_bases[active_sample_menu][0]" :columns="preceeding_bases_columns"></b-table>
+                <h6 style="padding-top: 2rem">Removed Sequences</h6>
+                <canvas id='removed_sequences_chart_Forward' style="padding-top: 1rem"></canvas>
+                <b-table 
+                    :data="adapter_removed_sequences[active_sample_menu][0]" 
+                    :columns="removed_sequences_columns"
+                    paginated=true
+                    per-page=20
+                    pagination-simple=true
+                    :current-page.sync="currentPage[0]"
+                    icon-pack="fas"
+                ></b-table>
+              </template>
+            </section>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </section>
+
 <footer class="footer">
   <div class="content has-text-centered">
     <p><strong>CURARE</strong> by <a href="mailto:patrick.blumenkamp@computational.bio.uni-giessen.de">Patrick Blumenkamp</a>.</p>

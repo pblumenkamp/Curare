@@ -5,7 +5,9 @@ new Vue({
     data: {
         trim_galore_stats: Curare.trim_galore.stats,
         paired_end: Curare.trim_galore.paired_end,
-        activeTab: 0,
+        active_sample_menu: 0,
+        charts: [],
+        currentPage: [1,1],
         adapter_overview_columns: [
             {
                 field: 'sequence',
@@ -82,7 +84,10 @@ new Vue({
     computed: {
         samples: function() {
             const vue = this
-            return Object.keys(vue.trim_galore_stats)
+            var samples = Object.keys(vue.trim_galore_stats)
+            samples.sort()
+            vue.active_sample_menu = 0
+            return samples
         },
         run_parameters: function() {
             const vue = this
@@ -264,8 +269,12 @@ new Vue({
             return (dividend / divisor * 100).toFixed(fractionDigits)
         },
         createChart(chartId, type, data, options) {
+            const vue = this
             const ctx = document.getElementById(chartId);
-            const myChart = new Chart(ctx, {
+            if (chartId in vue.charts && vue.charts[chartId] !== undefined) {
+                vue.charts[chartId].destroy()
+            }
+            vue.charts[chartId] = new Chart(ctx, {
                 type: type,
                 data: data,
                 options: options,
@@ -275,7 +284,7 @@ new Vue({
             const vue = this
             const strands = (vue.paired_end) ? ["Forward", "Reverse"] : ["Forward"]
             for (const [i, strand] of strands.entries()) {
-                const preceeding_bases = vue.trim_galore_stats[vue.samples[vue.activeTab]][strand]['bases_preceding_adapter']
+                const preceeding_bases = vue.trim_galore_stats[vue.samples[vue.active_sample_menu]][strand]['bases_preceding_adapter']
                 const datapoints = [
                     parseFloat(preceeding_bases['A']),
                     parseFloat(preceeding_bases['C']),
@@ -284,7 +293,7 @@ new Vue({
                     parseFloat(preceeding_bases['none/other']),
                 ]
                 this.createChart(
-                    `preceeding_bases_${vue.activeTab}_${i}`,
+                    'preceeding_bases_chart_' + strand,
                     'pie',
                     {
                         datasets: [{
@@ -302,8 +311,11 @@ new Vue({
                         ],
                     },
                     {
-                        legend: {
-                            position: 'bottom'
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
                         }
                     }
                 )
@@ -313,7 +325,7 @@ new Vue({
             const vue = this
             const strands = (vue.paired_end) ? ["Forward", "Reverse"] : ["Forward"]
             for (const [i, strand] of strands.entries()) {
-                const removed_sequences = vue.trim_galore_stats[vue.samples[vue.activeTab]][strand]['removed_sequences']
+                const removed_sequences = vue.trim_galore_stats[vue.samples[vue.active_sample_menu]][strand]['removed_sequences']
                 const datapoints = []
                 const labels = []
                 const backgroundColor = []
@@ -326,7 +338,7 @@ new Vue({
                     datapoints[parseInt(row['length'])-1] = parseInt(row['count'])
                 }
                 this.createChart(
-                    `removed_sequences_${vue.activeTab}_${i}`,
+                    'removed_sequences_chart_' + strand,
                     'bar',
                     {
                         datasets: [{
@@ -336,22 +348,25 @@ new Vue({
                         labels: labels,
                     },
                     {
-                        legend: {
-                            display: false
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
                         },
                         scales: {
-                            xAxes: [{
-                             scaleLabel: {
+                            x: {
+                             title: {
                                  display: true,
-                                 labelString: 'Length'
+                                 text: 'Length'
                              }
-                            }],
-                            yAxes: [{
-                                scaleLabel: {
+                            },
+                            y: {
+                                title: {
                                     display: true,
-                                    labelString: 'Count'
+                                    text: 'Count'
                                 }
-                            }]
+                            }
                         }
                     }
                 )
@@ -359,7 +374,7 @@ new Vue({
         }
     },
     watch: {
-        activeTab: function () {
+        active_sample_menu: function () {
             this.create_preceeding_bases_chart()
             this.create_removed_sequences_chart()
         }
