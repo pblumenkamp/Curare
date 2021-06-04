@@ -202,6 +202,29 @@ new Vue({
                     })
                 }
             }
+
+            var options = {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true
+                    }
+                }
+            }
+
+            if (vue.stats_in_percent) {
+                options.scales.y.max = 100
+            }
+
             const chartID = 'stacked_barchart'
             this.createChart(
                 chartID,
@@ -210,15 +233,7 @@ new Vue({
                     datasets: datasets,
                     labels: vue.stats_table.map((x) => x['name']),
                 },
-                {
-                    legend: {
-                        position: 'bottom'
-                    },
-                    scales: {
-                        xAxes: [{ stacked: true}],
-                        yAxes: [{ stacked: true}]
-                    }
-                }
+                options
             )
         },
     },
