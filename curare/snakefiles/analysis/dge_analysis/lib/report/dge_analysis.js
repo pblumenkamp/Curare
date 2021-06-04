@@ -92,8 +92,8 @@ new Vue({
                 visible: true
             }
         ],
-        activeComparisonTab: 0,
-        active_feature_assignment_tab: 0
+        active_comparison_menu: "",
+        active_feature_assignment_menu: ""
     },
     computed: {
         reads_per_sample: function () {
@@ -195,6 +195,27 @@ new Vue({
                 ])
             }
             return tables
+        },
+        feature_assignment_keys: function () {
+            var vue = this
+            var feature_keys = Object.keys(vue.feature_assignment)
+            feature_keys.sort()
+            vue.active_feature_assignment_menu = feature_keys[0]
+            return feature_keys
+        },
+        deseq2_keys: function () {
+            var vue = this
+            var comp_keys = vue.deseq2_comparisons.map((x, i) => [x.comparison, i])
+            comp_keys.sort((a, b) => {
+                if (a[0] > b[0] ) {
+                    return 1
+                } else if (a[0] < b[0]) {
+                    return -1
+                }
+                return 0
+            })
+            vue.active_comparison_menu = comp_keys[0][1]
+            return comp_keys
         }
     },
     methods: {
@@ -247,73 +268,89 @@ new Vue({
                 }
             }
             const chartID = 'stacked_barchart'
+            var data = {
+                datasets: datasets,
+                labels: vue.counttable_table.map((x) => x['name']),
+            }
+            var options = {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    x: {
+                      stacked: true,
+                    },
+                    y: {
+                      stacked: true,
+                      beginAtZero: true
+                    }
+                  }
+            }
+
+            if (vue.counttable_in_percent) {
+                options.scales.y.max = 100
+            }
+
             this.createChart(
                 chartID,
                 'bar',
-                {
-                    datasets: datasets,
-                    labels: vue.counttable_table.map((x) => x['name']),
-                },
-                {
-                    legend: {
-                        position: 'bottom'
-                    },
-                    scales: {
-                        xAxes: [{ stacked: true}],
-                        yAxes: [{ stacked: true}]
-                    }
-                }
+                data,
+                options
             )
         },
         create_lfc_distribution_chart() {
             const vue = this
-            const activeTab = vue.activeComparisonTab
-            const comparison = vue.deseq2_comparisons[activeTab]
-            const canvas_id = `lfc_distribution_${activeTab}`
+            const active_menu = vue.active_comparison_menu
+            const comparison = vue.deseq2_comparisons[vue.deseq2_keys[active_menu][1]]
             const data_label = comparison['lfc_distribution']['label']
             const data = comparison['lfc_distribution']['data']
 
+            if (typeof comparison === 'undefined' || typeof data_label === 'undefined' || typeof data === 'undefined') {
+                return
+            }
+
             this.createChart(
-                canvas_id,
+                'lfc_distribution',
                 'bar',
                 {
                     labels: data_label,
                     datasets: [{
                         data: data,
                         backgroundColor: 'rgba(0,160,250,1)',
-                        barPercentage: 1.2,
+                        barPercentage: 0.95,
+                        categoryPercentage: 1,
+                        xAxisID: "xA"
                     }],
                 },
                 {
-                    legend: {
-                        display: false
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
                     },
                     scales: {
-                        xAxes: [{
+                        xA: {
                             display: false,
-                            ticks: {
-                                max: data_label[data_label.length - 2],
-                            }
-                        }, {
+                            position: 'bottom',
+                            max: data_label.length - 2,
+                        },
+                        x: {
                             display: true,
-                            scaleLabel: {
-                                display: true,
-                                labelString: 'Log2 Fold Change',
-                            },
-                            ticks: {
-                                autoSkip: false,
-                                max: data_label[data_label.length - 1],
+                            offset: false,
+                            grid: {
+      	                        offset: false
                             }
-                        }],
-                        yAxes: [{
-                            scaleLabel: {
+                        },
+                        y: {
+                            title: {
                                 display: true,
-                                labelString: '#Features',
+                                text: '#Features',
                             },
-                            ticks: {
-                                beginAtZero: true
-                            }
-                        }]
+                            beginAtZero: true
+                        }
                     }
                 }
             )
@@ -324,7 +361,7 @@ new Vue({
       counttable_in_percent: function () {
           this.create_stacked_bar_chart()
       },
-      activeComparisonTab: function () {
+      active_comparison_menu: function () {
           this.create_lfc_distribution_chart()
       }
     },

@@ -10,6 +10,7 @@
   <script type="text/javascript" charset="utf8" src="../js/Chart.min.js"></script>
   <script type="text/javascript" charset="utf8" src="../js/vue.min.js"></script>
   <script type="text/javascript" charset="utf8" src="../js/buefy.min.js"></script>
+
   <script defer src="../js/fontawesome.all.min.js"></script>
   <script>
       window.Curare = {}
@@ -62,16 +63,39 @@
             <hr>
 
             <h3 style="padding-top: 2rem">Type Assignment</h3>
-            <b-tabs v-model="active_feature_assignment_tab" :animated="false" multiline size="is-medium" type="is-toggle">
-              <template v-for="(tab, tab_index) in Object.keys(feature_assignment)">
-                <b-tab-item :key="tab" :label="tab">
-                  <img :src="'../img/modules/dge_analysis/feature_assignment/' + feature_assignment[tab]"
-                       :alt="'Feature Type Distribution for ' + tab"
+            <div style="display:flex; flex-direction: row-reverse">
+              <b-dropdown 
+                aria-role="list" 
+                :scrollable="true"
+                :max-height="200"
+                v-model="active_feature_assignment_menu">
+                
+                <template #trigger>
+                  <b-button
+                      type="is-primary"
+                      size="is-medium"
+                      icon-pack="fas"
+                      icon-right="sort-down">
+
+                    Sample: 
+                    {{ active_feature_assignment_menu }}
+                  </b-button>
+                </template>
+                
+                <template v-for="(menu, menu_index) in feature_assignment_keys">
+                  <b-dropdown-item
+                    :key="menu_index"
+                    :value="menu" aria-role="listitem">
+                    {{ menu }}
+                  </b-dropdown-item>
+                </template>
+              </b-dropdown>
+            </div>
+
+            <img :src="'../img/modules/dge_analysis/feature_assignment/' + feature_assignment[active_feature_assignment_menu]"
+                       :alt="'Feature Type Distribution for ' + active_feature_assignment_menu"
                        style="margin-left: auto; margin-right: auto; display: block; padding-top: 1.5rem"
                        width="85%">
-                </b-tab-item>
-              </template>
-            </b-tabs>
 
             <hr>
 
@@ -92,29 +116,53 @@
             <hr>
 
             <h3 style="padding-top: 2rem">DESeq2 Summary</h3>
-            <b-tabs v-model="activeComparisonTab" :animated="false" multiline size="is-medium" type="is-toggle">
-              <template v-for="(tab, tab_index) in deseq2_comparisons">
-                <b-tab-item :key="tab.comparison" :label="tab.comparison">
-                  <b-table :data="deseq2_summary_table[tab_index]">
-                    <template slot-scope="props">
-                      <b-table-column field="user.key" label="Key">
-                        <template slot="header" slot-scope="{ column }"></template>
-                        {{ props.row.key }}
-                      </b-table-column>
-                      <b-table-column field="user.value" label="Value">
-                        <template slot="header" slot-scope="{ column }"></template>
-                        {{ props.row.value }}
-                      </b-table-column>
-                    </template>
-                    <template slot="footer">
-                      <div></div>
-                    </template>
-                  </b-table>
-                  <h4 style="padding-top: 2rem">Log2 Fold Change Distribution</h4>
-                  <canvas :id=`lfc_distribution_${tab_index}` style="padding-top: 2rem"></canvas>
-                </b-tab-item>
+            <div style="display:flex; flex-direction: row-reverse">
+              <b-dropdown 
+                aria-role="list" 
+                :scrollable="true"
+                :max-height="200"
+                v-model="active_comparison_menu">
+                
+                <template #trigger>
+                  <b-button
+                      type="is-primary"
+                      size="is-medium"
+                      icon-pack="fas"
+                      icon-right="sort-down">
+
+                    Sample: 
+                    {{ deseq2_keys[active_comparison_menu][0] }}
+                  </b-button>
+                </template>
+                
+                <template v-for="(menu, menu_index) in deseq2_keys">
+                  <b-dropdown-item
+                    :key="menu_index"
+                    :value="menu_index" 
+                    aria-role="listitem">
+                    {{ menu[0] }}
+                  </b-dropdown-item>
+                </template>
+              </b-dropdown>
+            </div>
+
+            <b-table :data="deseq2_summary_table[deseq2_keys[active_comparison_menu][1]]">
+              <template slot-scope="props">
+                <b-table-column field="user.key" label="Key">
+                  <template slot="header" slot-scope="{ column }"></template>
+                  {{ props.row.key }}
+                </b-table-column>
+                <b-table-column field="user.value" label="Value">
+                  <template slot="header" slot-scope="{ column }"></template>
+                  {{ props.row.value }}
+                </b-table-column>
               </template>
-            </b-tabs>
+              <template slot="footer">
+                <div></div>
+              </template>
+            </b-table>
+            <h4 style="padding-top: 2rem">Log2 Fold Change Distribution</h4>
+            <canvas id='lfc_distribution' style="padding-top: 2rem"></canvas>
           </section>
         </div>
       </div>
