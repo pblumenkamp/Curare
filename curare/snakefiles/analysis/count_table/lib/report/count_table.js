@@ -97,7 +97,6 @@ new Vue({
             const sums = []
             for (const row of vue.counttable_stats) {
                 let sum = 0
-                console.log(row)
                 for (const [key, value] of Object.entries(row)) {
                     if (key !== 'name') {
                         sum += parseFloat(value)

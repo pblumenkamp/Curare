@@ -42,8 +42,7 @@
               <div style="display:flex; flex-direction: row-reverse;">
                 <b-dropdown 
                   aria-role="list" 
-                  :scrollable="true"
-                  :max-height="200"
+                  scrollable
                   v-model="active_sample_menu">
                   
                   <template #trigger>
@@ -69,20 +68,7 @@
               </div>
 
               <h3>Runtime Parameters</h3>
-              <b-table :data="run_parameters[active_sample_menu]">
-                <template slot-scope="props">
-                  <b-table-column field="user.key" label="Key">
-                    <template slot="header" slot-scope="{ column }"></template>
-                    {{ props.row.key }}
-                  </b-table-column>
-                  <b-table-column field="user.value" label="Value">
-                    <template slot="header" slot-scope="{ column }"></template>
-                    {{ props.row.value }}
-                  </b-table-column>
-                </template>
-                <template slot="footer">
-                  <div></div>
-                </template>
+              <b-table :data="run_parameters[active_sample_menu]" :columns="key_value_columns" :show-header="false">
               </b-table>
 
               <h3 style="padding-top: 2rem">Summary</h3>
@@ -90,58 +76,16 @@
                 <div class="columns">
                   <div class="column">
                     <h4>Forward Reads</h4>
-                    <b-table :data="summary[active_sample_menu][0]">
-                      <template slot-scope="props">
-                        <b-table-column field="user.key" label="Key">
-                          <template slot="header" slot-scope="{ column }"></template>
-                          {{ props.row.key }}
-                        </b-table-column>
-                        <b-table-column field="user.value" label="Value">
-                          <template slot="header" slot-scope="{ column }"></template>
-                          {{ props.row.value }}
-                        </b-table-column>
-                      </template>
-                      <template slot="footer">
-                        <div></div>
-                      </template>
-                    </b-table>
+                    <b-table :data="summary[active_sample_menu][0]" :columns="key_value_columns" :show-header="false"></b-table>
                   </div>
                   <div class="column">
                     <h4>Reverse Reads</h4>
-                    <b-table :data="summary[active_sample_menu][1]">
-                      <template slot-scope="props">
-                        <b-table-column field="user.key" label="Key">
-                          <template slot="header" slot-scope="{ column }"></template>
-                          {{ props.row.key }}
-                        </b-table-column>
-                        <b-table-column field="user.value" label="Value">
-                          <template slot="header" slot-scope="{ column }"></template>
-                          {{ props.row.value }}
-                        </b-table-column>
-                      </template>
-                      <template slot="footer">
-                        <div></div>
-                      </template>
-                    </b-table>
+                    <b-table :data="summary[active_sample_menu][1]" :columns="key_value_columns" :show-header="false"></b-table>
                   </div>
                 </div>
               </template>
               <template v-else>
-                <b-table :data="summary[active_sample_menu][0]">
-                  <template slot-scope="props">
-                    <b-table-column field="user.key" label="Key">
-                      <template slot="header" slot-scope="{ column }"></template>
-                      {{ props.row.key }}
-                    </b-table-column>
-                    <b-table-column field="user.value" label="Value">
-                      <template slot="header" slot-scope="{ column }"></template>
-                      {{ props.row.value }}
-                    </b-table-column>
-                  </template>
-                  <template slot="footer">
-                    <div></div>
-                  </template>
-                </b-table>
+                <b-table :data="summary[active_sample_menu][0]" :columns="key_value_columns" :show-header="false"></b-table>
               </template>
 
               <h3 style="padding-top: 2rem">Adapter</h3>

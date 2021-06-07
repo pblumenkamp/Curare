@@ -39,11 +39,10 @@
             <h2>FastQC</h2>
 
             <b-table v-if="paired_end" :data="table_data">
-              <template slot-scope="props">
-                <b-table-column field="name" label="Sample">
+                <b-table-column field="name" label="Sample" v-slot="props">
                   {{ props.row.name }}
                 </b-table-column>
-                <b-table-column field="forward" label="Forward">
+                <b-table-column field="forward" label="Forward" v-slot="props">
                   <a
                     :href="props.row.forward"
                     target="_blank"
@@ -52,7 +51,7 @@
                     Open Reports...
                   </a>
                 </b-table-column>
-                <b-table-column field="reverse" label="Reverse">
+                <b-table-column field="reverse" label="Reverse" v-slot="props">
                   <a
                     :href="props.row.reverse"
                     target="_blank"
@@ -61,14 +60,12 @@
                     Open Reports...
                   </a>
                 </b-table-column>
-              </template>
             </b-table>
             <b-table v-else :data="table_data">
-              <template slot-scope="props">
-                <b-table-column field="name" label="Sample">
+                <b-table-column field="name" label="Sample" v-slot="props">
                   {{ props.row.name }}
                 </b-table-column>
-                <b-table-column field="forward" label="Forward">
+                <b-table-column field="forward" label="Forward" v-slot="props">
                   <a
                     :href="props.row.forward"
                     target="_blank"
@@ -77,7 +74,6 @@
                     Open Reports...
                   </a>
                 </b-table-column>
-              </template>
             </b-table>
           </section>
         </div>

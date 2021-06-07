@@ -80,6 +80,18 @@ new Vue({
                 label: 'Error Counts'
             },
         ],
+        key_value_columns: [
+            {
+                field: 'key',
+                label: 'Key',
+                visible: true
+            },
+            {
+                field: 'value',
+                label: 'Value',
+                visible: true
+            }
+        ],
     },
     computed: {
         samples: function() {
