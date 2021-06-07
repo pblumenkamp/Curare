@@ -109,9 +109,9 @@
                     <b-table 
                         :data="adapter_removed_sequences[active_sample_menu][index]" 
                         :columns="removed_sequences_columns"
-                        paginated=true
+                        paginated
                         per-page=20
-                        pagination-simple=true
+                        pagination-simple
                         :current-page.sync="currentPage[index]"
                         icon-pack="fas"
                     ></b-table>
@@ -133,9 +133,9 @@
                 <b-table 
                     :data="adapter_removed_sequences[active_sample_menu][0]" 
                     :columns="removed_sequences_columns"
-                    paginated=true
+                    paginated
                     per-page=20
-                    pagination-simple=true
+                    pagination-simple
                     :current-page.sync="currentPage[0]"
                     icon-pack="fas"
                 ></b-table>
