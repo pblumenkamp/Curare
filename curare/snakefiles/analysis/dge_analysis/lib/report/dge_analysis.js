@@ -93,7 +93,8 @@ new Vue({
             }
         ],
         active_comparison_menu: "",
-        active_feature_assignment_menu: ""
+        active_feature_assignment_menu: "",
+        currentPage: 1
     },
     computed: {
         reads_per_sample: function () {

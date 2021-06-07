@@ -7,6 +7,7 @@ new Vue({
         paired_end: Curare.count_table.paired_end,
         stats_in_percent: false,
         chart: undefined,
+        currentPage: 1,
         stats_columns: [
             {
                 field: 'name',
