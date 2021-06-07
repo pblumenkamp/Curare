@@ -58,7 +58,7 @@ def create_navigationbar_js_object(versions_json: Path, navigation_output: Path,
 
 def create_summary_js_object(output_path: Path, curare_version: str, runtime: timedelta, curare_samples_file: Path):
     with curare_samples_file.open() as groups_file:
-        groups = [line.strip().split('\t') for line in groups_file if not line.startswith('#')]
+        groups = [line.strip().split('\t') for line in groups_file if not line.startswith('#') and line.strip()]
 
     with output_path.open('w') as f:
         f.write('window.Curare.summary = (function() {\n')

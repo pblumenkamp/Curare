@@ -6,12 +6,13 @@ new Vue({
         versionsData: Curare.versions,
         curare_summary: Curare.summary,
         analysis_steps: ['preprocessing', 'premapping', 'mapping', 'analysis'],
+        currentPage: 1,
         showAllDependencies: {
             'preprocessing': {},
             'premapping': {},
             'mapping': {},
             'analysis': {}
-        }
+        },
     },
     computed: {
         versionsTable: function () {
@@ -48,9 +49,31 @@ new Vue({
                 }).join(' ')
             })
         },
+        groups_column: function () {
+            let vue = this;
+            return vue.curare_summary.groups[0].map(function (header) {
+                var element = {}
+                element['field'] = header
+                element['label'] = header.replace("_", " ").split(' ').map(function (word) {
+                                       return word.charAt(0).toUpperCase() + word.slice(1)
+                                   }).join(' ')
+                return element
+            })
+        },
         groups_body: function () {
             let vue = this;
             return vue.curare_summary.groups.slice(1)
+        },
+        groups_data: function () {
+            let vue = this;
+            let header = vue.curare_summary.groups[0]
+            return vue.curare_summary.groups.slice(1).map(function (line) {
+                let row = {}
+                for (var i=0; i<line.length; i++) {
+                    row[header[i]] = line[i]
+                }
+                return row
+            })
         }
     },
     methods: {
