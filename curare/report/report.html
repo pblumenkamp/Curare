@@ -60,26 +60,18 @@
                 </tr>
                 </tbody>
               </table>
+
               <h3 id="groups">Groups</h3>
-              <div class="table-container">
-                <table class="table">
-                  <thead>
-                    <tr>
-                      <th v-for="header of groups_header" :key="header">{{ header }}</th>
-                    </tr>
-                  </thead>
-                  <tfoot>
-                    <tr>
-                      <th v-for="header of groups_header" :key="header">{{ header }}</th>
-                    </tr>
-                  </tfoot>
-                  <tbody>
-                    <tr v-for="row of groups_body" :key="row[0]">
-                      <td v-for="cell of row" :key="cell">{{ cell }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+              <b-table 
+                  :data="groups_data" 
+                  :columns="groups_column" 
+                  scrollable
+                  :paginated="groups_data.length > 10"
+                  per-page=10
+                  :current-page.sync="currentPage"
+                  icon-pack="fas"
+              ></b-table>
+
               <h3 id="tools-used">Tools Used</h3>
               <table class="table">
                 <thead>
