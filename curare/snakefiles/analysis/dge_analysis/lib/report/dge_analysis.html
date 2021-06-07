@@ -62,7 +62,7 @@
                 :data="counttable_table" 
                 :columns="counttable_columns" 
                 scrollable
-                :paginated="counttable_table>20"
+                :paginated="counttable_table.length > 20"
                 per-page=20
                 :current-page.sync="currentPage"
                 icon-pack="fas"
