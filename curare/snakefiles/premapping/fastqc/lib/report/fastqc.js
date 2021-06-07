@@ -45,7 +45,8 @@ new Vue({
                 table.push(entry)
             }
             return table
-        }
+        },
+        
     },
     methods: {
 

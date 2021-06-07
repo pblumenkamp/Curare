@@ -92,6 +92,18 @@ new Vue({
                 visible: true
             }
         ],
+        key_value_columns: [
+            {
+                field: 'key',
+                label: 'Key',
+                visible: true
+            },
+            {
+                field: 'value',
+                label: 'Value',
+                visible: true
+            }
+        ],
         active_comparison_menu: "",
         active_feature_assignment_menu: "",
         currentPage: 1
@@ -162,6 +174,10 @@ new Vue({
             for (const row of vue.deseq2_comparisons) {
                 tables.push([
                     {
+                        'key': '',
+                        'value': ''
+                    },
+                    {
                         'key': 'Lowest Log2-Fold Change',
                         'value': parseFloat(row['lowest_lfc']).toFixed(1)
                     },
@@ -192,6 +208,10 @@ new Vue({
                     {
                         'key': 'Adjusted P-value > 0.001',
                         'value': row['adjP_smaller_0.1']
+                    },
+                    {
+                        'key': '',
+                        'value': ''
                     },
                 ])
             }

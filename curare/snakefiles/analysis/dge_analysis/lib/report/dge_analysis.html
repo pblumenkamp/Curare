@@ -62,9 +62,9 @@
                 :data="counttable_table" 
                 :columns="counttable_columns" 
                 scrollable
-                paginated=true
+                paginated
+                pagination-simple
                 per-page=20
-                pagination-simple=true
                 :current-page.sync="currentPage"
                 icon-pack="fas"
             ></b-table>
@@ -75,8 +75,7 @@
             <div style="display:flex; flex-direction: row-reverse">
               <b-dropdown 
                 aria-role="list" 
-                :scrollable="true"
-                :max-height="200"
+                scrollable
                 v-model="active_feature_assignment_menu">
                 
                 <template #trigger>
@@ -128,8 +127,7 @@
             <div style="display:flex; flex-direction: row-reverse">
               <b-dropdown 
                 aria-role="list" 
-                :scrollable="true"
-                :max-height="200"
+                scrollable
                 v-model="active_comparison_menu">
                 
                 <template #trigger>
@@ -155,21 +153,7 @@
               </b-dropdown>
             </div>
 
-            <b-table :data="deseq2_summary_table[deseq2_keys[active_comparison_menu][1]]">
-              <template slot-scope="props">
-                <b-table-column field="user.key" label="Key">
-                  <template slot="header" slot-scope="{ column }"></template>
-                  {{ props.row.key }}
-                </b-table-column>
-                <b-table-column field="user.value" label="Value">
-                  <template slot="header" slot-scope="{ column }"></template>
-                  {{ props.row.value }}
-                </b-table-column>
-              </template>
-              <template slot="footer">
-                <div></div>
-              </template>
-            </b-table>
+            <b-table :data="deseq2_summary_table[deseq2_keys[active_comparison_menu][1]]" :columns="key_value_columns" :show-header="false"></b-table>
             <h4 style="padding-top: 2rem">Log2 Fold Change Distribution</h4>
             <canvas id='lfc_distribution' style="padding-top: 2rem"></canvas>
           </section>
