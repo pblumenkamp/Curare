@@ -7,6 +7,8 @@
 ### Changed (1 change)
 
 - GFF feature 'region' will now be ignored if not specified in 'ADDITIONAL_FEATCOUNTS_FEATURES' (DGE Analysis Module)
+- Tabs were replaced with dropdown menus (Report)
+- Added pagination on Trim-Galore, DGE and Count Table tables (Report)
 
 ## 0.2.2
 
