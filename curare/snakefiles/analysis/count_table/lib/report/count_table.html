@@ -59,8 +59,8 @@
                 :data="stats_table" 
                 :columns="stats_columns" 
                 scrollable
-                :paginated="stats_table.length > 20"
-                per-page=20
+                :paginated="stats_table.length > 15"
+                per-page=15
                 :current-page.sync="currentPage"
                 icon-pack="fas"
             ></b-table>
