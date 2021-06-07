@@ -55,7 +55,16 @@
                 <b-switch id="in-percent" type="is-info" v-model="stats_in_percent"><p>in %</p></b-switch>
               </div>
             </div>
-            <b-table :data="stats_table" :columns="stats_columns" scrollable></b-table>
+            <b-table 
+                :data="stats_table" 
+                :columns="stats_columns" 
+                scrollable
+                paginated=true
+                per-page=20
+                pagination-simple=true
+                :current-page.sync="currentPage"
+                icon-pack="fas"
+            ></b-table>
           </section>
         </div>
       </div>
