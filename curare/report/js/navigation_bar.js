@@ -86,8 +86,10 @@ Vue.component('navigation-bar', {
                       target="_blank"
                       rel="noopener noreferrer"
                       class="navbar-item"
+                      style="display: flex; align-items: center"
                     >
-                      {{ module.name }}
+                      <span style="padding-right: 0.5rem">{{ module.name }}</span>
+                      <i class="fas fa-external-link-alt fa-sm"></i>
                     </a>
                     <a
                       v-else
