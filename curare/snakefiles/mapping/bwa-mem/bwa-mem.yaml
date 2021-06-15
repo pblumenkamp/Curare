@@ -24,4 +24,7 @@ paired_end:
   snakefile: 'bwa-mem_pe'
 
 
-
+report:
+  html_file: "bwa-mem.html"
+  new_tab: false
+  title: "BWA-MEM"

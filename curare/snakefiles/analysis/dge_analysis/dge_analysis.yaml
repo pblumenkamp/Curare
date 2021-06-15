@@ -55,3 +55,7 @@ paired_end:
   snakefile: "dge_analysis_pe"
 
 
+report:
+  html_file: "dge_analysis.html"
+  new_tab: false
+  title: "DGE Analysis"

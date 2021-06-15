@@ -34,3 +34,9 @@ single_end:
 
 paired_end:
   snakefile: 'segemehl_pe'
+
+
+report:
+  html_file: "segemehl.html"
+  new_tab: false
+  title: "Segemehl"

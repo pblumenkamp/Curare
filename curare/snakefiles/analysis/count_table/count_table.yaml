@@ -37,3 +37,7 @@ paired_end:
   snakefile: "count_table_pe"
 
 
+report:
+  html_file: "count_table.html"
+  new_tab: false
+  title: "Count Table"

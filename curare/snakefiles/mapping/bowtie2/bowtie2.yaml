@@ -30,3 +30,9 @@ single_end:
 
 paired_end:
   snakefile: 'bowtie2_pe'
+
+
+report:
+  html_file: "bowtie2.html"
+  new_tab: false
+  title: "Bowtie2"

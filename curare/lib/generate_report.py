@@ -3,12 +3,13 @@ import getpass
 import json
 import shutil
 import subprocess
+import yaml
 
 from pathlib import Path
 from typing import Dict, List
 
 
-def create_report(src_folder: Path, output_folder: Path, curare_version: str, runtime: timedelta, curare_samples_file: Path):
+def create_report(src_folder: Path, snakefiles_folder: Path, output_folder: Path, curare_version: str, runtime: timedelta, curare_samples_file: Path):
     # Copy report-specific files such as the HTML, CSS, and JS files.
     try:
         shutil.copy(str(src_folder / 'report.html'), str(output_folder))
@@ -19,6 +20,7 @@ def create_report(src_folder: Path, output_folder: Path, curare_version: str, ru
         copy_folder(src_folder / 'modules', output_folder / '.report' / 'modules')
 
         create_navigationbar_js_object(output_folder / '.report' / 'data' / 'versions.json',
+                                       snakefiles_folder,
                                        output_folder / '.report' / 'data' / 'navigation.js',
                                        output_folder)
 
@@ -34,15 +36,28 @@ def create_report(src_folder: Path, output_folder: Path, curare_version: str, ru
         raise err
 
 
-def create_navigationbar_js_object(versions_json: Path, navigation_output: Path, curare_output: Path):
+def create_navigationbar_js_object(versions_json: Path, snakefiles_path: Path, navigation_output: Path, curare_output: Path):
     versions: List = json.load(versions_json.open())
     nav: Dict[str, List] = {}
     for module in versions:
         if module["step"] not in nav:
             nav[module["step"]] = []
-        html_name = module["name"] + ".html" if (curare_output / ".report" / "modules" / (module["name"] + ".html")).is_file() else None
-        new_tab = True if module["name"] in ["multiqc"] else False
-        nav[module["step"]].append({'name': module["name"], 'html_name': html_name, "new_tab": new_tab})
+        module_snakefile = (snakefiles_path / module["step"] / module["name"] / (module["name"] + ".yaml")).open()
+        module_yaml: Dict[Any, Any] = yaml.load(module_snakefile, Loader=yaml.BaseLoader)
+        if "report" in module_yaml and "html_file" in module_yaml["report"]:
+            html_name = module_yaml["report"]["html_file"] if (curare_output / ".report" / "modules" / module_yaml["report"]["html_file"]).is_file() else None
+        else:
+            html_name = module["name"] + ".html" if (curare_output / ".report" / "modules" / (module["name"] + ".html")).is_file() else None
+        if "report" in module_yaml and "new_tab" in module_yaml["report"]:
+            new_tab = module_yaml["report"]["new_tab"].upper() == "TRUE"
+        else:
+            new_tab = False
+        if "report" in module_yaml and "title" in module_yaml["report"]:
+            title = module_yaml["report"]["title"]
+        else:
+            title = module["name"]
+        
+        nav[module["step"]].append({"name": module["name"], "title": title, "html_name": html_name, "new_tab": new_tab})
 
     with navigation_output.open('w') as f:
         f.write('window.Curare.navigation = (function() {\n')
