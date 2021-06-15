@@ -9,3 +9,7 @@ paired_end:
   snakefile: "fastqc_pe"
 
 
+report:
+  html_file: "fastqc.html"
+  new_tab: false
+  title: "FastQC"

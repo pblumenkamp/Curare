@@ -11,12 +11,9 @@ Vue.component('navigation-bar', {
             for (let step of Object.keys(vue.navigation)) {
                 nav[step] = []
                 for (let module of vue.navigation[step]) {
-                    let name = module.name.replace("_", " ").split(' ').map(function (word) {
-                        return word.charAt(0).toUpperCase() + word.slice(1)
-                    }).join(' ')
                     let html = module.html_name !== null ? module.html_name : ""
                     if (html) {
-                        nav[step].push({'name': name, 'html_name': html, new_tab: module.new_tab})
+                        nav[step].push({'name': module.title, 'html_name': html, new_tab: module.new_tab})
                     }
                 }
                 nav[step].sort((a, b) => {

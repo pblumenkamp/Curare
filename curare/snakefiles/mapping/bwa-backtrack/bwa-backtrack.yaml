@@ -25,4 +25,7 @@ paired_end:
   snakefile: 'bwa-backtrack_pe'
 
 
-
+report:
+  html_file: "bwa-backtrack.html"
+  new_tab: false
+  title: "BWA-Backtrack"

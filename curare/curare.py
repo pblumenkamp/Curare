@@ -130,6 +130,7 @@ def main():
         if args["--use-conda"]:
             generate_report.create_report(
                 src_folder=REPORT_SRC_DIRECTORY,
+                snakefiles_folder=SNAKEFILES_LIBRARY,
                 output_folder=args["--output"],
                 curare_version=metadata.__version__,
                 runtime=finish_time - start_time,

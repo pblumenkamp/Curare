@@ -8,4 +8,7 @@ single_end:
 paired_end:
   snakefile: "multiqc_pe"
 
-
+report:
+  html_file: "multiqc.html"
+  new_tab: true
+  title: "MultiQC"

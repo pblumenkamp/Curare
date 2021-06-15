@@ -1,5 +1,5 @@
 name: 'trimgalore'
-label: 'Trim-Galore'
+label: 'Trim Galore'
 description: "A module for automatized quality and adapter trimming. (https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)"
 
 optional_settings:
@@ -64,3 +64,9 @@ paired_end:
       description: "adapter sequence to be trimmed off read 2 of paired-end files."
       type: 'string'
       default: ''
+
+
+report:
+  html_file: "trimgalore.html"
+  new_tab: false
+  title: "Trim Galore"
