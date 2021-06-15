@@ -1,5 +1,5 @@
-# Ignore PyCharm config folder
-.idea
+# Ignore VS Code folder
+.vscode/
 
 # Ignore all pycache folder
 __pycache__/
@@ -11,7 +11,7 @@ __pycache__/
 curare_user_testcase.zip
 
 # Ignore conda environments for test cases
-/curare/tests/**/envs
+/tests/**/envs
 
 # Ignore test run results
 /tests/resources/reference/*.bt2
