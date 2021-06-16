@@ -96,6 +96,10 @@ def main():
             if first_line.startswith("# module:") or first_line.startswith("#module:"):
                 module = first_line.split(": ")[1].strip()
 
+        # Environment exists but was not used in pipeline
+        if module not in steps:
+            continue
+
         conda_env = file.split(".")[0]
         with open(conda_dir / conda_env / 'conda-meta' / 'history', 'r') as history_file:
             dependencies: List[str] = history_file.readlines()
