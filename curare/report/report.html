@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CURARE Report</title>
   <link rel="stylesheet" type="text/css" href=".report/css/buefy.min.css"/>
+  <link rel="stylesheet" type="text/css" href=".report/css/report.css"/>
 
   <script type="text/javascript" charset="utf8" src=".report/js/vue.min.js"></script>
   <script type="text/javascript" charset="utf8" src=".report/js/buefy.min.js"></script>
@@ -37,7 +38,8 @@
           <div class="content">
             <section id="overview-body">
               <h2>Overview</h2>
-              <h3 id="summary">Curare Summary</h3>
+              <a class="anchor" id="summary"></a>
+              <h3>Curare Summary</h3>
               <table class="table">
                 <thead><tr><td></td><td></td></tr></thead>
                 <tfoot><tr><td></td><td></td></tr></tfoot>
@@ -61,7 +63,8 @@
                 </tbody>
               </table>
 
-              <h3 id="groups">Groups</h3>
+              <a class="anchor" id="groups"></a>
+              <h3>Groups</h3>
               <b-table 
                   :data="groups_data" 
                   :columns="groups_column" 
@@ -72,7 +75,8 @@
                   icon-pack="fas"
               ></b-table>
 
-              <h3 id="tools-used">Tools Used</h3>
+              <a class="anchor" id="tools-used"></a>
+              <h3>Tools Used</h3>
               <table class="table">
                 <thead>
                   <tr>
