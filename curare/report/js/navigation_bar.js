@@ -103,6 +103,9 @@ Vue.component('navigation-bar', {
               </div>
             </div>
             <div class="navbar-end">
+              <div class="navbar-item is-hoverable" style="padding-right: 0.5rem">
+                  <a href="https://github.com/pblumenkamp/curare"><i class="fab fa-github" style="font-size: 2rem"></i></a>
+              </div>
               <div class="navbar-item is-hoverable" style="padding-right: 2rem">
                   <a :href="modulesPath + 'about.html'"><i class="fas fa-info-circle" style="font-size: 2rem"></i></a>
               </div>
