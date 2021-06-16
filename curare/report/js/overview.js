@@ -35,10 +35,22 @@ new Vue({
         },
         curare_runtime: function () {
             let vue = this;
-            if (vue.curare_summary.runtime > 3600) { // runtime longer than 1 hour
-                return `${(vue.curare_summary.runtime / 3600).toFixed(1)} h`
+            let total_seconds = Math.floor(vue.curare_summary.runtime)
+            if (total_seconds >= 3600) { // runtime longer than 1 hour
+                let hours = Math.floor(total_seconds / 3600)
+                let minutes = Math.floor((total_seconds % 3600) / 60)
+                let hours_label = (hours === 1) ? "hour" : "hours"
+                let minutes_label = (minutes === 1) ? "minute" : "minutes"
+                return `${hours} ${hours_label} ${minutes} ${minutes_label}`
+            } else if (total_seconds >= 60) {
+                let minutes = Math.floor(total_seconds / 60)
+                let seconds = total_seconds % 60
+                let minutes_label = (minutes === 1) ? "minute" : "minutes"
+                let seconds_label = (seconds === 1) ? "second" : "seconds"
+                return `${minutes} ${minutes_label} ${seconds} ${seconds_label}`
             } else {
-                return `${(vue.curare_summary.runtime / 60).toFixed(1)} min`
+                let seconds_label = (total_seconds === 1) ? "second" : "seconds"
+                return `${total_seconds} ${seconds_label}`
             }
         },
         groups_header: function () {
