@@ -38,23 +38,11 @@
       <div class="column" style="max-width: 100%">
         <div class="content">
           <section id="counttable-body">
-            <div class="columns" style="max-width: 100%">
-              <div class="column is-11" style="max-width: 100%">
-                <h2>Count Table</h2>
-              </div>
-              <div class="column field">
-                <b-switch id="in-percent" type="is-info" v-model="stats_in_percent"><p>in %</p></b-switch>
-              </div>
+            <div style="display: flex; justify-content: space-between">
+              <h2>Count Table</h2>
+              <b-switch id="in-percent" type="is-info" v-model="stats_in_percent"><p>in %</p></b-switch>
             </div>
-          <canvas :id=`stacked_barchart` style="padding-top: 1rem"></canvas>
-            <div class="columns" style="max-width: 100%; padding-top: 1rem">
-              <div class="column is-11" style="max-width: 100%">
-                <div></div>
-              </div>
-              <div class="column field">
-                <b-switch id="in-percent" type="is-info" v-model="stats_in_percent"><p>in %</p></b-switch>
-              </div>
-            </div>
+            <canvas :id=`stacked_barchart` style="margin-top: 1rem; margin-bottom: 2rem;"></canvas>
             <b-table 
                 :data="stats_table" 
                 :columns="stats_columns" 

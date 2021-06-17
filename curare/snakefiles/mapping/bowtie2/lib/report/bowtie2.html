@@ -39,14 +39,12 @@
           <section id="bowtie2-body">
             <h2>Bowtie2</h2>
 
-            <div class="columns" style="max-width: 100%; padding-top: 2rem">
-              <div class="column is-11" style="max-width: 100%">
-                <h3 id="statistics_plots">Alignment Distribution</h3>
-              </div>
-              <div v-if="bowtie2_stats.length >= 7" class="column field">
-                <b-switch id="in-percent-plots" type="is-info" v-model="stats_in_percent"><p>in %</p></b-switch>
-              </div>
+            <div v-if="bowtie2_stats.length >= 7" style="display: flex; justify-content: space-between">
+              <h3 id="statistics_plots">Alignment Distribution</h3>
+              <b-switch id="in-percent-plots" type="is-info" v-model="stats_in_percent"><p>in %</p></b-switch>
             </div>
+            <h3 v-else id="statistics_plots">Alignment Distribution</h3>
+
             <div v-if="bowtie2_stats.length < 7" class="columns">
               <div class="column">
                 <img src="../img/modules/bowtie2/alignment_stats.svg" alt="Barchart with alignment statistics">
@@ -70,14 +68,12 @@
               </div>
             </div>
             
-            <div class="columns" style="max-width: 100%">
-              <div class="column is-11" style="max-width: 100%">
-                <h3 id="statistics">Alignment Statistics</h3>
-              </div>
-              <div class="column field">
-                <b-switch id="in-percent" type="is-info" v-model="stats_in_percent"><p>in %</p></b-switch>
-              </div>
+            <div v-if="bowtie2_stats.length < 7" style="display: flex; justify-content: space-between">
+              <h3 id="statistics_plots">Alignment Statistics</h3>
+              <b-switch id="in-percent-plots" type="is-info" v-model="stats_in_percent"><p>in %</p></b-switch>
             </div>
+            <h3 v-else>Alignment Statistics</h3>
+
             <div id="bowtie2-stats" class="table-container scroll">
               <template v-if="paired_end">
                 <table v-if="stats_in_percent.length" id="bowtie2-stats-percent" class="table">

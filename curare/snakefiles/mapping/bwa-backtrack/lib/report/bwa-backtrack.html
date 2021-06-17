@@ -39,14 +39,12 @@
           <section id="bwa-body">
             <h2>BWA-Backtrack</h2>
             
-            <div class="columns" style="max-width: 100%">
-              <div class="column is-11" style="max-width: 100%">
-                <h3 id="statistics">Alignment Statistics</h3>
-              </div>
-              <div v-if="paired_end" class="column field">
-                <b-switch id="in-percent" type="is-info" v-model="stats_in_percent"><p>in %</p></b-switch>
-              </div>
+            <div v-if="paired_end" style="display: flex; justify-content: space-between">
+              <h3>Alignment Statistics</h3>
+              <b-switch id="in-percent" type="is-info" v-model="stats_in_percent"><p>in %</p></b-switch>
             </div>
+            <h3 v-else>Alignment Statistics</h3>
+
             <div id="bwa-stats" class="table-container scroll">
               <template v-if="paired_end">
                 <table v-if="stats_in_percent.length" id="bwa-stats-percent" class="table">

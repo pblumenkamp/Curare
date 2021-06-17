@@ -39,14 +39,11 @@
           <section id="segemehl-body">
             <h2>Segemehl</h2>
             
-            <div class="columns" style="max-width: 100%">
-              <div class="column is-11" style="max-width: 100%">
-                <h3 id="statistics">Alignment Statistics</h3>
-              </div>
-              <div class="column field">
-                <b-switch id="in-percent" type="is-info" v-model="stats_in_percent"><p>in %</p></b-switch>
-              </div>
+            <div style="display: flex; justify-content: space-between">
+              <h3 id="statistics_plots">Alignment Distribution</h3>
+              <b-switch id="in-percent-plots" type="is-info" v-model="stats_in_percent"><p>in %</p></b-switch>
             </div>
+            
             <div id="segemehl-stats" class="table-container scroll">
               <template v-if="paired_end">
                 <table v-if="stats_in_percent.length" id="segemehl-stats-percent" class="table">
