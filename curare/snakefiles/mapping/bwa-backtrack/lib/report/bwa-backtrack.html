@@ -153,7 +153,7 @@
                     <td>{{ seqrun["mapped"] }}</td>
                     <td class="right-border">{{ (seqrun["mapped"] / seqrun["total alignments"] * 100).toFixed(2) }}</td>
                     <td>{{ seqrun["total alignments"] - seqrun["mapped"] }}</td>
-                    <td>{{ (1 - seqrun["mapped"] / seqrun["total alignments"] * 100).toFixed(2) }}</td>
+                    <td>{{ ((1 - seqrun["mapped"] / seqrun["total alignments"]) * 100).toFixed(2) }}</td>
                   </tr>
                   </tbody>
                 </table>
