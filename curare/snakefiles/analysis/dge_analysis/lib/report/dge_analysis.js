@@ -19,77 +19,92 @@ new Vue({
             {
                 field: 'reads',
                 label: 'Total Reads',
-                visible: true
+                visible: true,
+                numeric: true
             },
             {
                 field: 'Assigned',
                 label: 'Assigned',
-                visible: true
+                visible: true,
+                numeric: true
             },
             {
                 field: 'Unassigned_Unmapped',
                 label: 'Unassigned Unmapped',
-                visible: true
+                visible: true,
+                numeric: true
             },
             {
                 field: 'Unassigned_Read_Type',
                 label: 'Unassigned Read Type',
-                visible: true
+                visible: true,
+                numeric: true
             },
             {
                 field: 'Unassigned_Singleton',
                 label: 'Unassigned Singleton',
-                visible: true
+                visible: true,
+                numeric: true
             },
             {
                 field: 'Unassigned_MappingQuality',
                 label: 'Unassigned MappingQuality',
-                visible: true
+                visible: true,
+                numeric: true
             },
             {
                 field: 'Unassigned_Chimera',
                 label: 'Unassigned Chimera',
-                visible: true
+                visible: true,
+                numeric: true
             },
             {
                 field: 'Unassigned_FragmentLength',
                 label: 'Unassigned FragmentLength',
-                visible: true
+                visible: true,
+                numeric: true
             },
             {
                 field: 'Unassigned_Duplicate',
                 label: 'Unassigned Duplicate',
-                visible: true
+                visible: true,
+                numeric: true
             },
             {
                 field: 'Unassigned_MultiMapping',
                 label: 'Unassigned MultiMapping',
-                visible: true
+                visible: true,
+                numeric: true
             },
             {
                 field: 'Unassigned_Secondary',
                 label: 'Unassigned Secondary',
-                visible: true
+                visible: true,
+                numeric: true
             },
             {
                 field: 'Unassigned_NonSplit',
                 label: 'Unassigned NonSplit',
-                visible: true
+                visible: true,
+                numeric: true
             },
             {
                 field: 'Unassigned_NoFeatures',
                 label: 'Unassigned NoFeatures',
-                visible: true
+                visible: true,
+                numeric: true
             },
             {
                 field: 'Unassigned_Overlapping_Length',
                 label: 'Unassigned Overlapping_Length',
-                visible: true
+                visible: true,
+                numeric: true
             },
             {
                 field: 'Unassigned_Ambiguity',
                 label: 'Unassigned Ambiguity',
-                visible: true
+                visible: true,
+                numeric: true
             }
         ],
         key_value_columns: [
