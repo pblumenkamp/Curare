@@ -197,7 +197,6 @@ rule generate_report_data:
         dge_analysis_data=".report/data/dge_analysis_data.js",
         dge_analysis_html=".report/modules/dge_analysis.html",
         dge_analysis_js=".report/js/modules/dge_analysis.js",
-        dge_analysis_css=".report/css/modules/dge_analysis.css",
         dge_analysis_img_pca='.report/img/modules/dge_analysis/pca.svg',
         dge_analysis_img_correlation='.report/img/modules/dge_analysis/correlation_heatmap.svg',
         dge_analysis_img_feature_assignment=directory('.report/img/modules/dge_analysis/feature_assignment')
@@ -211,7 +210,6 @@ rule generate_report_data:
         "python3 lib/generate_report_data.py --fc_stats {input.stats} --fc_main_feature '%%GFF_FEATURE_TYPE%%' --comparison_dir {input.comparisons} --visualization {params.visualization} --output {output.dge_analysis_data} && "
         "cp lib/report/dge_analysis.html {output.dge_analysis_html} && "
         "cp lib/report/dge_analysis.js {output.dge_analysis_js} &&"
-        "cp lib/report/dge_analysis.css {output.dge_analysis_css} &&"
         "cp {input.img_pca} {output.dge_analysis_img_pca} &&"
         "cp {input.correlation_heatmap} {output.dge_analysis_img_correlation} &&"
         "mkdir -p {output.dge_analysis_img_feature_assignment} && cp {input.feature_assignment}/*.svg {output.dge_analysis_img_feature_assignment}"

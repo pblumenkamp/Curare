@@ -61,23 +61,28 @@ new Vue({
         removed_sequences_columns: [
             {
                 field: 'length',
-                label: 'Length'
+                label: 'Length',
+                numeric: true
             },
             {
                 field: 'count',
-                label: 'Count'
+                label: 'Count',
+                numeric: true
             },
             {
                 field: 'expect',
-                label: 'Expect'
+                label: 'Expect',
+                numeric: true
             },
             {
                 field: 'max_err',
-                label: 'Max. Error'
+                label: 'Max. Error',
+                numeric: true
             },
             {
                 field: 'error counts',
-                label: 'Error Counts'
+                label: 'Error Counts',
+                numeric: true
             },
         ],
         key_value_columns: [
