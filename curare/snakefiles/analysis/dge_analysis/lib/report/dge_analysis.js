@@ -193,19 +193,19 @@ new Vue({
                         'value': ''
                     },
                     {
-                        'key': 'Lowest Log2-Fold Change',
+                        'key': 'Lowest Log2 Fold Change',
                         'value': parseFloat(row['lowest_lfc']).toFixed(1)
                     },
                     {
-                        'key': 'Lowest Log2-Fold Change (Name)',
+                        'key': 'Lowest Log2 Fold Change (Name)',
                         'value': row['lowest_lfc_name']
                     },
                     {
-                        'key': 'Highest Log2-Fold Change',
+                        'key': 'Highest Log2 Fold Change',
                         'value': parseFloat(row['highest_lfc']).toFixed(1)
                     },
                     {
-                        'key': 'Highest Log2-Fold Change (Name)',
+                        'key': 'Highest Log2 Fold Change (Name)',
                         'value': row['highest_lfc_name']
                     },
                     {
