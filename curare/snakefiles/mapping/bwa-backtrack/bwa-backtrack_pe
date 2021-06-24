@@ -135,7 +135,7 @@ rule bwa_backtrack_align_forward:
     threads:
         1
     shell:
-        "bwa aln %%ADDITIONAL_BWA_OPTIONS%% -t {threads} -f {output} {input.genome} {input.reads} 2>&1 |"
+        "bwa aln %%ADDITIONAL_BWA_ALN_OPTIONS%% -t {threads} -f {output} {input.genome} {input.reads} 2>&1 |"
         "tee {log}"
 
 
@@ -155,11 +155,11 @@ rule bwa_backtrack_align_reverse:
     threads:
         1
     shell:
-        "bwa aln %%ADDITIONAL_BWA_OPTIONS%% -t {threads} -f {output} {input.genome} {input.reads} 2>&1 |"
+        "bwa aln %%ADDITIONAL_BWA_ALN_OPTIONS%% -t {threads} -f {output} {input.genome} {input.reads} 2>&1 |"
         "tee {log}"
 
 
-rule bwa_backtrack_samse:
+rule bwa_backtrack_sampe:
     input:
         genome="%%GENOME_FASTA%%",
         genome_index=expand("%%GENOME_FASTA%%.{SUFFIX}", SUFFIX=["amb", "ann", "bwt", "pac", "sa"]),
@@ -178,7 +178,7 @@ rule bwa_backtrack_samse:
     threads:
         1
     shell:
-        "bwa sampe %%ADDITIONAL_BWA_OPTIONS%% -f {output} {input.genome} {input.sai} {input.sai_reverse} {input.reads} {input.reads_reverse} 2>&1 |"
+        "bwa sampe %%ADDITIONAL_BWA_SAMPE_OPTIONS%% -f {output} {input.genome} {input.sai} {input.sai_reverse} {input.reads} {input.reads_reverse} 2>&1 |"
         "tee {log}"
 
 
@@ -209,9 +209,29 @@ rule sam_to_bam:
 
         "samtools view -f 12 -Shb {input} | samtools sort -@ {threads} -o {output.bam_unmapped} -;"
 
+
+rule write_settings:
+    output:
+        settings="mapping/settings.yaml"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "bwa_report"
+    shell:
+        """
+        set +e
+        bwa_help=$(bwa 2>&1);
+        bwa_version=$(echo "$bwa_help" | grep "Version:" | sed 's/Version: \(.*\)/\\1/g');
+        echo "bwa_version: \\"$bwa_version\\"" > {output.settings};
+        echo 'additional_sampe_parameters: "%%ADDITIONAL_BWA_SAMPE_OPTIONS%%"' >> {output.settings}; 
+        echo 'additional_aln_parameters: "%%ADDITIONAL_BWA_ALN_OPTIONS%%"' >> {output.settings}; 
+        """
+
+
 rule generate_report_data:
     input:
-        stats_tsv="mapping/statistics/flagstat_summary.tsv"
+        stats_tsv="mapping/statistics/flagstat_summary.tsv",
+        settings="mapping/settings.yaml"
     output:
         bwa_data=".report/data/bwa-backtrack_data.js",
         bwa_html=".report/modules/bwa-backtrack.html",
@@ -222,7 +242,7 @@ rule generate_report_data:
     group:
         "bwa_report"
     shell:
-        "python3 lib/generate_report_data.py --stats {input.stats_tsv} --output {output.bwa_data} --paired-end && "
+        "python3 lib/generate_report_data.py --stats {input.stats_tsv} --output {output.bwa_data} --settings {input.settings} --paired-end && "
         "cp lib/report/bwa-backtrack.html {output.bwa_html} && "
         "cp lib/report/bwa-backtrack.js {output.bwa_js} && "
         "cp lib/report/bwa-backtrack.css {output.bwa_css}"

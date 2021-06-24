@@ -38,6 +38,9 @@
         <div class="content">
           <section id="bwa-body">
             <h2>BWA-Backtrack</h2>
+
+            <h3>Settings</h3>
+            <b-table :data="bwa_settings_data" :columns="bwa_settings_columns" :show-header="false" style="margin-bottom: 2rem;"></b-table>
             
             <div v-if="paired_end" style="display: flex; justify-content: space-between">
               <h3>Alignment Statistics</h3>
