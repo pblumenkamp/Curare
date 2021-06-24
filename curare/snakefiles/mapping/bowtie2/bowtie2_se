@@ -114,6 +114,7 @@ rule write_settings:
         "bowtie2_report"
     shell:
         """
+        set +e
         echo 'used_mapping_preset: "%%ALIGNMENT_TYPE%%"' > {output.settings};
         bw2_help=$(bowtie2 --help)
         bw2_version=$(echo "$bw2_help" | head -n1 | sed 's/.*version \(.*\) by.*/\\1/g')
