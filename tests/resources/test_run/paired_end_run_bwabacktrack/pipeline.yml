@@ -12,6 +12,8 @@ mapping:
 
   bwa-backtrack:
     genome_fasta: "../../reference/listeria_monocytogenes_egd_e.fasta"
+    additional_bwa_sampe_options: "-P"
+    additional_bwa_aln_options: "-n 2"
 
 analysis:
   modules: ["count_table", "dge_analysis"]
