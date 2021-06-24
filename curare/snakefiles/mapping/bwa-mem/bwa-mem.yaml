@@ -10,9 +10,9 @@ required_settings:
     type: 'file_input'
 
 optional_settings:
-  additional_bwa_options:
-    label: 'Additional BWA Options'
-    description: "Additional options to use in shell command"
+  additional_bwa_mem_options:
+    label: 'Additional BWA MEM Options'
+    description: "Additional options to use when executing BWA MEM"
     type: "string"
     default: ''
 

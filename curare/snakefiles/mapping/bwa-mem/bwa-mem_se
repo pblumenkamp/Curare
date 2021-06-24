@@ -108,7 +108,7 @@ rule bwa_mem_mapping:
     threads:
         1
     shell:
-        "bwa mem %%ADDITIONAL_BWA_OPTIONS%% -t {threads} -o {output} {input.genome} {input.reads} 2>&1 |"
+        "bwa mem %%ADDITIONAL_BWA_MEM_OPTIONS%% -t {threads} -o {output} {input.genome} {input.reads} 2>&1 |"
         "tee {log}"
 
 
@@ -129,9 +129,28 @@ rule sam_to_bam:
         "samtools view -F 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam} - && samtools index {output.bam};"
         "samtools view -f 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam_unmapped} -"
 
+
+rule write_settings:
+    output:
+        settings="mapping/settings.yaml"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "bwa_report"
+    shell:
+        """
+        set +e
+        bwa_help=$(bwa 2>&1);
+        bwa_version=$(echo "$bwa_help" | grep "Version:" | sed 's/Version: \(.*\)/\\1/g');
+        echo "bwa_version: \\"$bwa_version\\"" > {output.settings};
+        echo 'additional_mem_parameters: "%%ADDITIONAL_BWA_MEM_OPTIONS%%"' >> {output.settings}; 
+        """
+
+
 rule generate_report_data:
     input:
-        stats_tsv="mapping/statistics/flagstat_summary.tsv"
+        stats_tsv="mapping/statistics/flagstat_summary.tsv",
+        settings="mapping/settings.yaml"
     output:
         bwa_data=".report/data/bwa-mem_data.js",
         bwa_html=".report/modules/bwa-mem.html",
@@ -142,7 +161,7 @@ rule generate_report_data:
     group:
         "bwa_report"
     shell:
-        "python3 lib/generate_report_data.py --stats {input.stats_tsv} --output {output.bwa_data} && "
+        "python3 lib/generate_report_data.py --stats {input.stats_tsv} --output {output.bwa_data} --settings {input.settings} && "
         "cp lib/report/bwa-mem.html {output.bwa_html} && "
         "cp lib/report/bwa-mem.js {output.bwa_js} && "
         "cp lib/report/bwa-mem.css {output.bwa_css}"
