@@ -12,3 +12,5 @@ dependencies:
   - matplotlib
   - samtools>=1.8
   - xlsxwriter>=1.0.5
+  - pyyaml=5.4.1
+
