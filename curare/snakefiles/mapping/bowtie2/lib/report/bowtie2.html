@@ -39,6 +39,9 @@
           <section id="bowtie2-body">
             <h2>Bowtie2</h2>
 
+            <h3>Settings</h3>
+            <b-table :data="bw2_settings_data" :columns="bw2_settings_columns" :show-header="false" style="margin-bottom: 2rem;"></b-table>
+
             <div v-if="bowtie2_stats.length >= 7" style="display: flex; justify-content: space-between">
               <h3 id="statistics_plots">Alignment Distribution</h3>
               <b-switch id="in-percent-plots" type="is-info" v-model="stats_in_percent"><p>in %</p></b-switch>

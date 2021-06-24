@@ -105,10 +105,28 @@ rule sam_to_bam:
         "samtools view -F 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam} - && samtools index {output.bam};"
         "samtools view -f 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam_unmapped} -"
 
+rule write_settings:
+    output:
+        settings="mapping/settings.yaml"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "bowtie2_report"
+    shell:
+        """
+        echo 'used_mapping_preset: "%%ALIGNMENT_TYPE%%"' > {output.settings};
+        bw2_help=$(bowtie2 --help)
+        bw2_version=$(echo "$bw2_help" | head -n1 | sed 's/.*version \(.*\) by.*/\\1/g')
+        echo "bowtie2_version: \\"$bw2_version\\"" >> {output.settings};
+        echo "use_shared_memory: 'true'" >> {output.settings};
+        echo 'additional_parameters: "%%ADDITIONAL_BOWTIE2_OPTIONS%%"' >> {output.settings}; 
+        """
+
 rule generate_report_data:
     input:
         stats_tsv="mapping/stats/mapping_stats.tsv",
-        images=["mapping/stats/alignment_stats.svg", "mapping/stats/alignment_stats_relative.svg"]
+        images=["mapping/stats/alignment_stats.svg", "mapping/stats/alignment_stats_relative.svg"],
+        settings="mapping/settings.yaml"
     output:
         bw2_data=".report/data/bowtie2_data.js",
         bw2_html=".report/modules/bowtie2.html",
@@ -120,7 +138,7 @@ rule generate_report_data:
     group:
         "bowtie2_report"
     shell:
-        "python3 lib/generate_report_data.py --stats {input.stats_tsv} --output {output.bw2_data} && "
+        "python3 lib/generate_report_data.py --stats {input.stats_tsv} --output {output.bw2_data} --settings {input.settings} && "
         "cp lib/report/bowtie2.html {output.bw2_html} && "
         "cp lib/report/bowtie2.js {output.bw2_js} && "
         "cp lib/report/bowtie2.css {output.bw2_css} &&"
