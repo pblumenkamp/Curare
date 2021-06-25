@@ -12,3 +12,4 @@ dependencies:
   - samtools>=1.8
   - segemehl>=0.3.4
   - xlsxwriter>=1.0.5
+  - pyyaml=5.4.1

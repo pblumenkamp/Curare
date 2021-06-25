@@ -68,8 +68,7 @@
               </div>
 
               <h3>Runtime Parameters</h3>
-              <b-table :data="run_parameters[active_sample_menu]" :columns="key_value_columns" :show-header="false">
-              </b-table>
+              <b-table :data="run_parameters[active_sample_menu]" :columns="key_value_columns" :show-header="false"></b-table>
 
               <h3 style="padding-top: 2rem">Summary</h3>
               <template v-if="paired_end">
