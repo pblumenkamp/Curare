@@ -12,6 +12,7 @@ mapping:
 
   segemehl:
     genome_fasta: "../../reference/listeria_monocytogenes_egd_e.fasta"
+    additional_segemehl_options: "-r 1" 
 
 analysis:
   modules: ["count_table", "dge_analysis"]

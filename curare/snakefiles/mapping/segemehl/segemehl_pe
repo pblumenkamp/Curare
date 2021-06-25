@@ -75,7 +75,7 @@ rule segemehl_mapping:
     threads:
         2
     shell:
-        "segemehl.x -t {threads} -o {output} -i {input.genome_index} -d {input.genome} -q {input.reads} -p {input.reads_reverse} 2>&1 |"
+        "segemehl.x %%ADDITIONAL_SEGEMEHL_OPTIONS%% --accuracy %%ACCURACY%% -t {threads} -o {output} -i {input.genome_index} -d {input.genome} -q {input.reads} -p {input.reads_reverse} 2>&1 |"
         "tee {log}"
 
 
@@ -106,9 +106,29 @@ rule index_bam:
 
         "samtools view -f 12 -Shb {input} | samtools sort -@ {threads} -o {output.bam_unmapped} -;"
 
+
+rule write_settings:
+    output:
+        settings="mapping/settings.yaml"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "bwa_report"
+    shell:
+        """
+        set +e
+        segemehl_help=$(segemehl.x 2>&1);
+        segemehl_version=$(echo "$segemehl_help" | grep -A1 "\[VERSION\\]" | tail -n1 | awk '{{$1=$1}};1');
+        echo "segemehl_version: \\"$segemehl_version\\"" > {output.settings};
+        echo 'segemehl_accuracy: "%%ACCURACY%%"' >> {output.settings}; 
+        echo 'additional_segemehl_parameters: "%%ADDITIONAL_SEGEMEHL_OPTIONS%%"' >> {output.settings}; 
+        """
+
+
 rule generate_report_data:
     input:
-        stats_tsv="mapping/stats/mapping_stats.tsv"
+        stats_tsv="mapping/stats/mapping_stats.tsv",
+        settings="mapping/settings.yaml"
     output:
         segemehl_data=".report/data/segemehl_data.js",
         segemehl_html=".report/modules/segemehl.html",
@@ -119,7 +139,7 @@ rule generate_report_data:
     group:
         "segemehl_report"
     shell:
-        "python3 lib/generate_report_data.py --stats {input.stats_tsv} --output {output.segemehl_data} --paired-end && "
+        "python3 lib/generate_report_data.py --stats {input.stats_tsv} --output {output.segemehl_data} --settings {input.settings} --paired-end && "
         "cp lib/report/segemehl.html {output.segemehl_html} && "
         "cp lib/report/segemehl.js {output.segemehl_js} && "
         "cp lib/report/segemehl.css {output.segemehl_css}"
