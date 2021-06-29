@@ -5,6 +5,7 @@ new Vue({
     data: {
         counttable_stats: Curare.count_table.stats,
         paired_end: Curare.count_table.paired_end,
+        fc_main_feature: Curare.count_table.fc_main_feature,
         stats_in_percent: false,
         chart: undefined,
         currentPage: 1,
