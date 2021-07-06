@@ -8,6 +8,7 @@ new Vue({
         feature_assignment: Curare.deseq2.feature_assignment,
         paired_end: Curare.deseq2.paired_end,
         fc_main_feature: Curare.deseq2.fc_main_feature,
+        count_table_path: Curare.deseq2.count_table_path,
         counttable_in_percent: false,
         charts: {},
         counttable_columns: [

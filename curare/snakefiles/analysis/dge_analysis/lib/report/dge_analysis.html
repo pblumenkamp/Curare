@@ -45,6 +45,12 @@
                 <b-switch id="in-percent" type="is-info" v-model="counttable_in_percent"><p>in %</p></b-switch>
             </div>
             <canvas id='stacked_barchart' style="padding-top: 1rem; padding-bottom: 2rem"></canvas>
+            <div style="display: flex; flex-direction: row-reverse; justify-content: space-between">
+              <b-button id="get-counttable" type="is-primary" tag="a" :href="'../../' + count_table_path" target="_blank" rel="noopener noreferrer">
+                <span style="padding-right: 0.5rem">Get Count Table</span>
+                <i class="fas fa-external-link-alt fa-sm"></i>
+              </b-button>
+            </div>
             <b-table 
                 :data="counttable_table" 
                 :columns="counttable_columns" 
