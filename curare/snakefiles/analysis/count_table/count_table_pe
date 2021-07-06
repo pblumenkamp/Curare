@@ -27,6 +27,7 @@ rule count_reads:
 rule generate_report_data:
     input:
         stats="analysis/count_table/counts.txt.summary",
+        count_table="analysis/count_table/counts.txt"
     output:
         count_table_data=".report/data/count_table_data.js",
         count_table_html=".report/modules/count_table.html",
@@ -36,6 +37,6 @@ rule generate_report_data:
     group:
         "count_table_report"
     shell:
-        "python3 lib/generate_report_data.py --stats {input.stats} --output {output.count_table_data} --fc_main_feature '%%GFF_FEATURE_TYPE%%' --paired-end && "
+        "python3 lib/generate_report_data.py --stats {input.stats} --output {output.count_table_data} --fc_main_feature '%%GFF_FEATURE_TYPE%%' --counttable {input.count_table} --paired-end && "
         "cp lib/report/count_table.html {output.count_table_html} && "
         "cp lib/report/count_table.js {output.count_table_js}"

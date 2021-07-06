@@ -6,6 +6,7 @@ new Vue({
         counttable_stats: Curare.count_table.stats,
         paired_end: Curare.count_table.paired_end,
         fc_main_feature: Curare.count_table.fc_main_feature,
+        count_table_path: Curare.count_table.count_table_path,
         stats_in_percent: false,
         chart: undefined,
         currentPage: 1,
