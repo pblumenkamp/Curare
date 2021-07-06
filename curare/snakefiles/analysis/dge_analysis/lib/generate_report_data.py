@@ -2,7 +2,7 @@
 Convert DESeq2 results to usable data for the large report
 
 Usage:
-    generate_report_data.py --fc_stats <featureCounts_stats> --fc_main_feature <fc_main_feature> --comparison_dir <deseq2_comparison_dir> --visualization <vis_dir> --output <output> [--paired-end]
+    generate_report_data.py --fc_stats <featureCounts_stats> --fc_main_feature <fc_main_feature> --comparison_dir <deseq2_comparison_dir> --visualization <vis_dir> --output <output> --counttable <count_table> [--paired-end]
     generate_report_data.py (--version | --help)
 
 Options:
@@ -13,6 +13,7 @@ Options:
     -t <fc_main_feature> --fc_main_feature <fc_main_feature>            GFF main featue for usage in featureCounts (e.g. CDS)
     -c <deseq2_comparison_dir> --comparison_dir <deseq2_comparison_dir> Folder containing all DESeq2 comparison
     -v <vis_dir> --visualization <vis_dir>                              Folder containing all visualization
+    -c <count_table> --counttable <count_table>                         Created count table
     -o <output> --output <output>                                       Created js containing featureCounts statistics
     --paired-end                                                        Paired-End run, else Single-End
 """
@@ -103,7 +104,7 @@ def parse_feat_assignment_folder(folder: Path) -> Dict[str, str]:
     return {file.name[:-len('.svg')]: file.name for file in folder.iterdir() if file.name.endswith('svg')}
 
 
-def generate_report_data(output_file: Path, fc_file: Path, comnparison_folder: Path, vis_folder: Path, is_paired_end: bool, fc_main_feature: str):
+def generate_report_data(output_file: Path, fc_file: Path, comnparison_folder: Path, vis_folder: Path, is_paired_end: bool, fc_main_feature: str, count_table_file: Path):
     featurecounts: List[Dict[str, str]] = parse_featurecounts_stats(fc_file)
     deseq2_summary: List[Dict[str, str]] = parse_deseq2_comparison(comnparison_folder)
     feature_assignemnt: Dict[str, str] = parse_feat_assignment_folder(vis_folder / "feature_assignments")
@@ -112,6 +113,8 @@ def generate_report_data(output_file: Path, fc_file: Path, comnparison_folder: P
         f.write('window.Curare.deseq2 = (function() {\n')
         f.write('  const paired_end = {}\n'.format("true" if is_paired_end else "false"))
         f.write('  const fc_main_feature = "{}"\n'.format(fc_main_feature))
+        f.write('  const count_table_path = "{}"\n'.format(count_table_file))
+
 
         f.write('  const featurecounts = ')
         f.write(json.dumps(featurecounts, indent=2).replace('\n', '\n  '))
@@ -125,7 +128,7 @@ def generate_report_data(output_file: Path, fc_file: Path, comnparison_folder: P
         f.write(json.dumps(feature_assignemnt, indent=2).replace('\n', '\n  '))
         f.write('\n')
 
-        f.write('  return {paired_end: paired_end, fc_main_feature: fc_main_feature, featurecounts: featurecounts, deseq2_summary: deseq2_summary, feature_assignment: feature_assignment};\n')
+        f.write('  return {paired_end: paired_end, fc_main_feature: fc_main_feature, featurecounts: featurecounts, deseq2_summary: deseq2_summary, feature_assignment: feature_assignment, count_table_path: count_table_path};\n')
         f.write('}());')
 
 
@@ -136,8 +139,10 @@ def main():
     comparison_dir = Path(args["--comparison_dir"]).resolve()
     output_file = Path(args["--output"]).resolve()
     visualization = Path(args["--visualization"]).resolve()
+    count_table_file: Path = Path(args["--counttable"])
 
-    generate_report_data(output_file, fc_file, comparison_dir, visualization, args["--paired-end"], fc_main_feature)
+
+    generate_report_data(output_file, fc_file, comparison_dir, visualization, args["--paired-end"], fc_main_feature, count_table_file)
 
 
 if __name__ == '__main__':

@@ -192,7 +192,8 @@ rule generate_report_data:
         comparisons="analysis/dge_analysis/deseq2_comparisons",
         img_pca="analysis/dge_analysis/visualization/pca.svg",
         correlation_heatmap="analysis/dge_analysis/visualization/correlation_heatmap.svg",
-        feature_assignment="analysis/dge_analysis/visualization/feature_assignments"
+        feature_assignment="analysis/dge_analysis/visualization/feature_assignments",
+        count_table="analysis/dge_analysis/counts.txt"
     output:
         dge_analysis_data=".report/data/dge_analysis_data.js",
         dge_analysis_html=".report/modules/dge_analysis.html",
@@ -207,7 +208,7 @@ rule generate_report_data:
     group:
         "dge_analysis_report"
     shell:
-        "python3 lib/generate_report_data.py --fc_stats {input.stats} --fc_main_feature '%%GFF_FEATURE_TYPE%%' --comparison_dir {input.comparisons} --visualization {params.visualization} --output {output.dge_analysis_data} && "
+        "python3 lib/generate_report_data.py --fc_stats {input.stats} --fc_main_feature '%%GFF_FEATURE_TYPE%%' --comparison_dir {input.comparisons} --visualization {params.visualization} --output {output.dge_analysis_data} --counttable '{input.count_table}' && "
         "cp lib/report/dge_analysis.html {output.dge_analysis_html} && "
         "cp lib/report/dge_analysis.js {output.dge_analysis_js} &&"
         "cp {input.img_pca} {output.dge_analysis_img_pca} &&"
