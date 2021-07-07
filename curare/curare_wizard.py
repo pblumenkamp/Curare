@@ -230,16 +230,31 @@ def create_pipeline_file(selected_modules: Dict[str, List[Dict[str, str]]], all_
                     continue
                 out_write(module['name'] + ':', 2)
                 for setting_name, setting in module_settings.get('required', {}).items():
-                    out_write('## {} [Value Type: {}]'.format(setting['description'] if setting['description'].endswith('.') else setting['description'] + '.', setting['type'].capitalize()), 4)
+                    for line in format_description(setting['description'], setting['type']):
+                        out_write(line, 4)
                     if setting['type'] == 'enum':
                         out_write('## Enum choices: {}'.format(', '.join(['"{}"'.format(choice) for choice in setting['choices']])), 4)
                     out_write('{}: <Insert Config Here>'.format(setting_name), 4)
                     out_write()
                 for setting_name, setting in module_settings.get('optional', {}).items():
-                    out_write('## {} [Value Type: {}]'.format(setting['description'] if setting['description'].endswith('.') else setting['description'] + '.', setting['type'].capitalize()), 4)
+                    for line in format_description(setting['description'], setting['type']):
+                        out_write(line, 4)
                     out_write('#{}: "{}"'.format(setting_name, setting['default']), 4)
                     out_write()
                 out_write()
+
+def format_description(description: str, parameter_type: str) -> List[str]:
+    formatted_description = []
+    if not description.endswith('.'):
+        description += '.'
+    description_lines: List[str] = description.split('\n')
+    if len(description_lines) > 1:
+        for line in description_lines:
+            formatted_description.append("## {}".format(line))
+        formatted_description.append("## [Value Type: {}]".format(parameter_type.capitalize()))
+    else:
+        formatted_description.append('## {} [Value Type: {}]'.format(description, parameter_type.capitalize()))
+    return formatted_description
 
 
 def print_verbose(text: Any = '', file: IO = sys.stderr) -> None:
@@ -250,8 +265,8 @@ def main() -> None:
     args = docopt(__doc__, version=metadata.__version__)
     if args["--output"] is not None:
         args["--output"] = Path(args["--output"]).resolve()
-        args["--samples"]: Path = args['--output'] / 'samples.tsv'
-        args["--pipeline"]: Path = args['--output'] / 'pipeline.yaml'
+        args["--samples"] = args['--output'] / 'samples.tsv'
+        args["--pipeline"] = args['--output'] / 'pipeline.yaml'
     else:
         args["--samples"] = Path(args["--samples"]).resolve()
         args["--pipeline"] = Path(args["--pipeline"]).resolve()
