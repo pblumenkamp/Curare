@@ -22,7 +22,9 @@ required_settings:
 optional_settings:
   additional_featcounts_features:
     label: "Features to additionally analyze"
-    description: "List of features, which should also be counted in a count table. Values as comma-separated list (e.g. \"ncRNA,rRNA,tRNA\") (Default: All feature types in annotation)"
+    description: "List of features, which should also be counted in a count table. Values as comma-separated list (e.g. \"ncRNA,rRNA,tRNA\") (Default: All feature types in annotation and in allowlist)\
+    \nAllowlist: \"CDS\", \"exon\", \"intron\", \"gene\", \"mRNA\", \"tRNA\", \"rRNA\", \"ncRNA\", \"operon\", \"snRNA\", \"snoRNA\", \"miRNA\", \"pseudogene\", \"small regulatory ncRNA\",
+    \"rasiRNA\", \"guide RNA\", \"siRNA\", \"stRNA\", \"sRNA\""
     type: "string"
     default: ''
 
