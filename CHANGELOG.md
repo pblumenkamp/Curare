@@ -1,4 +1,4 @@
-## 0.3
+## 0.3.0
 
 ### Added (5 change)
 
@@ -33,11 +33,11 @@
 - Fixed bug when all options in a module are optional
 - Fixed parsing errors of pipeline and samples file
 - Check and create missing output folders
-- Use curare snakefiles folder as default (Curare Wizard)
+- Use curare snakefiles folder as a default (Curare Wizard)
 
 ### Changed (1 change)
 
-- Changed '--attribute' list from space-seperated to comma-seperated (DGE Analysis Module)
+- Changed '--attribute' list from space-separated to comma-separated (DGE Analysis Module)
 
 ## 0.2.1
 
@@ -57,7 +57,7 @@
 ### Added (9 changes)
 
 - Added a Wizard (curare_wizard.py) for creating samples and pipeline file.
-- Added a cluster mode for send long-running steps to a cluster node as a job (--cluster-comand, --cluster-config-file, --cluster-nodes). If using cluster mode, the latency-wait parameter should be increased (--latency-wait in seconds).
+- Added a cluster mode for send long-running steps to a cluster node as a job (--cluster-command, --cluster-config-file, --cluster-nodes). If using cluster mode, the latency-wait parameter should be increased (--latency-wait in seconds).
 - Added a final report summarizing all used software and the most important results.
 - Added bwa (http://bio-bwa.sourceforge.net/) as a mapping module. This includes the bwa-backtrack bwa-mem and bwa-sw algorithm.
 - Added conda support for automatically installing all dependencies for each module.
