@@ -106,7 +106,7 @@ def parse_feat_assignment_folder(folder: Path) -> Dict[str, str]:
 
 def generate_report_data(output_file: Path, fc_file: Path, comnparison_folder: Path, vis_folder: Path, is_paired_end: bool, fc_main_feature: str, count_table_file: Path):
     featurecounts: List[Dict[str, str]] = parse_featurecounts_stats(fc_file)
-    deseq2_summary: List[Dict[str, str]] = parse_deseq2_comparison(comnparison_folder)
+    deseq2_summary: List[Dict[str, str]] = parse_deseq2_comparison(comnparison_folder.resolve())
     feature_assignemnt: Dict[str, str] = parse_feat_assignment_folder(vis_folder / "feature_assignments")
 
     with output_file.open('w') as f:
@@ -114,6 +114,7 @@ def generate_report_data(output_file: Path, fc_file: Path, comnparison_folder: P
         f.write('  const paired_end = {}\n'.format("true" if is_paired_end else "false"))
         f.write('  const fc_main_feature = "{}"\n'.format(fc_main_feature))
         f.write('  const count_table_path = "{}"\n'.format(count_table_file))
+        f.write('  const deseq2_dir_path = "{}"\n'.format(comnparison_folder))
 
 
         f.write('  const featurecounts = ')
@@ -128,7 +129,7 @@ def generate_report_data(output_file: Path, fc_file: Path, comnparison_folder: P
         f.write(json.dumps(feature_assignemnt, indent=2).replace('\n', '\n  '))
         f.write('\n')
 
-        f.write('  return {paired_end: paired_end, fc_main_feature: fc_main_feature, featurecounts: featurecounts, deseq2_summary: deseq2_summary, feature_assignment: feature_assignment, count_table_path: count_table_path};\n')
+        f.write('  return {paired_end: paired_end, fc_main_feature: fc_main_feature, featurecounts: featurecounts, deseq2_summary: deseq2_summary, feature_assignment: feature_assignment, count_table_path: count_table_path, deseq2_dir_path: deseq2_dir_path};\n')
         f.write('}());')
 
 
@@ -136,7 +137,7 @@ def main():
     args = docopt(__doc__, version='1.1')
     fc_file = Path(args["--fc_stats"]).resolve()
     fc_main_feature = args["--fc_main_feature"]
-    comparison_dir = Path(args["--comparison_dir"]).resolve()
+    comparison_dir = Path(args["--comparison_dir"])
     output_file = Path(args["--output"]).resolve()
     visualization = Path(args["--visualization"]).resolve()
     count_table_file: Path = Path(args["--counttable"])

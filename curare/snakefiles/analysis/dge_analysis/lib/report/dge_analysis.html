@@ -118,32 +118,38 @@
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
               <h3 style="margin-bottom: 0">DESeq2 Summary</h3>
-              <b-dropdown 
-                aria-role="list" 
-                scrollable
-                v-model="active_comparison_menu">
-                
-                <template #trigger>
-                  <b-button
-                      type="is-primary"
-                      size="is-medium"
-                      icon-pack="fas"
-                      icon-right="sort-down">
+              <div>
+                <b-button id="get-deseq2-files" type="is-primary" tag="a" :href="'../../' + deseq2_folder_path" target="_blank" rel="noopener noreferrer" size="is-medium">
+                  <span style="padding-right: 0.5rem">Go to DESeq2 Files</span>
+                  <i class="fas fa-external-link-alt fa-sm"></i>
+                </b-button>
+                <b-dropdown 
+                  aria-role="list" 
+                  scrollable
+                  v-model="active_comparison_menu">
+                  
+                  <template #trigger>
+                    <b-button
+                        type="is-primary"
+                        size="is-medium"
+                        icon-pack="fas"
+                        icon-right="sort-down">
 
-                    Sample: 
-                    {{ deseq2_keys[active_comparison_menu][0] }}
-                  </b-button>
-                </template>
-                
-                <template v-for="(menu, menu_index) in deseq2_keys">
-                  <b-dropdown-item
-                    :key="menu_index"
-                    :value="menu_index" 
-                    aria-role="listitem">
-                    {{ menu[0] }}
-                  </b-dropdown-item>
-                </template>
-              </b-dropdown>
+                      Sample: 
+                      {{ deseq2_keys[active_comparison_menu][0] }}
+                    </b-button>
+                  </template>
+                  
+                  <template v-for="(menu, menu_index) in deseq2_keys">
+                    <b-dropdown-item
+                      :key="menu_index"
+                      :value="menu_index" 
+                      aria-role="listitem">
+                      {{ menu[0] }}
+                    </b-dropdown-item>
+                  </template>
+                </b-dropdown>
+            </div>
             </div>
 
             <b-table :data="deseq2_summary_table[deseq2_keys[active_comparison_menu][1]]" :columns="key_value_columns" :show-header="false"></b-table>
