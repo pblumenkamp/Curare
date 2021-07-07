@@ -1,20 +1,26 @@
-## 0.2.3
+## 0.3
 
-### Added (1 change)
+### Added (5 change)
 
-- Added main GFF feature to assignment chart title (Report - DGE Analysis)
+- Added main GFF feature to assignment chart title (Report - DGE Analysis & Count Table)
+- Added button for opening the original count table (Report - DGE Analysis & Count Table)
+- Added button for opening the DESeq2 comparison directory (Report - DGE Analysis)
+- Added pagination on tables (Report)
+- Added summary about mapping tool parameters (Report - Mapping)
 
-### Changed (1 change)
+### Changed (3 changes)
 
-- GFF feature 'region' will now be ignored if not specified in 'ADDITIONAL_FEATCOUNTS_FEATURES' (DGE Analysis Module)
+- Allowlist for GFF feature was created. If another feature is required, use 'ADDITIONAL_FEATCOUNTS_FEATURES' (DGE Analysis Module).
+  - Allowlist: "CDS", "exon", "intron", "gene", "mRNA", "tRNA", "rRNA", "ncRNA", "operon", "snRNA", "snoRNA", "miRNA", "pseudogene", "small regulatory ncRNA", "rasiRNA", "guide RNA", "siRNA", "stRNA", "sRNA"
 - Tabs were replaced with dropdown menus (Report)
-- Added pagination on Trim-Galore, DGE and Count Table tables (Report)
+- Runtime notation on overview page now in hours, minutes and seconds
+
+### Fixed (3 change)
+- Fixed broken header anchors on overview page (Report)
+- Fixed incorrect curare dependencies
+- Fixed unused Segemehl parameters
 
 ## 0.2.2
-
-### Hints
-
-- Removed ReadXplorer from module development since RX-CLI is deprecated
 
 ### Added (3 changes)
 
