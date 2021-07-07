@@ -19,12 +19,14 @@ def list_of_all_features(gff_path):
     features.add(line.strip().split("\t")[2]) #feature
   f2r.close()
 
-  # ignore unusable region tag
-  features = features.difference(["region"])
-
-  # remove unnecessary features
+  # Features to check for either user selected or Curare pre-selected
   if "%%ADDITIONAL_FEATCOUNTS_FEATURES%%":
     features = features.intersection("%%ADDITIONAL_FEATCOUNTS_FEATURES%%".split(","))
+  else: 
+    allowed_features = ["CDS", "exon", "intron", "gene", "mRNA", "tRNA", "rRNA", "ncRNA", "operon", "snRNA", "snoRNA",
+        "miRNA", "pseudogene", "small regulatory ncRNA", "rasiRNA", "guide RNA", "siRNA", "stRNA", "sRNA"]
+    features = features.intersection(allowed_features)
+
   return(list(features))
 
 localrules: dge_analysis__create_conditions
