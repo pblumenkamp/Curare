@@ -1,5 +1,6 @@
 # Ignore VS Code folder
 .vscode/
+*.code-workspace
 
 # Ignore all pycache folder
 __pycache__/
