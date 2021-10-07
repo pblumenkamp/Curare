@@ -1,3 +1,7 @@
+## 0.3.1
+
+### Fixed (3 change)
+- Fixed incorrect usage of local alignment mode with paired-end data (Bowtie2)
 ## 0.3.0
 
 ### Added (5 change)
@@ -13,7 +17,7 @@
 - Allowlist for GFF feature was created. If another feature is required, use 'ADDITIONAL_FEATCOUNTS_FEATURES' (DGE Analysis Module).
   - Allowlist: "CDS", "exon", "intron", "gene", "mRNA", "tRNA", "rRNA", "ncRNA", "operon", "snRNA", "snoRNA", "miRNA", "pseudogene", "small regulatory ncRNA", "rasiRNA", "guide RNA", "siRNA", "stRNA", "sRNA"
 - Tabs were replaced with dropdown menus (Report)
-- Runtime notation on overview page now in hours, minutes and seconds
+- Runtime notation on overview page now in hours, minutes and seconds (Report)
 
 ### Fixed (3 change)
 - Fixed broken header anchors on overview page (Report)
