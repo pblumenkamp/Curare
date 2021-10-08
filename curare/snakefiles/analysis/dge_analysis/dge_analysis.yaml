@@ -28,6 +28,16 @@ optional_settings:
     type: "string"
     default: ''
 
+  strand_specificity:
+    label: 'Strand Specificity'
+    description: 'Strand specificity of reads. Specifies if reads must lie on the same strand as the feature, the opposite strand, or can be on both. Options: "unstranded, stranded, reversely_stranded"'
+    type: 'enum'
+    default: "unstranded"
+    choices:
+      unstranded: '-s 0'
+      stranded: '-s 1'
+      reversely_stranded: '-s 2'
+
   additional_featcounts_options:
     label: "Additional FeatureCounts Options"
     description: "Additional options to use in shell command"
