@@ -1,6 +1,9 @@
 ## 0.3.1
 
-### Fixed (3 change)
+### Added (5 change)
+
+- Added option for strand specificity of reads to features (DGE Analysis)
+### Fixed (1 change)
 - Fixed incorrect usage of local alignment mode with paired-end data (Bowtie2)
 ## 0.3.0
 
