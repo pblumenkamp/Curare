@@ -1,10 +1,14 @@
 ## 0.3.1
 
-### Added (5 change)
-
+### Added (1 change)
 - Added option for strand specificity of reads to features (DGE Analysis)
+
+### Changed (1 change)
+- Bowtie2 alignment mode (local/end-to-end) is now optional and by default "end-to-end"
+
 ### Fixed (1 change)
-- Fixed incorrect usage of local alignment mode with paired-end data (Bowtie2)
+- Fixed incorrect usage of local alignment mode with paired-end datasets (Bowtie2)
+  
 ## 0.3.0
 
 ### Added (5 change)
