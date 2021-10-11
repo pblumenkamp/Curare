@@ -24,8 +24,10 @@ for module in ['pandas', 'xlsxwriter']:
     if importlib.util.find_spec(module) is None:
         missing_modules.append(module)
 if len(missing_modules) != 0:
+    print('Missing python modules:', file=sys.stderr)
     for module in missing_modules:
-        print('Python module "{}" is missing'.format(module), file=sys.stderr)
+        print('\t- {}'.format(module), file=sys.stderr)
+    print('\nPlease use "conda" mode or install missing python packages.\n\n'.format(module), file=sys.stderr)
     sys.exit(4)
 
 import pandas as pd
@@ -138,7 +140,7 @@ def main():
     df = pd.DataFrame(list_data[1:], columns=list_data[0])
     writer = pd.ExcelWriter(outfile,
                             engine='xlsxwriter',
-                            options={'strings_to_numbers': True}
+                            engine_kwargs={'options': {'strings_to_numbers': True}}
                             )
     df.to_excel(writer, sheet_name=sheet_name, index=False)
 
