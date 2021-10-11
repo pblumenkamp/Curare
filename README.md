@@ -36,7 +36,6 @@ Curare was developed to simplify the automized execution of RNA-Seq workflows on
   + BWA (Mem)
   + BWA (SW)
   + Segemehl
-  + URMAP (only in separate version due to no conda support)
 + Analysis
   + Count Table (FeatureCounts)
   + DESeq2
