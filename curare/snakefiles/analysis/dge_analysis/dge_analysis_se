@@ -77,7 +77,7 @@ rule make_count_tables:
     log:
         log="analysis/dge_analysis/logs/count_tables/{feature}.log"
     shell:
-        "featureCounts -T {threads} %%ADDITIONAL_FEATCOUNTS_OPTIONS%% -t {wildcards.feature} -g '%%GFF_FEATURE_NAME%%' -a %%GFF_PATH%% -o '{output.featcounts}' {input.mappings} 2>&1 | "
+        "featureCounts -T {threads} %%STRAND_SPECIFICITY%% %%ADDITIONAL_FEATCOUNTS_OPTIONS%% -t {wildcards.feature} -g '%%GFF_FEATURE_NAME%%' -a %%GFF_PATH%% -o '{output.featcounts}' {input.mappings} 2>&1 | "
         "tee {log.log};"
 
 rule collect_count_tables:

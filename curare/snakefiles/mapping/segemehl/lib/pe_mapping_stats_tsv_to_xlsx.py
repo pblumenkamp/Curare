@@ -46,7 +46,7 @@ def main():
 
     writer = pd.ExcelWriter(str(output_xlsx),
                             engine='xlsxwriter',
-                            options={'strings_to_numbers': True}
+                            engine_kwargs={'options': {'strings_to_numbers': True}}
                             )
     df.to_excel(writer, sheet_name=sheet_name, index=False)
 

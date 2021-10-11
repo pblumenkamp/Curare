@@ -7,7 +7,7 @@ optional_settings:
     label: 'Phred Score Type'
     description: 'Choose phred33 (Sanger/Illumina 1.9+ encoding) or phred64 (Illumina 1.5 encoding)'
     type: 'enum'
-    default: '--phred33'
+    default: 'phred33'
     choices:
       phred33: '--phred33'
       phred64: '--phred64'
