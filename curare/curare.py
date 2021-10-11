@@ -368,6 +368,16 @@ def get_setting(setting_name, setting_properties, user_settings, pipeline_file_p
 
     return setting
 
+def get_default_setting(setting_name, setting_properties):
+    setting_type = setting_properties['type']
+    default_setting: str = setting_properties['default']
+    if setting_type == 'enum':
+        if default_setting not in setting_properties['choices']:
+            raise UnknownEnumError('Error in option "{}": Unknown default value "{}". Allowed choices:\n{}'.format(setting_name, default_setting, ''.join([' + {}\n'.format(choice) for choice in setting_properties['choices'].keys()])))
+        return setting_properties['choices'][default_setting]
+    else:
+        return default_setting
+
 
 def load_module(category: str, module_name: str, user_settings: Dict[str, str], pipeline_file_path: Path, paired_end: bool) -> 'Module':
     loaded_module = Module(module_name)
@@ -386,7 +396,7 @@ def load_module(category: str, module_name: str, user_settings: Dict[str, str], 
                     if user_settings and setting_name in user_settings:
                         loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, pipeline_file_path))
                     else:
-                        loaded_module.add_setting(setting_name, setting_properties['default'])
+                        loaded_module.add_setting(setting_name, get_default_setting(setting_name, setting_properties))
             if 'columns' in module_yaml:
                 for column_name, column_properties in module_yaml['columns'].items():
                     loaded_module.add_column(column_name, ColumnProperties(column_properties['type'], column_properties['description'], column_properties.get('character_set', None)))
@@ -404,7 +414,7 @@ def load_module(category: str, module_name: str, user_settings: Dict[str, str], 
                         if user_settings and setting_name in user_settings:
                             loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, pipeline_file_path))
                         else:
-                            loaded_module.add_setting(setting_name, setting_properties['default'])
+                            loaded_module.add_setting(setting_name, get_default_setting(setting_name, setting_properties))
                 if 'columns' in module_yaml['paired_end']:
                     for column_name, column_properties in module_yaml['paired_end']['columns'].items():
                         loaded_module.add_column(column_name, ColumnProperties(column_properties['type'], column_properties['description'], column_properties.get('character_set', None)))
@@ -422,7 +432,7 @@ def load_module(category: str, module_name: str, user_settings: Dict[str, str], 
                         if user_settings and setting_name in user_settings:
                             loaded_module.add_setting(setting_name, get_setting(setting_name, setting_properties, user_settings, pipeline_file_path))
                         else:
-                            loaded_module.add_setting(setting_name, setting_properties['default'])
+                            loaded_module.add_setting(setting_name, get_default_setting(setting_name, setting_properties))
                 if 'columns' in module_yaml['single_end']:
                     for column_name, column_properties in module_yaml['single_end']['columns'].items():
                         loaded_module.add_column(column_name, ColumnProperties(column_properties['type'], column_properties['description'], column_properties.get('character_set', None)))
