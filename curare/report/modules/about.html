@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CURARE Report</title>
+  <link rel="stylesheet" type="text/css" href="../css/buefy.min.css"/>
+
+  <script type="text/javascript" charset="utf8" src="../js/vue.min.js"></script>
+  <script type="text/javascript" charset="utf8" src="../js/buefy.min.js"></script>
+  <script defer src="../js/fontawesome.all.min.js"></script>
+  <script>
+      window.Curare = {}
+  </script>
+</head>
+<body class="has-navbar-fixed-top">
+  <section>
+    <div id="navigation">
+      <navigation-bar modules-path="" main-html="../../report.html"></navigation-bar>
+    </div>
+  </section>
+
+  <section class="hero is-primary is-small is-bold">
+    <div class="hero-body">
+      <div class="container has-text-centered">
+        <h1 class="title is-size-1">CURARE</h1>
+        <h2 class="subtitle is-size-3">Pipeline Report</h2>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div id="about" class="container">
+      <div class="columns" style="max-width: 100%">
+        <div class="column is-one-fifth"></div>
+        <div class="column" style="max-width: 100%">
+          <div class="content">
+            <h1>About</h1>
+            This report was created with Curare {{ curare_summary.curare_version }}
+            <br><br>
+            Developed by Patrick Blumenkamp<br>
+            <i class="fas fa-envelope-open"></i>
+            <a href="mailto:patrick.blumenkamp@computational.bio">patrick.blumenkamp@computational.bio</a>
+            <br><br>
+            Justus Liebig University Giessen<br>
+            Bioinformatics and Systems Biology<br>
+            Giessen, Germany
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer id="footer" class="footer">
+    <curare-footer img-path="../img/"></curare-footer>
+  </footer>
+
+  <script type="text/javascript" charset="utf8" src="../data/navigation.js"></script>
+  <script type="text/javascript" charset="utf8" src="../data/curare_summary.js"></script>
+  <script type="text/javascript" charset="utf8" src="../js/navigation_bar.js"></script>
+  <script type="text/javascript" charset="utf8" src="../js/footer.js"></script>
+  <script>
+      new Vue({
+          el: '#about',
+          data: {
+              curare_summary: Curare.summary,
+          },
+      });
+  </script>
+</body>
+</html>

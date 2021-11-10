@@ -1,5 +1,6 @@
-# Ignore PyCharm config folder
-.idea
+# Ignore VS Code folder
+.vscode/
+*.code-workspace
 
 # Ignore all pycache folder
 __pycache__/
@@ -7,21 +8,27 @@ __pycache__/
 # Ignore snakemake folder
 .snakemake/
 
+# Ignore user test-case
+curare_user_testcase.zip
+
+# Ignore conda environments for test cases
+/tests/**/envs
+
 # Ignore test run results
-/dge_pipeline/tests/ressources/reference/*.bt2
-/dge_pipeline/tests/ressources/reference/*.fai
-/dge_pipeline/tests/ressources/reference/*.idx
-/dge_pipeline/tests/ressources/**/output_dir*/
+/tests/resources/reference/*.bt2
+/tests/resources/reference/*.fai
+/tests/resources/reference/*.idx
+/tests/resources/**/output_dir*/
 
 #bwa index files
-/dge_pipeline/tests/ressources/reference/*.amb
-/dge_pipeline/tests/ressources/reference/*.ann
-/dge_pipeline/tests/ressources/reference/*.bwt
-/dge_pipeline/tests/ressources/reference/*.pac
-/dge_pipeline/tests/ressources/reference/*.sa
+/tests/resources/reference/*.amb
+/tests/resources/reference/*.ann
+/tests/resources/reference/*.bwt
+/tests/resources/reference/*.pac
+/tests/resources/reference/*.sa
 
 # Ignore report node_modules
-/dge_pipeline/report/node_modules*
+/curare/report/node_modules*
 
 # Core latex/pdflatex auxiliary files:
 *.aux

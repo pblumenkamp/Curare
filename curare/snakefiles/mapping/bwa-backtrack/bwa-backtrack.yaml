@@ -1,0 +1,42 @@
+name: 'bwa-backtrack'
+label: 'BWA-Backtrack'
+description: "Uses the Backtrack algorithm of BWA for read alignment. Recommended for Illumina reads up to 100bp. (http://bio-bwa.sourceforge.net)"
+
+
+required_settings:
+
+  genome_fasta:
+    label: 'Reference Genome'
+    description: 'Path to genome fasta file'
+    type: 'file_input'
+
+optional_settings:
+  additional_bwa_aln_options:
+    label: 'Additional BWA ALN Options'
+    description: "Additional options to use when executing BWA ALN"
+    type: "string"
+    default: ''
+
+
+single_end:
+  snakefile: 'bwa-backtrack_se'
+  optional_settings:
+    additional_bwa_samse_options:
+      label: 'Additional BWA SAMSE Options'
+      description: "Additional options to use when executing BWA SAMSE"
+      type: "string"
+      default: ''
+
+paired_end:
+  snakefile: 'bwa-backtrack_pe'
+  optional_settings:
+    additional_bwa_sampe_options:
+      label: 'Additional BWA SAMPE Options'
+      description: "Additional options to use when executing BWA SAMPE"
+      type: "string"
+      default: ''
+
+report:
+  html_file: "bwa-backtrack.html"
+  new_tab: false
+  title: "BWA-Backtrack"

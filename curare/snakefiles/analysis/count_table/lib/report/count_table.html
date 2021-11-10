@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CURARE Report</title>
+  <link rel="stylesheet" type="text/css" href="../css/buefy.min.css"/>
+
+  <script type="text/javascript" charset="utf8" src="../js/Chart.min.js"></script>
+  <script type="text/javascript" charset="utf8" src="../js/vue.min.js"></script>
+  <script type="text/javascript" charset="utf8" src="../js/buefy.min.js"></script>
+  <script defer src="../js/fontawesome.all.min.js"></script>
+  <script>
+      window.Curare = {}
+  </script>
+</head>
+
+<body class="has-navbar-fixed-top">
+<section>
+  <div id="navigation">
+    <navigation-bar modules-path="../modules/" main-html="../../report.html"></navigation-bar>
+  </div>
+</section>
+
+<section class="hero is-primary is-small is-bold">
+  <div class="hero-body">
+    <div class="container has-text-centered">
+      <h1 class="title is-size-1">CURARE</h1>
+      <h2 class="subtitle is-size-3">Pipeline Report</h2>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div id="counttable" class="container">
+    <div class="columns" style="max-width: 100%">
+      <div class="column is-1"></div>
+      <div class="column" style="max-width: 100%">
+        <div class="content">
+          <section id="counttable-body">
+            <h2>Count Table</h2>
+            <div style="display: flex; justify-content: space-between">
+              <h3>FeatureCount Assignment of feature '{{ fc_main_feature }}'</h3>
+              <b-switch id="in-percent" type="is-info" v-model="stats_in_percent"><p>in %</p></b-switch>
+            </div>
+            <canvas :id=`stacked_barchart` style="margin-top: 1rem; margin-bottom: 2rem;"></canvas>
+            <div style="display: flex; flex-direction: row-reverse; justify-content: space-between">
+              <b-button id="get-counttable" type="is-primary" tag="a" :href="'../../' + count_table_path" target="_blank" rel="noopener noreferrer" size="is-medium">
+                <span style="padding-right: 0.5rem">Go to Count Table</span>
+                <i class="fas fa-external-link-alt fa-sm"></i>
+              </b-button>
+            </div>
+            <b-table 
+                :data="stats_table" 
+                :columns="stats_columns" 
+                scrollable
+                :paginated="stats_table.length > 15"
+                per-page=15
+                :current-page.sync="currentPage"
+                icon-pack="fas"
+            ></b-table>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<footer id="footer" class="footer">
+  <curare-footer img-path="../img/"></curare-footer>
+</footer>
+
+<script type="text/javascript" charset="utf8" src="../data/navigation.js"></script>
+<script type="text/javascript" charset="utf8" src="../js/navigation_bar.js"></script>
+<script type="text/javascript" charset="utf8" src="../js/footer.js"></script>
+<script type="text/javascript" charset="utf8" src="../data/count_table_data.js"></script>
+<script type="text/javascript" charset="utf8" src="../js/modules/count_table.js"></script>
+
+</body>
+</html>

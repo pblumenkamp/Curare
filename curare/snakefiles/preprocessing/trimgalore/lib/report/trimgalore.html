@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CURARE Report</title>
+  <link rel="stylesheet" type="text/css" href="../css/buefy.min.css"/>
+
+  <script type="text/javascript" charset="utf8" src="../js/Chart.min.js"></script>
+  <script type="text/javascript" charset="utf8" src="../js/vue.min.js"></script>
+  <script type="text/javascript" charset="utf8" src="../js/buefy.min.js"></script>
+  <script defer src="../js/fontawesome.all.min.js"></script>
+  <script>
+      window.Curare = {}
+  </script>
+</head>
+<body class="has-navbar-fixed-top">
+<section>
+  <div id="navigation">
+    <navigation-bar modules-path="../modules/" main-html="../../report.html"></navigation-bar>
+  </div>
+</section>
+
+<section class="hero is-primary is-small is-bold">
+  <div class="hero-body">
+    <div class="container has-text-centered">
+      <h1 class="title is-size-1">CURARE</h1>
+      <h2 class="subtitle is-size-3">Pipeline Report</h2>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div id="trim-galore">
+    <div class="container">
+      <div class="columns" style="max-width: 100%">
+        <div class="column is-1"></div>
+        <div class="column" style="max-width: 100%">
+          <div class="content">
+            <section id="trim-galore-body">
+              <div style="display: flex; justify-content: space-between">
+                <h2>Trim Galore</h2>
+                <b-dropdown 
+                  aria-role="list" 
+                  scrollable
+                  v-model="active_sample_menu">
+                  
+                  <template #trigger>
+                    <b-button
+                        type="is-primary"
+                        size="is-medium"
+                        icon-pack="fas"
+                        icon-right="sort-down">
+
+                      Sample: 
+                      {{ samples[active_sample_menu] }}
+                    </b-button>
+                  </template>
+                  
+                  <template v-for="(menu, menu_index) in samples">
+                    <b-dropdown-item
+                      :key="menu_index"
+                      :value="menu_index" aria-role="listitem">
+                      {{ menu }}
+                    </b-dropdown-item>
+                  </template>
+                </b-dropdown>
+              </div>
+
+              <h3>Runtime Parameters</h3>
+              <b-table :data="run_parameters[active_sample_menu]" :columns="key_value_columns" :show-header="false"></b-table>
+
+              <h3 style="padding-top: 2rem">Summary</h3>
+              <template v-if="paired_end">
+                <div class="columns">
+                  <div class="column">
+                    <h4>Forward Reads</h4>
+                    <b-table :data="summary[active_sample_menu][0]" :columns="key_value_columns" :show-header="false"></b-table>
+                  </div>
+                  <div class="column">
+                    <h4>Reverse Reads</h4>
+                    <b-table :data="summary[active_sample_menu][1]" :columns="key_value_columns" :show-header="false"></b-table>
+                  </div>
+                </div>
+              </template>
+              <template v-else>
+                <b-table :data="summary[active_sample_menu][0]" :columns="key_value_columns" :show-header="false"></b-table>
+              </template>
+
+              <h3 style="padding-top: 2rem">Adapter</h3>
+              <template v-if="paired_end">
+                <div class="columns">
+                  <div class="column" v-for="(header, index) in ['Forward', 'Reverse']">
+                    <h4>{{ (header === "Forward") ? "Forward Reads" : "Reverse Reads" }}</h4>
+                    <h6>Overview</h6>
+                    <b-table :data="adapter_overview[active_sample_menu][index]" :columns="adapter_overview_columns"></b-table>
+                    <h6 style="padding-top: 2rem">Allowed Errors</h6>
+                    <b-table :data="adapter_allowed_errors[active_sample_menu][index]" :columns="allowed_errors_columns"></b-table>
+                    <h6 style="padding-top: 2rem">Bases Preceeding Adapter</h6>
+                    <div style="width: 25rem; margin: 0 auto;">
+                      <canvas :id="`preceeding_bases_chart_${header}`" style="padding-top: 1rem; padding-bottom: 1rem; "></canvas>
+                    </div>
+                    <b-table :data="adapter_preceeding_bases[active_sample_menu][index]" :columns="preceeding_bases_columns"></b-table>
+                    <h6 style="padding-top: 2rem">Removed Sequences</h6>
+                    <div style="width: 35rem; margin: 0 auto;">
+                      <canvas :id="`removed_sequences_chart_${header}`" style="padding-top: 1rem; padding-bottom: 1rem; "></canvas>
+                    </div>
+                    <b-table 
+                        :data="adapter_removed_sequences[active_sample_menu][index]" 
+                        :columns="removed_sequences_columns"
+                        paginated
+                        per-page=20
+                        pagination-simple
+                        :current-page.sync="currentPage[index]"
+                        icon-pack="fas"
+                    ></b-table>
+                  </div>
+                </div>
+              </template>
+              <template v-else>
+                <h6>Overview</h6>
+                <b-table :data="adapter_overview[active_sample_menu][0]" :columns="adapter_overview_columns"></b-table>
+                <h6 style="padding-top: 2rem">Allowed Errors</h6>
+                <b-table :data="adapter_allowed_errors[active_sample_menu][0]" :columns="allowed_errors_columns"></b-table>
+                <h6 style="padding-top: 2rem">Bases Preceeding Adapter</h6>
+                <div style="width: 25rem; margin: 0 auto;">
+                  <canvas id='preceeding_bases_chart_Forward' style="padding-top: 1rem; padding-bottom: 1rem; "></canvas>
+                </div>
+                <b-table :data="adapter_preceeding_bases[active_sample_menu][0]" :columns="preceeding_bases_columns"></b-table>
+                <h6 style="padding-top: 2rem">Removed Sequences</h6>
+                <canvas id='removed_sequences_chart_Forward' style="padding-top: 1rem"></canvas>
+                <b-table 
+                    :data="adapter_removed_sequences[active_sample_menu][0]" 
+                    :columns="removed_sequences_columns"
+                    paginated
+                    per-page=20
+                    pagination-simple
+                    :current-page.sync="currentPage[0]"
+                    icon-pack="fas"
+                ></b-table>
+              </template>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer id="footer" class="footer">
+  <curare-footer img-path="../img/"></curare-footer>
+</footer>
+
+<script type="text/javascript" charset="utf8" src="../data/navigation.js"></script>
+<script type="text/javascript" charset="utf8" src="../js/navigation_bar.js"></script>
+<script type="text/javascript" charset="utf8" src="../js/footer.js"></script>
+<script type="text/javascript" charset="utf8" src="../data/trimgalore_data.js"></script>
+<script type="text/javascript" charset="utf8" src="../js/modules/trimgalore.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,13 @@
+name: curare
+channels:
+  - conda-forge
+  - bioconda
+  - anaconda
+  - defaults
+dependencies:
+   - snakemake=6.3
+   - mamba=0.13
+   - python=3.9
+   - pyyaml=5.4.1
+   - docopt=0.6.2
+
