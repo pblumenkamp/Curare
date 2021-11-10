@@ -97,9 +97,9 @@ def main():
     try:
         args = parse_arguments()
         used_modules, paired_end = load_pipeline_file(args["--pipeline"])
-        samples = parse_samples_file(args["--samples"], used_modules, paired_end)
+        samples: Dict[str, Dict[str, Dict[str, str]]] = parse_samples_file(args["--samples"], used_modules, paired_end)
         create_output_directory(args["--output"])
-        snakefile = create_snakefile(args["--output"], samples, used_modules, args["--use-conda"], args["--conda-prefix"], args["--pipeline"])
+        snakefile: Path = create_snakefile(args["--output"], samples, used_modules, args["--use-conda"], args["--conda-prefix"], args["--pipeline"])
     except UnknownInputFileError as ex:
         print(ClColors.FAIL + str(ex) + ClColors.ENDC, file=sys.stderr)
         exit(1)
@@ -215,9 +215,15 @@ def parse_samples_file(samples_file: Path, modules: Dict[str, List['Module']], p
                     entries[module_name] = {}
                 if value_type == 'file' and not col.startswith('/'):
                     entries[module_name][col_names[index]] = str((samples_file.parent / col).resolve())
+                    if col_names[index] in ['reads', 'forward_reads', 'reverse_reads']:
+                        if entries[module_name][col_names[index]].endswith(".gz"):
+                            entries[module_name][col_names[index] + "_gzipped"] = True
+                        else:
+                            entries[module_name][col_names[index] + "_gzipped"] = False
                 else:
                     entries[module_name][col_names[index]] = col
             table[columns[0]] = entries
+
     return table
 
 
@@ -552,7 +558,10 @@ def create_snakemake_config_file(output_folder: Path, samples: Dict[str, Dict[st
             for module_name, columns in modules.items():
                 config_file.write('        "{}":\n'.format(module_name))
                 for column, value in columns.items():
-                    config_file.write('            "{}": "{}"\n'.format(column, value))
+                    if isinstance(value, (int, float, bool)):
+                        config_file.write('            "{}": {}\n'.format(column, value))
+                    else:
+                        config_file.write('            "{}": "{}"\n'.format(column, value))
     return config_path
 
 

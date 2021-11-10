@@ -1,3 +1,8 @@
+## 0.4
+
+### Changed (1 change)
+- All preprocessing modules will now gzip fasta files. This allows the removal of the gunzip module and 100% support of gzipped fastq files.
+
 ## 0.3.1
 
 ### Added (1 change)

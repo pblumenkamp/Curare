@@ -1,15 +1,14 @@
 pipeline:
-  paired_end: true
+  paired_end: false
 
 preprocessing:
-  modules: "gunzip"
+  modules: "none"
 
 mapping:
-  modules: "bowtie2"
+  modules: "segemehl"
 
-  bowtie2:
+  segemehl:
     genome_fasta: "../../reference/listeria_monocytogenes_egd_e.fasta"
-    alignment_type: "end-to-end"
 
 analysis:
   modules: ["count_table"]
