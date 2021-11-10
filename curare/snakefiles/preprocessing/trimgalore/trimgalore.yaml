@@ -1,0 +1,72 @@
+name: 'trimgalore'
+label: 'Trim Galore'
+description: "A module for automatized quality and adapter trimming. (https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)"
+
+optional_settings:
+  phred_score_type:
+    label: 'Phred Score Type'
+    description: 'Choose phred33 (Sanger/Illumina 1.9+ encoding) or phred64 (Illumina 1.5 encoding)'
+    type: 'enum'
+    default: 'phred33'
+    choices:
+      phred33: '--phred33'
+      phred64: '--phred64'
+
+  quality_threshold:
+    label: 'Base-Quality Threshold'
+    description: 'Trim low-quality ends from reads in addition to adapter removal. (Default: 20)'
+    type: 'number'
+    number_type: 'integer'
+    default: '20'
+    range:
+      min: 0
+      max: 40
+
+  min_length:
+    label: 'Minimal Sequence Length'
+    description: 'Discard reads that became shorter than length INT because of either quality or adapter trimming. (Default: 20)'
+    type: 'number'
+    number_type: 'integer'
+    default: '20'
+    range:
+      min: 0
+      max: Inf
+
+  additional_parameter:
+    label: 'Additional Trim-Galore Options'
+    description: "Additional options to use in shell command"
+    type: 'string'
+    default: ''
+
+
+single_end:
+  snakefile: 'trimgalore_se'
+
+  optional_settings:
+    adapter:
+      label: 'Adapter Sequence'
+      description: "Adapter sequence to be trimmed. If not specified explicitly, Trim Galore will try to auto-detect whether the Illumina universal, Nextera transposase, or Illumina small RNA adapter sequence was used."
+      type: 'string'
+      default: ''
+
+paired_end:
+  snakefile: 'trimgalore_pe'
+
+  optional_settings:
+    adapter_forward:
+      label: 'Adapter Sequence Forward'
+      description: "Adapter sequence to be trimmed. If not specified explicitly, Trim Galore will try to auto-detect whether the Illumina universal, Nextera transposase, or Illumina small RNA adapter sequence was used."
+      type: 'string'
+      default: ''
+
+    adapter_reverse:
+      label: 'Adapter Sequence Reverse'
+      description: "adapter sequence to be trimmed off read 2 of paired-end files."
+      type: 'string'
+      default: ''
+
+
+report:
+  html_file: "trimgalore.html"
+  new_tab: false
+  title: "Trim Galore"

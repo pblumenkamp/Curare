@@ -1,0 +1,15 @@
+name: "fastqc"
+label: "FastQC"
+description: "Summarizes the statistics of each sequencing run individually. (https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)"
+
+single_end:
+  snakefile: "fastqc_se"
+
+paired_end:
+  snakefile: "fastqc_pe"
+
+
+report:
+  html_file: "fastqc.html"
+  new_tab: false
+  title: "FastQC"

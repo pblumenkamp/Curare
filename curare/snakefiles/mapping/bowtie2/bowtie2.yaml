@@ -1,0 +1,38 @@
+name: 'bowtie2'
+label: 'Bowtie2'
+description: "Use Bowtie2 for read alignment. (http://bowtie-bio.sourceforge.net/bowtie2)"
+
+required_settings:
+
+  genome_fasta:
+    label: 'Reference Genome'
+    description: 'Path to reference genome fasta file'
+    type: 'file_input'
+
+optional_settings:
+  additional_bowtie2_options:
+    label: 'Additional Bowtie2 Options'
+    description: "Additional options to use in shell command"
+    type: "string"
+    default: ''
+
+  alignment_type:
+    label: 'Alignment Type'
+    description: 'Choose between "local" or "end-to-end" alignment (Default: "end-to-end")'
+    type: 'enum'
+    default: 'end-to-end'
+    choices:
+      local: '--very-sensitive-local'
+      end-to-end: '--very-sensitive'
+
+single_end:
+  snakefile: 'bowtie2_se'
+
+paired_end:
+  snakefile: 'bowtie2_pe'
+
+
+report:
+  html_file: "bowtie2.html"
+  new_tab: false
+  title: "Bowtie2"

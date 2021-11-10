@@ -1,0 +1,19 @@
+pipeline:
+  paired_end: true
+
+preprocessing:
+  modules: "none"
+
+mapping:
+  modules: "bwa-sw"
+
+  bwa-sw:
+    genome_fasta: "../../reference/listeria_monocytogenes_egd_e.fasta"
+
+analysis:
+  modules: ["count_table"]
+
+  count_table:
+    gff_feature_type: "gene"
+    gff_feature_name: "ID"
+    gff_path: "../../reference/listeria_monocytogenes_egd_e.gff3"

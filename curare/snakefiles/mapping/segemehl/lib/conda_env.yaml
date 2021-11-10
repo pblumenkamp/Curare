@@ -1,0 +1,15 @@
+# module: segemehl
+channels:
+  - conda-forge
+  - bioconda
+  - anaconda
+  - defaults
+dependencies:
+  - docopt>=0.6
+  - matplotlib
+  - pandas=1.3.3
+  - python>=3.5
+  - samtools>=1.8
+  - segemehl>=0.3.4
+  - xlsxwriter=3.0.1
+  - pyyaml=5.4.1

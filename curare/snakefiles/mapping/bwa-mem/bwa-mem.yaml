@@ -1,0 +1,30 @@
+name: 'bwa-mem'
+label: 'BWA-MEM'
+description: "Uses the BWA-MEM algorithm of BWA for read alignment. Recommended for longer reads ranged from 70bp to 1Mbp. Faster and more accurate than BWA-SW. (http://bio-bwa.sourceforge.net)"
+
+required_settings:
+
+  genome_fasta:
+    label: 'Reference Genome'
+    description: 'Path to genome fasta file'
+    type: 'file_input'
+
+optional_settings:
+  additional_bwa_mem_options:
+    label: 'Additional BWA MEM Options'
+    description: "Additional options to use when executing BWA MEM"
+    type: "string"
+    default: ''
+
+
+single_end:
+  snakefile: 'bwa-mem_se'
+
+paired_end:
+  snakefile: 'bwa-mem_pe'
+
+
+report:
+  html_file: "bwa-mem.html"
+  new_tab: false
+  title: "BWA-MEM"

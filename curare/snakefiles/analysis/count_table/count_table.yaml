@@ -1,0 +1,43 @@
+name: "count_table"
+label: "Count Table"
+description: "This module creates ONLY the count table including reads per genomic feature (featureCounts)."
+
+required_settings:
+
+  gff_feature_type:
+    label: "GFF Feature Type"
+    description: "Used feature type, e.g. gene or exon"
+    type: "string"
+
+  gff_feature_name:
+    label: "GFF Feature Name"
+    description: "Descriptor for gene name, e.g. ID or gene_id"
+    type: "string"
+
+  gff_path:
+    label: "GFF File Path"
+    description: "File path to gff file"
+    type: "file_input"
+
+
+optional_settings:
+
+  additional_options:
+    label: "Additional FeatureCounts Options"
+    description: "Additional options to use in shell command"
+    type: "string"
+    default: ''
+
+
+single_end:
+  snakefile: "count_table_se"
+
+
+paired_end:
+  snakefile: "count_table_pe"
+
+
+report:
+  html_file: "count_table.html"
+  new_tab: false
+  title: "Count Table"
