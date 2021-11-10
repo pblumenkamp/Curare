@@ -62,8 +62,8 @@ rule segemehl_mapping:
     input:
         genome="%%GENOME_FASTA%%",
         genome_index=splitext("%%GENOME_FASTA%%")[0] + ".idx",
-        reads="preprocessing/{sample}_R1.fastq",
-        reads_reverse="preprocessing/{sample}_R2.fastq"
+        reads="preprocessing/{sample}_R1.fastq.gz",
+	    reads_reverse="preprocessing/{sample}_R2.fastq.gz"
     output:
         temp("mapping/sam/{sample}.sam")
     conda:

@@ -45,7 +45,6 @@ rule mapping_stats_tsv:
         done;
         """
 
-
 rule bowtie2_index:
     params:
         prefix=splitext("%%GENOME_FASTA%%")[0]
@@ -72,7 +71,7 @@ rule bowtie2_mapping:
     input:
         genome="%%GENOME_FASTA%%",
         genome_index=splitext("%%GENOME_FASTA%%")[0] + ".1.bt2",
-        reads="preprocessing/{name}.fastq"
+        reads="preprocessing/{name}.fastq.gz"
     output:
         temp("mapping/sam/{name}.sam")
     conda:

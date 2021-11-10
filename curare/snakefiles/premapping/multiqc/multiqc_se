@@ -8,7 +8,7 @@ rule all:
 
 rule fastqc:
     input:
-        "preprocessing/{sample}.fastq"
+        reads="preprocessing/{sample}.fastq.gz"
     output:
         "premapping/multiqc/fastqc/{sample}_fastqc.html",
         "premapping/multiqc/fastqc/{sample}_fastqc.zip"
