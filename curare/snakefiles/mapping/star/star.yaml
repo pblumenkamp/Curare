@@ -1,5 +1,6 @@
 name: 'star'
 label: 'STAR'
+description: "Common mapper for all types of datasets. (https://github.com/alexdobin/STAR)"
 
 required_settings:
 
@@ -8,17 +9,32 @@ required_settings:
     description: 'Path to genome fasta file'
     type: 'file'
 
+optional_settings:
+  
   genome_annotation:
     label: 'Reference Genome Annotation'
-    description: 'Path to genome gff file'
+    description: 'Path to genome GTF/GFF file. If you are using GFF, please also use "GFF Parent Keyword", "GFF ID Keyword", and "GFF Feature Type".'
     type: 'file'
+    default: ''
 
   gff_parent_keyword:
     label: 'GFF Parent Keyword'
-    description: 'Keyword for parent attribute in gff file'
+    description: 'Keyword for parent attribute in GFF feature entry (will be used with "--sjdbGTFtagExonParentGene").'
     type: 'string'
+    default: ''
 
-optional_settings:
+  gff_id_keyword:
+    label: 'GFF ID Keyword'
+    description: 'Keyword for feature ID, e.g. ID or gene_id (will be used with "--sjdbGTFtagExonParentTranscript"). '
+    type: 'string'
+    default: ''
+  
+  gff_feature_type:
+    label: 'GFF Feature Type'
+    description: 'Used feature type, e.g. CDS or exon (will be used with "--sjdbGTFfeatureExon").'
+    type: 'string'
+    default: ''
+  
   additional_star_options:
     label: 'Additional STAR Options'
     description: "Additional options to use in shell command"
