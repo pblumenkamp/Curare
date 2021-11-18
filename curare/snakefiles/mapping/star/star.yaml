@@ -35,12 +35,17 @@ optional_settings:
     type: 'string'
     default: ''
   
-  additional_star_options:
-    label: 'Additional STAR Options'
-    description: "Additional options to use in shell command"
+  additional_star_index_options:
+    label: 'Additional STAR Index Options'
+    description: "Additional options to use for the index step"
     type: "string"
     default: ''
 
+  additional_star_mapping_options:
+    label: 'Additional STAR Mapping Options'
+    description: "Additional options to use for the mapping step"
+    type: "string"
+    default: ''
 
 single_end:
   snakefile: 'star_se'
@@ -48,5 +53,8 @@ single_end:
 paired_end:
   snakefile: 'star_pe'
 
-
+report:
+  html_file: "star.html"
+  new_tab: false
+  title: "STAR"
 

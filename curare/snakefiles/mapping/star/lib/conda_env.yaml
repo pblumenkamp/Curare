@@ -1,4 +1,4 @@
-# module: segemehl
+# module: star
 channels:
   - conda-forge
   - bioconda
