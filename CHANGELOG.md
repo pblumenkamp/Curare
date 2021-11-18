@@ -1,5 +1,8 @@
 ## 0.4
 
+### Added (1 change)
+- Curare now supports STAR for mapping.
+
 ### Changed (1 change)
 - All preprocessing modules will now gzip fasta files. This allows the removal of the gunzip module and 100% support of gzipped fastq files.
 
