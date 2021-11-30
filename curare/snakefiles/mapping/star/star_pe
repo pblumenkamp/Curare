@@ -34,7 +34,7 @@ rule mapping_stats_tsv:
                     sample_name = file_path.split("/")[-1][:-len("_Log.final.out")]
                     entries = {"sample": sample_name}
                     for line in f_in:
-                        splitted_line = [x. strip() for x in line.split("|")]
+                        splitted_line = [x.strip() for x in line.split("|")]
                         if splitted_line[0] == "Number of input reads":
                             entries["reads"] = int(splitted_line[1])
                             entries["reads_%"] = 100
