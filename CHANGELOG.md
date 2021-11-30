@@ -1,10 +1,15 @@
 ## 0.4
 
-### Added (1 change)
-- Curare now supports STAR for mapping.
+### Added (2 change)
+- Curare now supports new mapping modules:
+  - STAR
+  - Bowtie
 
 ### Changed (1 change)
 - All preprocessing modules will now gzip fasta files. This allows the removal of the gunzip module and 100% support of gzipped fastq files.
+
+### Fixed (1 change)
+- Min/Max values in the setting should be inclusive: min <= value <= max (Pipeline)
 
 ## 0.3.1
 
