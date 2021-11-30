@@ -1,0 +1,183 @@
+from os import listdir
+from os.path import isfile, splitext
+
+def get_reads_file_path(sample, mate):
+    if mate == 1:
+        gzipped_extension = config['entries'][sample]['main']['forward_reads_gzipped']
+    else:
+        gzipped_extension = config['entries'][sample]['main']['reverse_reads_gzipped']
+
+    return "preprocessing/{}_R{}.fastq{}".format(sample, mate, ".gz" if gzipped_extension else "")
+
+rule all:
+    input:
+        "mapping/stats/mapping_stats.xlsx",
+        expand("mapping/{A}.bam", A=sorted(config['entries'].keys())),
+        ".report/modules/bowtie.html"
+
+
+rule mapping_stats_xlsx:
+    input:
+        "mapping/stats/mapping_stats.tsv"
+    output:
+        xlsx="mapping/stats/mapping_stats.xlsx",
+        plot_alignment_absolute="mapping/stats/alignment_stats.svg",
+        plot_alignment_relative="mapping/stats/alignment_stats_relative.svg"
+    params:
+        plot_dir="mapping/stats/"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "bowtie_statistics"
+    shell:
+        "python3 lib/pe_mapping_stats_tsv_to_xlsx.py {input} {output.xlsx} {params.plot_dir}"
+
+
+rule mapping_stats_tsv:
+    input:
+        expand("mapping/logs/bowtie_mapping.{name}.log", name=config['entries'].keys())
+    output:
+        "mapping/stats/mapping_stats.tsv"
+    group:
+        "bowtie_statistics"
+    run:
+        with open(output[0], 'w') as f_out:
+            f_out.write("\t".join(["sample", "reads", "reads[%]", "aligned_0_times", "aligned_0_times[%]", "aligned_at_least_1_time", "aligned_at_least_1_time[%]"]))
+            f_out.write("\n")
+            for file_path in input:
+                with open(file_path) as f_in:
+                    sample_name = file_path.split("/")[-1][len("bowtie_mapping."):-len(".log")]
+                    entries = {"sample": sample_name}
+                    for line in f_in:
+                        splitted_line = [x.strip() for x in line.split(":")]
+                        if splitted_line[0] == "# reads processed":
+                            entries["reads"] = int(splitted_line[1])
+                            entries["reads_%"] = 100
+                        elif splitted_line[0] == "# reads with at least one alignment":
+                            entries["aligned_at_least_1_time"] = int(splitted_line[1].split(" ")[0])
+                        elif splitted_line[0] == "# reads that failed to align":
+                            entries["aligned_0_times"] = int(splitted_line[1].split(" ")[0])
+                
+                entries["aligned_0_times_%"] = entries.get("aligned_0_times", 0) / entries["reads"] * 100
+                entries["aligned_at_least_1_time_%"] = entries.get("aligned_at_least_1_time", 0) / entries["reads"] * 100
+                entries["aligned_too_many_times_%"] = entries.get("aligned_too_many_times", 0) / entries["reads"] * 100
+            
+                f_out.write("{}\t{}\t{:.2f}\t{}\t{:.2f}\t{}\t{:.2f}\n".format(entries["sample"], entries["reads"], entries["reads_%"], entries.get("aligned_0_times", 0), 
+                                entries["aligned_0_times_%"], entries.get("aligned_at_least_1_time", 0), entries["aligned_at_least_1_time_%"]))
+
+
+rule bowtie_index:
+    params:
+        prefix=splitext("%%GENOME_FASTA%%")[0]
+    input:
+        genome="%%GENOME_FASTA%%"
+    output:
+        splitext("%%GENOME_FASTA%%")[0] + ".1.ebwt"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "bowtie_index"
+    log:
+        "mapping/logs/bowtie_index.log"
+    threads:
+        8
+    shell:
+        "bowtie-build --threads {threads} {input.genome} {params.prefix} 2>&1 |"
+        "tee {log}"
+
+
+rule bowtie_mapping:
+    input:
+        genome="%%GENOME_FASTA%%",
+	    genome_index=splitext("%%GENOME_FASTA%%")[0] + ".1.ebwt",
+	    reads="preprocessing/{sample}_R1.fastq.gz",
+	    reads_reverse="preprocessing/{sample}_R2.fastq.gz"
+    output:
+        temp("mapping/sam/{sample}.sam")
+    params:
+        prefix=splitext("%%GENOME_FASTA%%")[0],
+        overall_mismatches=lambda wildcards: "" if len("%%ALLOWED_OVERALL_MISMATCHES%%") == 0 else "-v %%ALLOWED_OVERALL_MISMATCHES%% "
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "bowtie_mapping"
+    log:
+        "mapping/logs/bowtie_mapping.{sample}.log"
+    threads:
+        2
+    shell:
+        "bowtie %%ADDITIONAL_BOWTIE_OPTIONS%% -p {threads} --mm -S {params.overall_mismatches}-x {params.prefix} -1 {input.reads} -2 {input.reads_reverse} {output} 2>&1 |"
+        "tee {log}"
+
+
+rule index_bam:
+    input:
+        "mapping/sam/{sample}.sam"
+    output:
+        bam="mapping/{sample}.bam",
+        bai="mapping/{sample}.bam.bai",
+        bam_unmapped="mapping/unmapped/{sample}_unmapped.bam",
+        bam_singleton="mapping/singleton/{sample}_singletons.bam",
+        bam_disconc="mapping/disconcordantly/{sample}_disconc.bam"
+    params:
+        tmp_singleton=temp("mapping/singleton/{sample}_tmp.sam")
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "bowtie_mapping"
+    threads:
+        2
+    shell:
+        "samtools view -F 12 -f 2 -Shb {input} | samtools sort -@ {threads} -o {output.bam} - && samtools index {output.bam};"
+
+        "samtools view -f 4 -F 8 -Sh {input} > {params.tmp_singleton} && samtools view -f 8 -F 4 -S {input} >> {params.tmp_singleton} "
+        "&& samtools view -Shb {params.tmp_singleton} | samtools sort -@ {threads} -o {output.bam_singleton} - && rm {params.tmp_singleton};"
+
+        "samtools view -F 14 -Shb {input} | samtools sort -@ {threads} -o {output.bam_disconc} -;"
+
+        "samtools view -f 12 -Shb {input} | samtools sort -@ {threads} -o {output.bam_unmapped} -;"
+
+
+rule write_settings:
+    output:
+        settings="mapping/settings.yaml"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "bowtie_report"
+    params:
+        overall_mismatches=lambda wildcards: "/" if len("%%ALLOWED_OVERALL_MISMATCHES%%") == 0 else "%%allowed_overall_mismatches%% "
+    shell:
+        """
+        set +e
+        echo 'used_mapping_preset: "%%ALIGNMENT_TYPE%%"' > {output.settings};
+        bw_help=$(bowtie --version)
+        bw_version=$(echo "$bw_help" | head -n1 | sed 's/.*version \(.*\)/\\1/g')
+        echo "bowtie_version: \\"$bw_version\\"" >> {output.settings};
+        echo "use_shared_memory: 'true'" >> {output.settings};
+        echo 'allowed_overall_mismatches: "{params.overall_mismatches}"' >> {output.settings};
+        echo 'additional_parameters: "%%ADDITIONAL_BOWTIE_OPTIONS%%"' >> {output.settings}; 
+        """
+
+
+rule generate_report_data:
+    input:
+        stats_tsv="mapping/stats/mapping_stats.tsv",
+        images=["mapping/stats/alignment_stats.svg", "mapping/stats/alignment_stats_relative.svg"],
+        settings="mapping/settings.yaml"
+    output:
+        bw_data=".report/data/bowtie_data.js",
+        bw_html=".report/modules/bowtie.html",
+        bw_js=".report/js/modules/bowtie.js",
+        bw_css=".report/css/modules/bowtie.css",
+        bw_images=directory(".report/img/modules/bowtie/")
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "bowtie_report"
+    shell:
+        "python3 lib/generate_report_data.py --stats {input.stats_tsv} --output {output.bw_data} --settings {input.settings} --paired-end && "
+        "cp lib/report/bowtie.html {output.bw_html} && "
+        "cp lib/report/bowtie.js {output.bw_js} && "
+        "cp lib/report/bowtie.css {output.bw_css} &&"
+        "mkdir -p {output.bw_images} && cp {input.images} {output.bw_images}"
