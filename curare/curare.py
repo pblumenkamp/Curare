@@ -363,7 +363,7 @@ def get_setting(setting_name, setting_properties, user_settings, pipeline_file_p
                 raise InvalidNumberTypeError('Error in option "{}": "{}" cannot be converted into a float'.format(setting_name, value))
         else:
             raise InvalidPipelineFileError('Error in option "{}": Unknown number type'.format(setting_name))
-        if min_value < value < max_value:
+        if min_value <= value <= max_value:
             setting = str(value)
         else:
             raise OutOfBondError('Error in option "{}": Value out of valid range. Used value: {} - Range: {}-{}'.format(setting_name, user_settings[setting_name], min_value, max_value))
@@ -496,7 +496,7 @@ def create_snakefile(output_folder: Path, samples: Dict[str, Dict[str, Dict[str,
             module_content = re_rule_name.sub('rule {}__\g<rule_name>:'.format(module.name.lower().replace('-', '_')), module_content)
             module_content = re_lib_folder.sub('{}/{}_lib/\g<file_name>'.format(SNAKEFILES_TARGET_DIRECTORY, module.name.lower()), module_content)
             for (wildcard, value) in module.settings.items():
-                module_content = module_content.replace("%%{}%%".format(wildcard.upper()), value)
+                module_content = module_content.replace("%%{}%%".format(wildcard.upper()), str(value))
             module_path = output_folder / SNAKEFILES_TARGET_DIRECTORY / (module.name.lower() + '.sm')
             with module_path.open('w') as module_output_file:
                 module_output_file.write(module_content)
