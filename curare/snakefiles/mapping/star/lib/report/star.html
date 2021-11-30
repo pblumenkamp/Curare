@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CURARE Report</title>
+  <link rel="stylesheet" type="text/css" href="../css/buefy.min.css"/>
+  <link rel="stylesheet" type="text/css" href="../css/modules/star.css"/>
+
+  <script type="text/javascript" charset="utf8" src="../js/vue.min.js"></script>
+  <script type="text/javascript" charset="utf8" src="../js/buefy.min.js"></script>
+  <script defer src="../js/fontawesome.all.min.js"></script>
+  <script>
+      window.Curare = {}
+  </script>
+</head>
+<body class="has-navbar-fixed-top">
+<section>
+  <div id="navigation">
+    <navigation-bar modules-path="../modules/" main-html="../../report.html"></navigation-bar>
+  </div>
+</section>
+<section class="hero is-primary is-small is-bold">
+  <div class="hero-body">
+    <div class="container has-text-centered">
+      <h1 class="title is-size-1">CURARE</h1>
+      <h2 class="subtitle is-size-3">Pipeline Report</h2>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div id="star" class="container">
+    <div class="columns" style="max-width: 100%">
+      <div class="column is-1"></div>
+      <div class="column" style="max-width: 100%">
+        <div class="content">
+          <section id="star-body">
+            <h2>STAR</h2>
+
+            <h3>Settings</h3>
+            <b-table :data="star_settings_data" :columns="star_settings_columns" :show-header="false" style="margin-bottom: 2rem;"></b-table>
+            
+            <h3 v-else>Alignment Statistics</h3>
+            
+            <div id="star-stats" class="table-container scroll">
+              <template v-if="paired_end">
+                <table id="star-stats-table" class="table">
+                  <thead>
+                    <tr>
+                      <th class="right-border">Sample</th>
+                      <th class="right-border">#Reads</th>
+                      <th class="left-border right-border">Uniquely Aligned</th>
+                      <th class="left-border right-border">Uniquely Aligned [%]</th>
+                      <th class="left-border right-border">Aligned >1 times</th>
+                      <th class="left-border right-border">Aligned >1 times [%]</th>
+                      <th class="left-border right-border">Aligned too many times</th>
+                      <th class="left-border right-border">Aligned too many times [%]</th>
+                      <th class="left-border right-border">Unaligned</th>
+                      <th class="left-border right-border">Unaligned [%]</th>
+                    </tr>
+                    </thead>
+                    <tfoot v-if="star_stats.length > 12">
+                    <tr>
+                      <th class="right-border">Sample</th>
+                      <th class="right-border">#Reads</th>
+                      <th class="left-border right-border">Uniquely Aligned</th>
+                      <th class="left-border right-border">Uniquely Aligned [%]</th>
+                      <th class="left-border right-border">Aligned >1 times</th>
+                      <th class="left-border right-border">Aligned >1 times [%]</th>
+                      <th class="left-border right-border">Aligned too many times</th>
+                      <th class="left-border right-border">Aligned too many times [%]</th>
+                      <th class="left-border right-border">Unaligned</th>
+                      <th class="left-border right-border">Unaligned [%]</th>
+                    </tr>
+                    </tfoot>
+                    <tbody>
+                    <tr v-for="seqrun of star_stats" :key="seqrun.sample">
+                      <td class="right-border" style="font-weight: bold">{{ seqrun.sample }}</td>
+                      <td class="right-border">{{ seqrun["reads"] }}</td>
+                      <td>{{ seqrun["aligned_1_time"] }}</td>
+                      <td class="right-border">{{ (seqrun["aligned_1_time[%]"]).toFixed(2) }}</td>
+                      <td>{{ seqrun["aligned_more_than_1_times"] }}</td>
+                      <td class="right-border">{{ (seqrun["aligned_more_than_1_times[%]"]).toFixed(2) }}</td>
+                      <td>{{ seqrun["aligned_too_many_times"] }}</td>
+                      <td class="right-border">{{ (seqrun["aligned_too_many_times[%]"]).toFixed(2) }}</td>
+                      <td>{{ seqrun["aligned_0_times"] }}</td>
+                      <td class="right-border">{{ (seqrun["aligned_0_times[%]"]).toFixed(2) }}</td>
+                    </tr>
+                    </tbody>
+                </table>
+              </template>
+              <template v-else>
+                <table id="star-stats-table" class="table">
+                  <thead>
+                  <tr>
+                    <th class="right-border">Sample</th>
+                    <th class="right-border">#Reads</th>
+                    <th class="left-border right-border">Uniquely Aligned</th>
+                    <th class="left-border right-border">Uniquely Aligned [%]</th>
+                    <th class="left-border right-border">Aligned >1 times</th>
+                    <th class="left-border right-border">Aligned >1 times [%]</th>
+                    <th class="left-border right-border">Aligned too many times</th>
+                    <th class="left-border right-border">Aligned too many times [%]</th>
+                    <th class="left-border right-border">Unaligned</th>
+                    <th class="left-border right-border">Unaligned [%]</th>
+                  </tr>
+                  </thead>
+                  <tfoot v-if="star_stats.length > 12">
+                  <tr>
+                    <th class="right-border">Sample</th>
+                    <th class="right-border">#Reads</th>
+                    <th class="left-border right-border">Uniquely Aligned</th>
+                    <th class="left-border right-border">Uniquely Aligned [%]</th>
+                    <th class="left-border right-border">Aligned >1 times</th>
+                    <th class="left-border right-border">Aligned >1 times [%]</th>
+                    <th class="left-border right-border">Aligned too many times</th>
+                    <th class="left-border right-border">Aligned too many times [%]</th>
+                    <th class="left-border right-border">Unaligned</th>
+                    <th class="left-border right-border">Unaligned [%]</th>
+                  </tr>
+                  </tfoot>
+                  <tbody>
+                  <tr v-for="seqrun of star_stats" :key="seqrun.sample">
+                    <td class="right-border" style="font-weight: bold">{{ seqrun.sample }}</td>
+                    <td class="right-border">{{ seqrun["reads"] }}</td>
+                    <td>{{ seqrun["aligned_1_time"] }}</td>
+                    <td class="right-border">{{ (seqrun["aligned_1_time[%]"]).toFixed(2) }}</td>
+                    <td>{{ seqrun["aligned_more_than_1_times"] }}</td>
+                    <td class="right-border">{{ (seqrun["aligned_more_than_1_times[%]"]).toFixed(2) }}</td>
+                    <td>{{ seqrun["aligned_too_many_times"] }}</td>
+                    <td class="right-border">{{ (seqrun["aligned_too_many_times[%]"]).toFixed(2) }}</td>
+                    <td>{{ seqrun["aligned_0_times"] }}</td>
+                    <td class="right-border">{{ (seqrun["aligned_0_times[%]"]).toFixed(2) }}</td>
+                  </tr>
+                  </tbody>
+                </table>
+              </template>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<footer id="footer" class="footer">
+  <curare-footer img-path="../img/"></curare-footer>
+</footer>
+
+<script type="text/javascript" charset="utf8" src="../data/navigation.js"></script>
+<script type="text/javascript" charset="utf8" src="../js/navigation_bar.js"></script>
+<script type="text/javascript" charset="utf8" src="../js/footer.js"></script>
+<script type="text/javascript" charset="utf8" src="../data/star_data.js"></script>
+<script type="text/javascript" charset="utf8" src="../js/modules/star.js"></script>
+
+</body>
+</html>

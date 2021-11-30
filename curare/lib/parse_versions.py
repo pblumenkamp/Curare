@@ -52,7 +52,23 @@ def parse_config_yml(pipeline_file: Path):
 
 
 def get_specified_tools(log_str: str):
-    return re.findall(r'[\'"]([a-zA-Z0-9-]+)(?:\[version=\'[<>=]{1,2}[0-9.]*\'\])?[\'"]', log_str)
+    #e.g. "# update specs: ["python[version='>=3.4']", 'pandas==1.3.3', "matplotlib[version='>=3.2.1']", 'xlsxwriter==3.0.1', 'bioconductor-deseq2']"
+    primary_tools_tmp: List[str] = log_str[len("# update specs: "):].strip("\n \t[]").split(", ")
+    primary_tools: List[Tuple[str, str]] = []
+    for tool in primary_tools_tmp:
+        name: str
+        version: str
+        if "[version='" in tool:
+            name = tool[:tool.index("[")].strip('"\' ')
+            version = tool[tool.index("=")+1:].strip('"\' ]')
+        elif "==" in tool:
+            name, version = tool.strip('"\' ').split("==")
+        else:
+            name = tool.strip('"\' ')
+            version = ""
+        primary_tools.append(name)
+    
+    return primary_tools
 
 
 def get_dependencies(dependencies: List[str]):
@@ -79,6 +95,7 @@ def get_dependencies(dependencies: List[str]):
                 primary_dependencies.append(dependency)
             else:
                 secondary_dependencies.append(dependency)
+
     return primary_dependencies, secondary_dependencies, module_date
 
 
@@ -91,6 +108,7 @@ def main():
     steps = parse_config_yml(pipeline_file)
     output_list: List[Dict[str, Any]] = []
     for file in [f for f in listdir(conda_dir) if f.endswith('.yaml')]:
+        print(file)
         with open(conda_dir / file, 'r') as yaml_file:
             first_line = yaml_file.readline()
             if first_line.startswith("# module:") or first_line.startswith("#module:"):

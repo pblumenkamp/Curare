@@ -1,18 +1,26 @@
 from os import listdir
 from os.path import isfile, dirname
 
-localrules: none__create_symlink
+def getPath(sample):
+    if config['entries'][sample]['main']['reads']:
+        return config['entries'][sample]['main']['reads']
 
 rule all:
-    input:
-        expand("preprocessing/{sample}.fastq", sample=config['entries'].keys())
+    input: 
+        expand("preprocessing/{sample}.fastq.gz", sample=config['entries'].keys())
 
-rule create_hardlink:
+rule gzip_files:
     input:
-        lambda wildcards: config['entries'][wildcards.sample]['main']['reads']
+        lambda wildcards: getPath(wildcards.sample)
     output:
-        "preprocessing/{sample}.fastq"
+        "preprocessing/{sample, [^.]+}.{extension}"
     threads:
         1
     shell:
-        "ln `readlink -f {input}` {output}"
+        """
+        if file "{input}" | grep -q "gzip compressed"; then
+            ln `readlink -f "{input}"` "{output}"
+        else
+            gzip -c "{input}" > "{output}"
+        fi
+        """

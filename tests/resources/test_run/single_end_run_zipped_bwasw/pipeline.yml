@@ -2,14 +2,13 @@ pipeline:
   paired_end: false
 
 preprocessing:
-  modules: "gunzip"
+  modules: "none"
 
 mapping:
-  modules: "bowtie2"
+  modules: "bwa-sw"
 
-  bowtie2:
+  bwa-sw:
     genome_fasta: "../../reference/listeria_monocytogenes_egd_e.fasta"
-    alignment_type: "end-to-end"
 
 analysis:
   modules: ["count_table"]

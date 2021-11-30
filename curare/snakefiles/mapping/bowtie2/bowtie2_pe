@@ -1,6 +1,14 @@
 from os import listdir
 from os.path import isfile, splitext
 
+def get_reads_file_path(sample, mate):
+    if mate == 1:
+        gzipped_extension = config['entries'][sample]['main']['forward_reads_gzipped']
+    else:
+        gzipped_extension = config['entries'][sample]['main']['reverse_reads_gzipped']
+
+    return "preprocessing/{}_R{}.fastq{}".format(sample, mate, ".gz" if gzipped_extension else "")
+
 rule all:
     input:
         "mapping/stats/mapping_stats.xlsx",
@@ -78,8 +86,8 @@ rule bowtie2_mapping:
     input:
         genome="%%GENOME_FASTA%%",
 	    genome_index=splitext("%%GENOME_FASTA%%")[0] + ".1.bt2",
-	    reads="preprocessing/{sample}_R1.fastq",
-	    reads_reverse="preprocessing/{sample}_R2.fastq"
+	    reads="preprocessing/{sample}_R1.fastq.gz",
+	    reads_reverse="preprocessing/{sample}_R2.fastq.gz"
     output:
         temp("mapping/sam/{sample}.sam")
     conda:
