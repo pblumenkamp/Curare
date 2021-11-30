@@ -1,0 +1,39 @@
+name: 'bowtie'
+label: 'Bowtie'
+description: "Use Bowtie for read alignment. (http://bowtie-bio.sourceforge.net)"
+
+required_settings:
+
+  genome_fasta:
+    label: 'Reference Genome'
+    description: 'Path to reference genome fasta file'
+    type: 'file_input'
+
+optional_settings:
+  allowed_overall_mismatches:
+    label: 'Allowed mismatches'
+    description: "Allowed mismatches (-v) for end-to-end alignment (0-3). If not used, bowtie will run in a local alignment mode."
+    type: 'number'
+    number_type: 'integer'
+    range:
+      min: 0
+      max: 3
+    default: ''
+
+  additional_bowtie_options:
+    label: 'Additional Bowtie Options'
+    description: "Additional options to use in shell command"
+    type: "string"
+    default: ''
+
+single_end:
+  snakefile: 'bowtie_se'
+
+paired_end:
+  snakefile: 'bowtie_pe'
+
+
+report:
+  html_file: "bowtie.html"
+  new_tab: false
+  title: "Bowtie"
