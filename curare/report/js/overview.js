@@ -23,8 +23,19 @@ new Vue({
                 steps[step] = vue.versionsData.filter(function (tool) {
                     return tool.step === step;
                 });
+                steps[step].forEach(function (tool) {
+                    tool["primaryDependencies"].sort(function (x, y) {
+                        let a = x.tool.toUpperCase();
+                        let b = y.tool.toUpperCase();
+                        return a == b ? 0 : a > b ? 1 : -1;
+                    });
+                    tool["secondaryDependencies"].sort(function (x, y) {
+                        let a = x.tool.toUpperCase();
+                        let b = y.tool.toUpperCase();
+                        return a == b ? 0 : a > b ? 1 : -1;
+                    });
+                })
             });
-
             return steps;
         },
         curare_execution_date: function () {

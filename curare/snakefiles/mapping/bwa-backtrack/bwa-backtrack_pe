@@ -1,7 +1,6 @@
 from os import listdir
 from os.path import isfile, splitext
 
-
 rule all:
     input:
         expand("mapping/{A}.bam", A=sorted(config['entries'].keys())),
@@ -123,7 +122,7 @@ rule bwa_backtrack_align_forward:
     input:
         genome="%%GENOME_FASTA%%",
         genome_index=expand("%%GENOME_FASTA%%.{SUFFIX}", SUFFIX=["amb", "ann", "bwt", "pac", "sa"]),
-        reads="preprocessing/{sample}_R1.fastq"
+        reads="preprocessing/{sample}_R1.fastq.gz"
     output:
         sai_forward=temp("mapping/sam/{sample}.forward.sai")
     conda:
@@ -143,7 +142,7 @@ rule bwa_backtrack_align_reverse:
     input:
         genome="%%GENOME_FASTA%%",
         genome_index=expand("%%GENOME_FASTA%%.{SUFFIX}", SUFFIX=["amb", "ann", "bwt", "pac", "sa"]),
-        reads="preprocessing/{sample}_R2.fastq"
+        reads="preprocessing/{sample}_R2.fastq.gz"
     output:
         sai_forward=temp("mapping/sam/{sample}.reverse.sai")
     conda:
@@ -163,8 +162,8 @@ rule bwa_backtrack_sampe:
     input:
         genome="%%GENOME_FASTA%%",
         genome_index=expand("%%GENOME_FASTA%%.{SUFFIX}", SUFFIX=["amb", "ann", "bwt", "pac", "sa"]),
-        reads="preprocessing/{sample}_R1.fastq",
-        reads_reverse="preprocessing/{sample}_R2.fastq",
+        reads="preprocessing/{sample}_R1.fastq.gz",
+        reads_reverse="preprocessing/{sample}_R2.fastq.gz",
         sai="mapping/sam/{sample}.forward.sai",
         sai_reverse="mapping/sam/{sample}.reverse.sai"
     output:

@@ -1,7 +1,6 @@
 from os import listdir
 from os.path import isfile, splitext
 
-
 rule all:
     input:
         expand("mapping/{A}.bam", A=sorted(config['entries'].keys())),
@@ -123,8 +122,8 @@ rule bwa_mem_mapping:
     input:
         genome="%%GENOME_FASTA%%",
         genome_index=expand("%%GENOME_FASTA%%.{SUFFIX}", SUFFIX=["amb", "ann", "bwt", "pac", "sa"]),
-        reads="preprocessing/{sample}_R1.fastq",
-	    reads_reverse="preprocessing/{sample}_R2.fastq"
+        reads="preprocessing/{sample}_R1.fastq.gz",
+	    reads_reverse="preprocessing/{sample}_R2.fastq.gz"
     output:
         temp("mapping/sam/{sample}.sam")
     conda:

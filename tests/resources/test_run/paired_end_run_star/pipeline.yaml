@@ -1,0 +1,65 @@
+## Curare Pipeline File
+## This is an automatically created pipeline file for Curare.
+## All required parameters must be set (replace <Insert Config Here> with real value).
+## All optional parameters are commented out with a single '#'. For including these parameters, just remove the '#'.
+
+pipeline:
+  paired_end: true
+
+preprocessing:
+  modules: ["none"]
+
+premapping:
+  modules: []
+
+mapping:
+  modules: ["star"]
+
+  star:
+    ## Path to genome fasta file. [Value Type: File]
+    genome_fasta: "../../reference/listeria_monocytogenes_egd_e.fasta"
+
+    ## Path to genome GTF/GFF file. If you are using GFF, please also use "GFF Parent Keyword", "GFF ID Keyword", and "GFF Feature Type". [Value Type: File]
+    genome_annotation: "../../reference/listeria_monocytogenes_egd_e.gff3"
+
+    ## Keyword for parent attribute in gff file. [Value Type: String]
+    gff_parent_keyword: "Parent"
+
+    ## Descriptor for gene name, e.g. ID or gene_id. [Value Type: String]
+    gff_id_keyword: "ID"
+
+    ## Used feature type, e.g. CDS or exon. [Value Type: String]
+    gff_feature_type: "CDS"
+
+    ## Additional options to use in shell command. [Value Type: String]
+    #additional_star_options: ""
+
+
+analysis:
+  modules: ["dge_analysis"]
+
+  dge_analysis:
+    ## Used feature type, e.g. gene or exon. [Value Type: String]
+    gff_feature_type: "gene"
+
+    ## Descriptor for gene name, e.g. ID or gene_id. [Value Type: String]
+    gff_feature_name: "ID"
+
+    ## File path to gff file. [Value Type: File_input]
+    gff_path: "../../reference/listeria_monocytogenes_egd_e.gff3"
+
+    ## List of features, which should also be counted in a count table. Values as comma-separated list (e.g. "ncRNA,rRNA,tRNA") (Default: All feature types in annotation and in allowlist)
+    ## Allowlist: "CDS", "exon", "intron", "gene", "mRNA", "tRNA", "rRNA", "ncRNA", "operon", "snRNA", "snoRNA", "miRNA", "pseudogene", "small regulatory ncRNA", "rasiRNA", "guide RNA", "siRNA", "stRNA", "sRNA".
+    ## [Value Type: String]
+    #additional_featcounts_features: ""
+
+    ## Strand specificity of reads. Specifies if reads must lie on the same strand as the feature, the opposite strand, or can be on both. Options: "unstranded, stranded, reversely_stranded". [Value Type: Enum]
+    #strand_specificity: "unstranded"
+
+    ## Additional options to use in shell command. [Value Type: String]
+    #additional_featcounts_options: ""
+
+    ## GFF attributes to show in the beginning of the xlsx summary (Comma-separated list, e.g. "experiment, product, Dbxref"). [Value Type: String]
+    #attribute_columns: ""
+
+

@@ -97,9 +97,9 @@ def main():
     try:
         args = parse_arguments()
         used_modules, paired_end = load_pipeline_file(args["--pipeline"])
-        samples = parse_samples_file(args["--samples"], used_modules, paired_end)
+        samples: Dict[str, Dict[str, Dict[str, str]]] = parse_samples_file(args["--samples"], used_modules, paired_end)
         create_output_directory(args["--output"])
-        snakefile = create_snakefile(args["--output"], samples, used_modules, args["--use-conda"], args["--conda-prefix"], args["--pipeline"])
+        snakefile: Path = create_snakefile(args["--output"], samples, used_modules, args["--use-conda"], args["--conda-prefix"], args["--pipeline"])
     except UnknownInputFileError as ex:
         print(ClColors.FAIL + str(ex) + ClColors.ENDC, file=sys.stderr)
         exit(1)
@@ -215,9 +215,15 @@ def parse_samples_file(samples_file: Path, modules: Dict[str, List['Module']], p
                     entries[module_name] = {}
                 if value_type == 'file' and not col.startswith('/'):
                     entries[module_name][col_names[index]] = str((samples_file.parent / col).resolve())
+                    if col_names[index] in ['reads', 'forward_reads', 'reverse_reads']:
+                        if entries[module_name][col_names[index]].endswith(".gz"):
+                            entries[module_name][col_names[index] + "_gzipped"] = True
+                        else:
+                            entries[module_name][col_names[index] + "_gzipped"] = False
                 else:
                     entries[module_name][col_names[index]] = col
             table[columns[0]] = entries
+
     return table
 
 
@@ -357,7 +363,7 @@ def get_setting(setting_name, setting_properties, user_settings, pipeline_file_p
                 raise InvalidNumberTypeError('Error in option "{}": "{}" cannot be converted into a float'.format(setting_name, value))
         else:
             raise InvalidPipelineFileError('Error in option "{}": Unknown number type'.format(setting_name))
-        if min_value < value < max_value:
+        if min_value <= value <= max_value:
             setting = str(value)
         else:
             raise OutOfBondError('Error in option "{}": Value out of valid range. Used value: {} - Range: {}-{}'.format(setting_name, user_settings[setting_name], min_value, max_value))
@@ -490,7 +496,7 @@ def create_snakefile(output_folder: Path, samples: Dict[str, Dict[str, Dict[str,
             module_content = re_rule_name.sub('rule {}__\g<rule_name>:'.format(module.name.lower().replace('-', '_')), module_content)
             module_content = re_lib_folder.sub('{}/{}_lib/\g<file_name>'.format(SNAKEFILES_TARGET_DIRECTORY, module.name.lower()), module_content)
             for (wildcard, value) in module.settings.items():
-                module_content = module_content.replace("%%{}%%".format(wildcard.upper()), value)
+                module_content = module_content.replace("%%{}%%".format(wildcard.upper()), str(value))
             module_path = output_folder / SNAKEFILES_TARGET_DIRECTORY / (module.name.lower() + '.sm')
             with module_path.open('w') as module_output_file:
                 module_output_file.write(module_content)
@@ -552,7 +558,10 @@ def create_snakemake_config_file(output_folder: Path, samples: Dict[str, Dict[st
             for module_name, columns in modules.items():
                 config_file.write('        "{}":\n'.format(module_name))
                 for column, value in columns.items():
-                    config_file.write('            "{}": "{}"\n'.format(column, value))
+                    if isinstance(value, (int, float, bool)):
+                        config_file.write('            "{}": {}\n'.format(column, value))
+                    else:
+                        config_file.write('            "{}": "{}"\n'.format(column, value))
     return config_path
 
 

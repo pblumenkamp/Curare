@@ -16,6 +16,7 @@ curare_user_testcase.zip
 
 # Ignore test run results
 /tests/resources/reference/*.bt2
+/tests/resources/reference/*.ebwt
 /tests/resources/reference/*.fai
 /tests/resources/reference/*.idx
 /tests/resources/**/output_dir*/

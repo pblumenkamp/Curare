@@ -1,7 +1,6 @@
 from os import listdir
 from os.path import isfile, splitext
 
-
 rule all:
     input:
         expand("mapping/{A}.bam", A=sorted(config['entries'].keys())),
@@ -94,7 +93,7 @@ rule bwa_backtrack_align:
     input:
         genome="%%GENOME_FASTA%%",
         genome_index=expand("%%GENOME_FASTA%%.{SUFFIX}", SUFFIX=["amb", "ann", "bwt", "pac", "sa"]),
-        reads="preprocessing/{sample}.fastq"
+        reads="preprocessing/{sample}.fastq.gz"
     output:
         temp("mapping/sam/{sample}.sai")
     conda:
@@ -114,7 +113,7 @@ rule bwa_backtrack_samse:
     input:
         genome="%%GENOME_FASTA%%",
         genome_index=expand("%%GENOME_FASTA%%.{SUFFIX}", SUFFIX=["amb", "ann", "bwt", "pac", "sa"]),
-        reads="preprocessing/{sample}.fastq",
+        reads="preprocessing/{sample}.fastq.gz",
         sai="mapping/sam/{sample}.sai"
     output:
         temp("mapping/sam/{sample}.sam")

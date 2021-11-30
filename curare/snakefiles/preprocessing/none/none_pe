@@ -1,28 +1,28 @@
 from os import listdir
 from os.path import isfile, dirname
 
-def getPath(file_name):
-    if file_name.endswith('_R1'):
-        return config['entries'][file_name[:-3]]['main']['forward_reads']
-    elif file_name.endswith('_R2'):
-        return config['entries'][file_name[:-3]]['main']['reverse_reads']
-    else:
-        print('Cannot find {} in groups file'.format(file_name), file=sys.stderr)
-
-localrules: none__create_symlink
+def getPath(sample, mate):
+    if mate == "1":
+        return config['entries'][sample]['main']['forward_reads']
+    elif mate == "2":
+        return config['entries'][sample]['main']['reverse_reads']
 
 rule all:
-    input:
-        expand("preprocessing/{sample}_R1.fastq", sample=config['entries'].keys()),
-        expand("preprocessing/{sample}_R2.fastq", sample=config['entries'].keys())
-
+    input: 
+         expand("preprocessing/{sample}_R{mate}.fastq.gz", sample=config['entries'].keys(), mate=[1,2])
 
 rule create_hardlink:
     input:
-        lambda wildcards: getPath(wildcards.sample)
+        lambda wildcards: getPath(wildcards.sample, wildcards.mate)
     output:
-        "preprocessing/{sample}.fastq"
+        "preprocessing/{sample}_R{mate, \d}.{extension}"
     threads:
         1
     shell:
-        "ln `readlink -f {input}` {output}"
+        """
+        if file {input} | grep -q "gzip compressed"; then
+            ln `readlink -f {input}` {output}
+        else
+            gzip -c {input} > {output}
+        fi
+        """
