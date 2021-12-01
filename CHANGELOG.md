@@ -1,4 +1,9 @@
-## 0.4
+## 0.4.1
+
+### Fixed (1 change)
+- Fix old heading "Groups" to "Samples" in report (Report)
+
+## 0.4.0
 
 ### Added (2 change)
 - Curare now supports new mapping modules:
