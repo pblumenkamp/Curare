@@ -24,22 +24,31 @@ http://curare.computational.bio
 ## Features
 Curare was developed to simplify the automized execution of RNA-Seq workflows on large datasets. Each workflow can be divided into four steps: Preprocessing, Premapping, Mapping, and Analysis.
 
-##### Currently available modules
+##### Available modules
 + Preprocessing
   + Trim-Galore
 + Premapping
   + FastQC
   + MultiQC
 + Mapping
+  + Bowtie
   + Bowtie2
   + BWA (Backtrack)
   + BWA (Mem)
   + BWA (SW)
   + Segemehl
+  + Star
 + Analysis
   + Count Table (FeatureCounts)
-  + DESeq2
+  + DGE Analysis (DESeq2)
   + ReadXplorer
+
+### Results Report
+At the end of a curare run, you will also get an HTML report containing the most useful results and an overview of all used settings. The start page will include statistics to curare itself, the runtime of this analysis, sample descriptions, and all dependencies of the tools used in this pipeline. From the navigation bar at the top, you can then navigate to specific reports of each module with detailed charts and many tables.
+![start_page](https://user-images.githubusercontent.com/9703726/144844060-5acc6f29-fcaf-446d-9dd8-27c92bf33269.png)
+
+![Curare_Statistics](https://user-images.githubusercontent.com/9703726/144864668-1a5d40ba-43b3-49c8-a626-d88b80faed27.png)
+
 
 ## Usage
 ### Installation
