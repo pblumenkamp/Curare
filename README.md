@@ -9,7 +9,7 @@
 - [Description](#description)
 - [Features](#features)
 - [Usage](#usage)
-  - [installation](#installation)
+  - [Installation](#installation)
   - [Execute Curare](#creating-a-pipeline)
 - [Availability](#availability)
 - [Citation](#citation)
@@ -157,9 +157,9 @@ mapping:
 
 
 analysis:
-  modules: ["deseq2", "readxplorer"]
+  modules: ["dge_analysis", "readxplorer"]
 
-  deseq2:
+  dge_analysis:
     ## Used feature type, e.g. gene or exon. [Value Type: String]
     gff_feature_type: <Insert Config Here>
 
@@ -240,9 +240,9 @@ mapping:
 
 
 analysis:
-  modules: ["deseq2", "readxplorer"]
+  modules: ["dge_analysis", "readxplorer"]
 
-  deseq2:
+  dge_analysis:
     ## Used feature type, e.g. gene or exon. [Value Type: String]
     gff_feature_type: "CDS"
 
@@ -273,18 +273,23 @@ analysis:
 
 ### Starting Curare
 Curare can be started with this command: 
-```commandline
+```bash
 # Current working directory inside of root tool directory
 cd curare
 conda activate curare
-./curare.py --samples <target_directory>/samples.tsv --pipeline <target_directory>/pipeline.yml --output <results_directory> --use-conda 
+./curare.py --samples <target_directory>/samples.tsv --pipeline <target_directory>/pipeline.yml --output <results_directory> --use-conda
 ```
 
 All results, including the conda environments and a final report, will be written in `results_directory`.
   
 ### Results
-Curare structures all the results by categories and modules. This way each module can create there own structure and independent from all other modules. For example, the mapping modules generates multiple bam files with various flag filters like unmapped or concordant reads and the differential gene axpression module builds large excel files with the most important values and R object to continue the analysis on your own.
-
+Curare structures all the results by categories and modules. This way each module can create there own structure and independent from all other modules. For example, the mapping modules generates multiple bam files with various flag filters like unmapped or concordant reads and the differential gene axpression module builds large excel files with the most important values and R object to continue the analysis on your own. (Images: Bowtie2 mapping chart and DESeq2 summary table )
+  
+<div style="display: inline-flex; flex-direction: row; justify-content: space-evenly; align-items: center">
+  <img src="https://user-images.githubusercontent.com/9703726/145060940-d8dda4b1-7ad5-4f3c-947d-f1381aa9614c.png" width=450>
+  <img src="https://user-images.githubusercontent.com/9703726/145061206-5b01b8b7-c81f-4dc4-b893-cf8f7b2a850d.png" width=450>
+ </p>
+  
 
 ## Availability
 Conda package in preparation.
