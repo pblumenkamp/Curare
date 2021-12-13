@@ -1,3 +1,11 @@
+## 0.4.2
+
+### Added (1 change)
+- Add "Normalized Coverage" module to Analysis
+
+### Fixed (1 change)
+- Fix broken "Normalized Coverage" added by mistake last release
+
 ## 0.4.1
 
 ### Fixed (1 change)

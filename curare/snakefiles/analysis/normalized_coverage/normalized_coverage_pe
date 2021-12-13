@@ -1,41 +1,56 @@
 from os import listdir
 from os.path import isfile
+import sys
+
+def file_extension(extension):
+    if extension == "bed":
+        return ["bed.gz"]
+    elif extension == "bw":
+        return ["bw"]
+    elif extension == 'both':
+        return ["bed.gz", "bw"]
+    else:
+        print("Unknown file extension for normalized coverage", file=sys.STDERR)
+        exit(1)
 
 rule all:
     input:
-        "analysis/count_table/counts.txt",
-        ".report/modules/count_table.html"
+        expand("analysis/normalized_coverage/{name}.{extension}", name=config['entries'].keys(), extension=file_extension("%%OUTPUT_FORMAT%%"))
 
-rule count_reads:
+rule normalize_bed:
     input:
-        expand("mapping/{A}.bam", A=config['entries'].keys())
+        "mapping/{sample}.bam"
     output:
-        table="analysis/count_table/counts.txt",
-        stats="analysis/count_table/counts.txt.summary"
+        temp("analysis/normalized_coverage/{sample}.bed")
     conda:
         "../lib/conda_env.yaml"
-    group:
-        "count_reads"
     log:
-        log="analysis/count_table/logs/featurecounts.log"
+        log="analysis/normalized_coverage/logs/bamCoverage_bed_{sample}.log"
     threads:
         1
     shell:
-        "featureCounts -p -T 4 %%ADDITIONAL_OPTIONS%% -t '%%GFF_FEATURE_TYPE%%' -g '%%GFF_FEATURE_NAME%%' -a %%GFF_PATH%% -o {output.table} {input} 2>&1 |"
+        "bamCoverage -p {threads} %%ADDITIONAL_OPTIONS%% -b {input} -o {output} --outFileFormat bedgraph -bs %%BIN_SIZE%% --normalizeUsing %%NORMALIZE_METHOD%% 2>&1 |"
         "tee {log}"
 
-rule generate_report_data:
+rule normalize_bw:
     input:
-        stats="analysis/count_table/counts.txt.summary",
+        "mapping/{sample}.bam"
     output:
-        count_table_data=".report/data/count_table_data.js",
-        count_table_html=".report/modules/count_table.html",
-        count_table_js=".report/js/modules/count_table.js",
+        "analysis/normalized_coverage/{sample}.bw"
     conda:
         "../lib/conda_env.yaml"
-    group:
-        "count_table_report"
+    log:
+        log="analysis/normalized_coverage/logs/bamCoverage_bw_{sample}.log"
+    threads:
+        1
     shell:
-        "python3 lib/generate_report_data.py --stats {input.stats} --output {output.count_table_data} --paired-end && "
-        "cp lib/report/count_table.html {output.count_table_html} && "
-        "cp lib/report/count_table.js {output.count_table_js}"
+        "bamCoverage -p {threads} %%ADDITIONAL_OPTIONS%% -b {input} -o {output} --outFileFormat bigwig -bs %%BIN_SIZE%% --normalizeUsing %%NORMALIZE_METHOD%% 2>&1 |"
+        "tee {log}"
+
+rule compress_bed_file:
+    input:
+        "analysis/normalized_coverage/{sample}.bed"
+    output:
+        "analysis/normalized_coverage/{sample}.bed.gz"
+    shell:
+        "gzip {input}"
