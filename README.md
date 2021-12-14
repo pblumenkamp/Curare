@@ -45,7 +45,7 @@ Curare was developed to simplify the automized execution of RNA-Seq workflows on
   + ReadXplorer
 
 ### Results Report
-At the end of a curare run, you will also get an HTML report containing the most important results and an overview of all used settings. The start page will include curare statistics, the runtime of this analysis, sample descriptions, and all dependencies of the tools used in this pipeline. From the navigation bar at the top, you can then navigate to the specific reports of each module with detailed charts and many statistics. (Images created with Curare using the data from: Banerjee R et al., "Tailoring a Global Iron Regulon to a Uropathogen.", mBio, 2020 Mar 24;11(2))
+At the end of a Curare run, you will also get an HTML report containing the most important results and an overview of all used settings. The start page will include Curare statistics, the runtime of this analysis, sample descriptions, and all dependencies of the tools used in this pipeline. From the navigation bar at the top, you can then navigate to the specific reports of each module with detailed charts and many statistics. (Images created with Curare using the data from: Banerjee R et al., "Tailoring a Global Iron Regulon to a Uropathogen.", mBio, 2020 Mar 24;11(2))
 ![start_page](https://user-images.githubusercontent.com/9703726/144844060-5acc6f29-fcaf-446d-9dd8-27c92bf33269.png)
 
 ![Curare_Statistics](https://user-images.githubusercontent.com/9703726/145035029-5dd70610-10d2-45e1-8c1f-0334522c2625.png)
