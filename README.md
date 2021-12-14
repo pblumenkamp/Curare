@@ -21,8 +21,6 @@ Curare is a freely available analysis pipeline for reproducible, high-throughput
   
 Curare is implemented in Python and uses the power of [Snakemake](https://snakemake.readthedocs.io/) and [Conda](https://docs.conda.io/projects/conda/en/latest/index.html) to build and execute the defined workflows. Its modulized structure and the simplicity of Snakemake enables developers to create new and advanced workflow steps. 
 
-http://curare.computational.bio
-
 ## Features
 Curare was developed to simplify the automized execution of RNA-Seq workflows on large datasets. Each workflow can be divided into four steps: Preprocessing, Premapping, Mapping, and Analysis.
 
@@ -43,6 +41,7 @@ Curare was developed to simplify the automized execution of RNA-Seq workflows on
 + Analysis
   + Count Table (FeatureCounts)
   + DGE Analysis (DESeq2)
+  + Normalized Coverage
   + ReadXplorer
 
 ### Results Report
@@ -65,7 +64,7 @@ conda activate curare
 ```
 
 ### Creating a pipeline
-The easiest way to create a new pipeline is by using the Curare wizard. It will guide through all steps and create the two necessary files (`samples.tsv` and `pipeline.yml`). These files can then be edited with a standard file editor for customizing your data and analysis.  
+The easiest way to create a new pipeline is by using the Curare wizard. It will guide through all steps, asks what module you wish to use and creates the two necessary files (`samples.tsv` and `pipeline.yml`). These files can then be edited with a standard file editor for customizing your data and analysis.  
 ```bash
 # Current working directory is inside of tool directory
 cd curare
@@ -119,22 +118,22 @@ preprocessing:
   modules: ["trimgalore"]
 
   trimgalore:
-    ## Choose phred33 (Sanger/Illumina 1.9+ encoding) or phred64 (Illumina 1.5 encoding). [Value Type: Enum
+    ## Choose phred33 (Sanger/Illumina 1.9+ encoding) or phred64 (Illumina 1.5 encoding). [Value Type: Enum]
     #phred_score_type: "--phred33"
 
-    ## Trim low-quality ends from reads in addition to adapter removal. (Default: 20). [Value Type: Number
+    ## Trim low-quality ends from reads in addition to adapter removal. (Default: 20). [Value Type: Number]
     #quality_threshold: "20"
 
-    ## Discard reads that became shorter than length INT because of either quality or adapter trimming. (Default: 20). [Value Type: Number
+    ## Discard reads that became shorter than length INT because of either quality or adapter trimming. (Default: 20). [Value Type: Number]
     #min_length: "20"
 
-    ## Additional options to use in shell command. [Value Type: String
+    ## Additional options to use in shell command. [Value Type: String]
     #additional_parameter: ""
 
-    ## Adapter sequence to be trimmed. If not specified explicitly, Trim Galore will try to auto-detect whether the Illumina universal, Nextera transposase, or Illumina small RNA adapter sequence was used. [Value Type: String
+    ## Adapter sequence to be trimmed. If not specified explicitly, Trim Galore will try to auto-detect whether the Illumina universal, Nextera transposase, or Illumina small RNA adapter sequence was used. [Value Type: String]
     #adapter_forward: ""
 
-    ## adapter sequence to be trimmed off read 2 of paired-end files. [Value Type: String
+    ## adapter sequence to be trimmed off read 2 of paired-end files. [Value Type: String]
     #adapter_reverse: ""
 
 
@@ -152,7 +151,7 @@ mapping:
     ## Enum choices: "local", "end-to-end"
     alignment_type: <Insert Config Here>
 
-    ## Additional options to use in shell command. [Value Type: String
+    ## Additional options to use in shell command. [Value Type: String]
     #additional_bowtie2_options: ""
 
 
@@ -169,13 +168,13 @@ analysis:
     ## File path to gff file. [Value Type: File_input]
     gff_path: <Insert Config Here>
 
-    ## Additional options to use in shell command. [Value Type: String
+    ## Additional options to use in shell command. [Value Type: String]
     #additional_featcounts_options: ""
     
     ## Strand specificity of reads. Specifies if reads must lie on the same strand as the feature, the opposite strand, or can be on both. Options: "unstranded, stranded, reversely_stranded"
     #strand_specificity: "unstranded"
 
-    ## GFF attributes to show in the beginning of the xlsx summary (Comma-separated list, e.g. "experiment, product, Dbxref"). [Value Type: String
+    ## GFF attributes to show in the beginning of the xlsx summary (Comma-separated list, e.g. "experiment, product, Dbxref"). [Value Type: String]
     #attribute_columns: ""
 
 
@@ -283,7 +282,7 @@ conda activate curare
 All results, including the conda environments and a final report, will be written in `results_directory`.
   
 ### Results
-Curare structures all the results by categories and modules. This way each module can create there own structure and independent from all other modules. For example, the mapping modules generates multiple bam files with various flag filters like unmapped or concordant reads and the differential gene axpression module builds large excel files with the most important values and R object to continue the analysis on your own. (Images: Bowtie2 mapping chart and DESeq2 summary table )
+Curare structures all the results by categories and modules. This way each module can create their own structure and is independent from all other modules. For example, the mapping modules generates multiple bam files with various flag filters like unmapped or concordant reads and the differential gene expression module builds large excel files with the most important values and an R object to continue the analysis on your own. (Images: Bowtie2 mapping chart and DESeq2 summary table )
   
 <div style="display: inline-flex; flex-direction: row; justify-content: space-evenly; align-items: center">
   <img src="https://user-images.githubusercontent.com/9703726/145060940-d8dda4b1-7ad5-4f3c-947d-f1381aa9614c.png" width=450>
