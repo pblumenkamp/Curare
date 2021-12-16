@@ -1,0 +1,6 @@
+#!/bin/bash
+
+SCRIPT_DIR=$(dirname $(realpath $0))
+CURARE_PATH=$(realpath "${SCRIPT_DIR}/..")
+export PYTHONPATH="${CURARE_PATH}:${PYTHONPATH}"
+python3 -m curare.curare_wizard "$@"

@@ -1,3 +1,9 @@
+## 0.4.3
+
+### Added (1 change)
+- Made Curare PyPI and Bioconda ready
+  - All executives are now also found under ./bin and can this way be easliy added to your PATH
+
 ## 0.4.2
 
 ### Added (1 change)

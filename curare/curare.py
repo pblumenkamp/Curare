@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Customizable and Reproducible Analysis Pipeline for RNA-Seq Experiments (CURARE).
+Customizable and Reproducible Analysis Pipeline for RNA-Seq Experiments (Curare).
 
 Usage:
     curare.py --samples <samples_file> --pipeline <pipeline_file> --output <output_folder>
@@ -66,8 +66,8 @@ from snakemake import snakemake
 from docopt import docopt
 from distutils.dir_util import copy_tree
 
-import metadata
-from lib import generate_report
+import curare.metadata as metadata
+from curare.lib import generate_report
 
 CURARE_PATH: Path = Path(__file__).resolve().parent
 
