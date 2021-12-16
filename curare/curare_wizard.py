@@ -43,7 +43,7 @@ import sys
 from typing import Any, Callable, Dict, IO, List, Union
 import yaml
 
-import metadata
+import curare.metadata as metadata
 
 PP = pprint.PrettyPrinter(indent=2)
 
