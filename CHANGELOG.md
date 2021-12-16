@@ -4,6 +4,10 @@
 - Made Curare PyPI and Bioconda ready
   - All executives are now also found under ./bin and can this way be easliy added to your PATH
 
+### Changed (1 change)
+- Renamed "curare_env.yml" to "conda_environment.yaml" for a more meaningful name
+
+
 ## 0.4.2
 
 ### Added (1 change)
