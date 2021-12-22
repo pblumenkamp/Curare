@@ -3,6 +3,7 @@
 ![Don't judge me](https://img.shields.io/badge/Language-Snakemake-blue.svg)
 ![Release](https://img.shields.io/github/release/pblumenkamp/curare.svg)
 [![PyPI](https://img.shields.io/pypi/v/Curare.svg)](https://pypi.org/project/Curare)
+[![Conda](https://img.shields.io/conda/v/bioconda/curare.svg)](https://bioconda.github.io/recipes/curare/README.html)
 
 # Curare - A Customizable and Reproducible Analysis Pipeline for RNA-Seq Experiments
 
