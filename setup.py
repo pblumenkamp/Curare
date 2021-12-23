@@ -1,14 +1,24 @@
 
-from os import path
+import os
 from setuptools import setup, find_packages
 import curare.metadata
 
 
 # Get the long description from the README file
-setup_dir = path.abspath(path.dirname(__file__))
-with open(path.join(setup_dir, 'README.md'), encoding='utf-8') as f:
+setup_dir = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(setup_dir, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
+# Thanks to Sandy Chapman at Stackoverflow
+def package_files(directory):
+    paths = []
+    for (path, directories, filenames) in os.walk(directory):
+        for filename in filenames:
+            paths.append(os.path.join('..', path, filename))
+    return paths
+
+extra_files_report = package_files('curare/report')
+extra_files_snakefiles = package_files('curare/snakefiles')
 
 setup(
     name='Curare',
@@ -21,9 +31,12 @@ setup(
     author='Patrick Blumenkamp',
     author_email='patrick.blumenkamp@computational.bio.uni-giessen.de',
     url='https://github.com/pblumenkamp/Curare',
-    packages=find_packages(include=['curare', 'curare.*']),
     python_requires='>=3.9',
-    include_package_data=False,
+    packages=find_packages(include=['curare', 'curare.*']),
+    package_data={
+        "": extra_files_snakefiles + extra_files_report
+    },
+    include_package_data=True,
     zip_safe=False,
     install_requires=[
         'PyYAML == 5.4.1',

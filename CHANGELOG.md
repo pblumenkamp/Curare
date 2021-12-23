@@ -1,3 +1,9 @@
+## 0.4.4
+
+### Fixed (1 change)
+- Fixed broken PyPI build (snakefiles and report folder will now also be installed)
+
+
 ## 0.4.3
 
 ### Added (1 change)
