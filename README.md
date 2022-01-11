@@ -55,15 +55,14 @@ At the end of a Curare run, you will also get an HTML report containing the most
 
 ## Usage
 ### Installation
-#### From sources
-It is recommended to use [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html) for installing all dependencies required for Curare. 
+It is recommended to use [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html) for installing curare with all dependencies. Please notice that the conda channels **bioconda and conda-forge are required** for installing Curare correctly.
+
 ```bash
-git clone https://github.com/pblumenkamp/curare.git
-cd curare
-conda env create -f curare_env.yml
+conda create -n curare -c bioconda -c conda-forge curare
 conda activate curare
-./curare/curare.py --help
+curare --help
 ```
+Alternatively, you can install Curare via GitHub release and install all dependencies in conda_environment.yaml manually. This would be enough to run Curare in `use-conda` mode. If you want to run Curare completely without Conda, you would also need to install the dependencies of all used Curare modules. You can find the dependencies of every module at `curare/snakefiles/<module_category>/<module>/lib/conda_env.yaml`.
 
 ### Creating a pipeline
 The easiest way to create a new pipeline is by using the Curare wizard. It will guide through all steps, asks what module you wish to use and creates the two necessary files (`samples.tsv` and `pipeline.yml`). These files can then be edited with a standard file editor for customizing your data and analysis.  
@@ -293,7 +292,9 @@ Curare structures all the results by categories and modules. This way each modul
   
 
 ## Availability
-Conda package in preparation.
+Available at Bioconda: https://bioconda.github.io/recipes/curare/README.html
+  
+Available at PyPI: https://pypi.org/project/Curare/
   
 ## Citation
 In preparation.
