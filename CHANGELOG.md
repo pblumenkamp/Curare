@@ -1,3 +1,8 @@
+## 0.4.5
+
+### Fixed (1 change)
+- Fixed bug in dge_analysis xlsx converter
+
 ## 0.4.4
 
 ### Fixed (1 change)

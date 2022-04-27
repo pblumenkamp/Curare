@@ -18,6 +18,7 @@ import argparse
 import gzip
 
 from importlib import util
+from typing import Dict
 
 missing_modules = []
 for module in ['pandas', 'xlsxwriter']:
@@ -66,7 +67,7 @@ def main():
     identifier = args.identifier.upper()
     # e.g. gene or CDS
     feature = args.feature
-    wanted_gff_attributes = [arg.upper() for arg in args.attributes.split(",")]
+    wanted_gff_attributes = [arg.strip().upper() for arg in args.attributes.split(",")]
 
     annotations = {}
     if gff_file.endswith(".gz"):
@@ -82,8 +83,9 @@ def main():
                 continue
             if columns[2] == feature:
                 attributes_string = columns[8]
-                attributes = {a.upper(): b for a, b in [att.split("=", maxsplit=1) for att in attributes_string.split(";")] if
-                              a.upper() in wanted_gff_attributes + [identifier]}
+                wanted_gff_attributes_plus_id = wanted_gff_attributes + [identifier]
+                attributes = {a.strip().upper(): b.strip() for a, b in parse_attributes(attributes_string).items() if
+                              a.strip().upper() in wanted_gff_attributes_plus_id}
                 annotations[attributes[identifier]] = {}
                 annotations[attributes[identifier]]['attr'] = attributes_string.replace(';', '; ')
                 annotations[attributes[identifier]]['gff_start'] = columns[3]
@@ -215,6 +217,38 @@ def main():
 
     writer.save()
 
+def parse_attributes(attributes: str, attribute_separator: str=';', key_value_separator: str='=', quotes: str='"') -> Dict[str,str]:
+    state: str = 'key'  # key, value, quotes
+    splitted_attributes: Dict[str, str] = {}
+    key: str = ""
+    value: str = ""
+
+    for char in attributes:
+        if state == 'key':
+            if char == key_value_separator:
+                state = 'value'
+            else:
+                key += char
+        elif state == 'value':
+            if char == quotes:
+                value += char
+                state = 'quotes'
+            elif char == attribute_separator:
+                splitted_attributes[key] = value
+                key = ''
+                value = ''
+                state = 'key'
+            else:
+                value += char
+        else:  # quotes
+            if char == quotes:
+                value += char
+                state = 'value'
+            else:
+                value += char
+    if state == 'value':
+        splitted_attributes[key] = value
+    return splitted_attributes
 
 if __name__ == '__main__':
     main()
