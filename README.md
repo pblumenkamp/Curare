@@ -71,7 +71,7 @@ The easiest way to create a new pipeline is by using the Curare wizard. It will 
 ```bash
 # Current working directory is inside of tool directory
 cd curare
-./curare_wizard.py --samples target_directory/samples.tsv --pipeline target_directory/pipeline.yml
+curare_wizard --samples target_directory/samples.tsv --pipeline target_directory/pipeline.yml
 ```
 
 ### Samples File
@@ -279,7 +279,7 @@ Curare can be started with this command:
 # Current working directory inside of root tool directory
 cd curare
 conda activate curare
-./curare.py --samples <target_directory>/samples.tsv --pipeline <target_directory>/pipeline.yml --output <results_directory> --use-conda
+curare --samples <target_directory>/samples.tsv --pipeline <target_directory>/pipeline.yml --output <results_directory> --use-conda
 ```
 
 All results, including the conda environments and a final report, will be written in `results_directory`.
