@@ -64,6 +64,8 @@ curare --help
 ```
 Alternatively, you can install Curare via GitHub release and install all dependencies in conda_environment.yaml manually. This would be enough to run Curare in `use-conda` mode. If you want to run Curare completely without Conda, you would also need to install the dependencies of all used Curare modules. You can find the dependencies of every module at `curare/snakefiles/<module_category>/<module>/lib/conda_env.yaml`.
 
+If you want to test Curare, you can download our [example dataset](https://curare-dataset.s3.computational.bio.uni-giessen.de/curare-user-testcase.zip) with a pre-build configuration.
+
 ### Creating a pipeline
 The easiest way to create a new pipeline is by using the Curare wizard. It will guide through all steps, asks what module you wish to use and creates the two necessary files (`samples.tsv` and `pipeline.yml`). These files can then be edited with a standard file editor for customizing your data and analysis.  
 ```bash
@@ -295,6 +297,8 @@ Curare structures all the results by categories and modules. This way each modul
 Available at Bioconda: https://bioconda.github.io/recipes/curare/README.html
   
 Available at PyPI: https://pypi.org/project/Curare/
+
+Example dateset: [curare-user-testcase.zip](https://curare-dataset.s3.computational.bio.uni-giessen.de/curare-user-testcase.zip)
   
 ## Citation
 In preparation.
