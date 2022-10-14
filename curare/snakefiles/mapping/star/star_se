@@ -89,11 +89,11 @@ rule star_index:
     threads:
         16
     shell:
-        "genomeLength=`grep -v '^<' {input.genome}| wc -m`;\n"
+        "genomeLength=`grep -v '^>' {input.genome}| wc -m`;\n"
         "genomeSAindexNbases=`python3 -c \"import math; print(min(14, int(math.log2($genomeLength)/2-1)))\"`;\n"
         "mkdir -p {output.index_dir};\n"
         "STAR --runMode genomeGenerate --runThreadN {threads} --genomeSAindexNbases $genomeSAindexNbases --genomeDir {output.index_dir} --genomeFastaFiles {input.genome} "
-        "{params.gff_file}{params.gff_parent_keyword}{params.gff_id_keyword}{params.gff_feature_type} %%ADDITIONAL_STAR_OPTIONS%% 2>&1 |"
+        "{params.gff_file}{params.gff_parent_keyword}{params.gff_id_keyword}{params.gff_feature_type} %%ADDITIONAL_STAR_INDEX_OPTIONS%% 2>&1 |"
         "tee {log}; echo \"genomeSAindexNbases: $genomeSAindexNbases\" > \"mapping/index_parameters.txt\";"
 
 
@@ -112,12 +112,12 @@ rule star_mapping:
     conda:
         "../lib/conda_env.yaml"
     threads:
-        2
+        4
     shell:
         """
         STAR --runThreadN {threads} --readFilesCommand "gunzip -c" --genomeDir {input.genome_index_dir} --readFilesIn {input.reads}\
         --outFileNamePrefix {params.output_prefix} --outSAMtype BAM SortedByCoordinate --outBAMsortingThreadN {threads} --outReadsUnmapped Fastx \
-        %%ADDITIONAL_STAR_OPTIONS%% 2>&1 | tee {log}
+        %%ADDITIONAL_STAR_MAPPING_OPTIONS%% 2>&1 | tee {log}
         """
 
 
@@ -129,7 +129,7 @@ rule sam_to_bam:
         bai="mapping/{sample}.bam.bai",
         bam_unmapped="mapping/unmapped/{sample}_unmapped.bam"
     threads:
-        1
+        4
     shell:
         "samtools view -F 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam} - && samtools index {output.bam};"
         "samtools view -f 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam_unmapped} -"
