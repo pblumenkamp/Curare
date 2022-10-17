@@ -5,8 +5,8 @@ Converts the TSV output of the DESeq2 module of the dge pipeline to XLSX
 
 Exit codes:
     0: Program finished successful
-    1: Error while reading GFF file
-    2: GFF file does not contain specified identifier (--identifier)
+    1: Error while reading GFF/GTF file
+    2: GFF/GTF file does not contain specified identifier (--identifier)
     3: TSV file is empty or only contains a header (or one row and no header)
     4: Python module is missing
 """
@@ -18,6 +18,7 @@ import argparse
 import gzip
 
 from importlib import util
+from typing import Dict, List
 
 missing_modules = []
 for module in ['pandas', 'xlsxwriter']:
@@ -37,7 +38,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('--tsv', help="TSV file to convert. File must contain a header in the first row and must not have any comments.")
     parser.add_argument('--conditions', dest='number_of_conditions', type=int, help="Number of Conditions in TSV minus 1 (#Cond - 1)")
-    parser.add_argument('--gff', help="GFF file used for creating the TSV")
+    parser.add_argument('--gff', help="GFF/GTF file used for creating the TSV")
     parser.add_argument('--identifier', help="GFF identifier, e.g. ID")
     parser.add_argument('--feature', help="Used GFF feature, e.g. gene or CDS")
     parser.add_argument('--attributes', type=str, default="",
@@ -47,7 +48,14 @@ def parse_arguments():
 
 
 def get_col_widths(df):
-    return [max(y) for y in [[len(col)] + [len(x) for x in df[col]] for col in df.columns]]
+    widths: List[int] = []
+    for col in df.columns:
+        entry_widths: List[int] = [len(col)]
+        for x in df[col]:
+            if x is not None:
+                entry_widths.append(len(x))
+        widths.append(max(entry_widths))
+    return widths
 
 
 def main():
@@ -66,13 +74,18 @@ def main():
     identifier = args.identifier.upper()
     # e.g. gene or CDS
     feature = args.feature
-    wanted_gff_attributes = [arg.upper() for arg in args.attributes.split(",")]
+    wanted_gff_attributes = [arg.strip().upper() for arg in args.attributes.split(",")]
 
     annotations = {}
     if gff_file.endswith(".gz"):
         gff = gzip.open(gff_file, "rt")
+        gtf_or_gff = "gtf" if gff_file.endswith("gtf.gz") else "gff"
     else:
         gff = open(gff_file, "r")
+        gtf_or_gff = "gtf" if gff_file.endswith("gtf") else "gff"
+    if gtf_or_gff == "gtf":
+        attribute_separator: str = ';' if gtf_or_gff == "gtf" else ';'
+        key_value_separator: str = ' ' if gtf_or_gff == "gtf" else '='
     for line in gff:
         try:
             if line.startswith("#"):
@@ -81,19 +94,22 @@ def main():
             if len(columns) != 9:
                 continue
             if columns[2] == feature:
+                wanted_gff_attributes_plus_id = wanted_gff_attributes + [identifier]
                 attributes_string = columns[8]
-                attributes = {a.upper(): b for a, b in [att.split("=", maxsplit=1) for att in attributes_string.split(";")] if
-                              a.upper() in wanted_gff_attributes + [identifier]}
-                annotations[attributes[identifier]] = {}
-                annotations[attributes[identifier]]['attr'] = attributes_string.replace(';', '; ')
-                annotations[attributes[identifier]]['gff_start'] = columns[3]
-                annotations[attributes[identifier]]['gff_stop'] = columns[4]
-                annotations[attributes[identifier]]['gff_strand'] = columns[6]
+                parsed_attributes = parse_attributes(attributes_string, attribute_separator=attribute_separator, key_value_separator=key_value_separator).items()
+                attributes = {a.strip().upper(): b.strip() for a, b in parsed_attributes
+                              if a.strip().upper() in wanted_gff_attributes_plus_id}
+                stripped_identifier: str = attributes[identifier].strip('"\'')
+                annotations[stripped_identifier] = {}
+                annotations[stripped_identifier]['attr'] = attributes_string.replace(';', '; ')
+                annotations[stripped_identifier]['gff_start'] = columns[3]
+                annotations[stripped_identifier]['gff_stop'] = columns[4]
+                annotations[stripped_identifier]['gff_strand'] = columns[6]
                 for attr in wanted_gff_attributes:
                     if attr in attributes:
-                        annotations[attributes[identifier]][attr] = attributes[attr]
+                        annotations[stripped_identifier][attr] = attributes[attr]
                     else:
-                        annotations[attributes[identifier]][attr] = "-"
+                        annotations[stripped_identifier][attr] = "-"
         except Exception as e:
             print('Error while reading GFF file "{}"'.format(gff_file), file=sys.stderr)
             print(e, file=sys.stderr)
@@ -215,6 +231,44 @@ def main():
 
     writer.save()
 
+def parse_attributes(attributes: str, attribute_separator: str=';', key_value_separator: str='=', quotes: str='"') -> Dict[str,str]:
+    state: str = 'first_letter_key'  # first_letter_key, key, value, quotes
+    splitted_attributes: Dict[str, str] = {}
+    key: str = ""
+    value: str = ""
+
+    for char in attributes:
+        if state == 'first_letter_key':
+            if char.isspace() or char in [attribute_separator, key_value_separator]:
+                continue
+            else:
+                key += char
+                state = 'key'
+        elif state == 'key':
+            if char == key_value_separator:
+                state = 'value'
+            else:
+                key += char
+        elif state == 'value':
+            if char == quotes:
+                value += char
+                state = 'quotes'
+            elif char == attribute_separator:
+                splitted_attributes[key] = value
+                key = ''
+                value = ''
+                state = 'first_letter_key'
+            else:
+                value += char
+        else:  # quotes
+            if char == quotes:
+                value += char
+                state = 'value'
+            else:
+                value += char
+    if state == 'value':
+        splitted_attributes[key] = value
+    return splitted_attributes
 
 if __name__ == '__main__':
     main()

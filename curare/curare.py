@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Customizable and Reproducible Analysis Pipeline for RNA-Seq Experiments (CURARE).
+Customizable and Reproducible Analysis Pipeline for RNA-Seq Experiments (Curare).
 
 Usage:
     curare.py --samples <samples_file> --pipeline <pipeline_file> --output <output_folder>
@@ -66,8 +66,8 @@ from snakemake import snakemake
 from docopt import docopt
 from distutils.dir_util import copy_tree
 
-import metadata
-from lib import generate_report
+import curare.metadata as metadata
+from curare.lib import generate_report
 
 CURARE_PATH: Path = Path(__file__).resolve().parent
 
@@ -266,13 +266,13 @@ def load_pipeline_file(pipeline_file: Path) -> Tuple[Dict[str, List['Module']], 
                     modules["preprocessing"].append('none')  # Add "None" module
             elif isinstance(pipeline_module, list):
                 if len(pipeline_module) > 1:
-                    raise InvalidPipelineFileError('Error in catergory "preprocessing": Too many preprocessing modules are selected (max 1)')
+                    raise InvalidPipelineFileError('Error in category "preprocessing": Too many preprocessing modules are selected (max 1)')
                 if pipeline_module:
                     modules["preprocessing"].append(pipeline_module[0])
                 else:
                     modules["preprocessing"].append('none')  # Add "None" module
             else:
-                raise InvalidPipelineFileError('Error in catergory "preprocessing": Modules must be a list or a string containing the module')
+                raise InvalidPipelineFileError('Error in category "preprocessing": Modules must be a list or a string containing the module')
         else:
             modules["preprocessing"].append('none')  # Add "None" module
     else:
@@ -287,21 +287,21 @@ def load_pipeline_file(pipeline_file: Path) -> Tuple[Dict[str, List['Module']], 
             elif isinstance(pipeline_module, str):
                 modules["premapping"].append(pipeline_module)
             else:
-                raise InvalidPipelineFileError('Error in catergory "premapping": Modules must be a list or a string containing the module')
+                raise InvalidPipelineFileError('Error in category "premapping": Modules must be a list or a string containing the module')
 
     if "mapping" in pipeline:
         pipeline_module = pipeline["mapping"]["modules"]
         if "modules" in pipeline["mapping"]:
             if isinstance(pipeline_module, list):
                 if len(pipeline_module) != 1:
-                    raise InvalidPipelineFileError('Error in catergory "mapping": Exactly one mapping module must be selected')
+                    raise InvalidPipelineFileError('Error in category "mapping": Exactly one mapping module must be selected')
                 modules["mapping"].append(pipeline_module[0])
             elif isinstance(pipeline_module, str):
                 modules["mapping"].append(pipeline_module)
             else:
-                raise InvalidPipelineFileError('Error in catergory "mapping": Modules must be a list or a string containing the module')
+                raise InvalidPipelineFileError('Error in category "mapping": Modules must be a list or a string containing the module')
     else:
-        raise InvalidPipelineFileError('Error in catergory "mapping": No mapping module found')
+        raise InvalidPipelineFileError('Error in category "mapping": No mapping module found')
 
     if "analysis" in pipeline:
         pipeline_module = pipeline["analysis"]["modules"]
@@ -312,7 +312,7 @@ def load_pipeline_file(pipeline_file: Path) -> Tuple[Dict[str, List['Module']], 
             elif isinstance(pipeline_module, str):
                 modules["mapping"].append(pipeline_module)
             else:
-                raise InvalidPipelineFileError('Error in catergory "analysis": Modules must be a list or a string containing the module')
+                raise InvalidPipelineFileError('Error in category "analysis": Modules must be a list or a string containing the module')
 
     if "pipeline" in pipeline:
         if "paired_end" in pipeline["pipeline"]:

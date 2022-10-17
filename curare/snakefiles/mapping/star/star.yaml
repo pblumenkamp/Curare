@@ -6,7 +6,7 @@ required_settings:
 
   genome_fasta:
     label: 'Reference Genome Sequence'
-    description: 'Path to genome fasta file'
+    description: 'Path to an uncompressed genome fasta file'
     type: 'file'
 
 optional_settings:
