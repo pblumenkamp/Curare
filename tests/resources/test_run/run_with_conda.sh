@@ -51,6 +51,12 @@ if [ $? -ne 0 ]; then FAILEDRUNS+=("Single_end_bowtie"); fi
 bash "`dirname $SCRIPTPATH`/paired_end_run_bowtie/run_with_conda.sh"
 if [ $? -ne 0 ]; then FAILEDRUNS+=("Paired_end_bowtie"); fi
 
+bash "`dirname $SCRIPTPATH`/single_end_run_norm_coverage/run_with_conda.sh"
+if [ $? -ne 0 ]; then FAILEDRUNS+=("Single_end_norm_coverage"); fi
+
+bash "`dirname $SCRIPTPATH`/paired_end_run_norm_coverage/run_with_conda.sh"
+if [ $? -ne 0 ]; then FAILEDRUNS+=("Paired_end_norm_coverage"); fi
+
 bash "`dirname $SCRIPTPATH`/single_end_run_zipped_bowtie2/run_with_conda.sh"
 if [ $? -ne 0 ]; then FAILEDRUNS+=("Single_end_zipped_bowtie2"); fi
 

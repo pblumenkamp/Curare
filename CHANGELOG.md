@@ -1,3 +1,32 @@
+## 0.4.5
+
+### Fixed (1 change)
+- Fixed bug in dge_analysis xlsx converter
+
+## 0.4.4
+
+### Fixed (1 change)
+- Fixed broken PyPI build (snakefiles and report folder will now also be installed)
+
+
+## 0.4.3
+
+### Added (1 change)
+- Made Curare PyPI and Bioconda ready
+  - All executives are now also found under ./bin and can this way be easliy added to your PATH
+
+### Changed (1 change)
+- Renamed "curare_env.yml" to "conda_environment.yaml" for a more meaningful name
+
+
+## 0.4.2
+
+### Added (1 change)
+- Add "Normalized Coverage" module to Analysis
+
+### Fixed (1 change)
+- Fix broken "Normalized Coverage" added by mistake last release
+
 ## 0.4.1
 
 ### Fixed (1 change)
