@@ -18,7 +18,7 @@ rule gzip_files:
         1
     shell:
         """
-        if file "{input}" | grep -q "gzip compressed"; then
+        if file "{input}" | grep -q "gzip"; then
             ln `readlink -f "{input}"` "{output}"
         else
             gzip -c "{input}" > "{output}"
