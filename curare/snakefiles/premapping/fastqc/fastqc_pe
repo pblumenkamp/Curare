@@ -29,7 +29,7 @@ rule groups_file:
         groups=temp("premapping/fastqc/groups.tsv")
     run:
         with open(output.groups, 'w') as out:
-            out.write("Sample\tFprward\tReverse\n")
+            out.write("Sample\tForward\tReverse\n")
             for entry in config['entries'].keys():
                 out.write("{}\t{}_R1_fastqc.html\t{}_R2_fastqc.html\n".format(entry, entry, entry))
 
