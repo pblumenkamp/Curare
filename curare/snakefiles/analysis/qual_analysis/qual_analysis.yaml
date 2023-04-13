@@ -1,0 +1,90 @@
+name: "qual_analysis"
+label: "Qualitative Analysis of RNA-Seq reads"
+description: "A qualitative analysis and comparison of RNA-Seq reads and conditions."
+
+required_settings:
+  gff_feature_name:
+    label: "GFF Feature Name"
+    description: "Descriptor for gene name, e.g. ID or gene_id"
+    type: "string"
+
+  gff_path:
+    label: "GFF File Path"
+    description: "File path to gff file"
+    type: "file_input"
+
+
+optional_settings:
+  gff_feature_types:
+    label: "Features to analyze"
+    description: "List of features, which should be analyzed. Please, enter values as a comma-separated list (e.g. \"ncRNA,rRNA,tRNA\") (Default: All feature types in annotation and in allowlist)\
+    \nAllowlist: \"CDS\", \"exon\", \"intron\", \"gene\", \"mRNA\", \"tRNA\", \"rRNA\", \"ncRNA\", \"operon\", \"snRNA\", \"snoRNA\", \"miRNA\", \"pseudogene\", \"small regulatory ncRNA\",
+    \"rasiRNA\", \"guide RNA\", \"siRNA\", \"stRNA\", \"sRNA\""
+    type: "string"
+    default: ''
+
+  strand_specificity:
+    label: 'Strand Specificity'
+    description: 'Strand specificity of reads. Specifies if reads must lie on the same strand as the feature, the opposite strand, or can be on both. Options: "unstranded, stranded, reversely_stranded"'
+    type: 'enum'
+    default: "unstranded"
+    choices:
+      unstranded: '-s 0'
+      stranded: '-s 1'
+      reversely_stranded: '-s 2'
+
+  additional_featcounts_options:
+    label: "Additional FeatureCounts Options"
+    description: "Additional options to use in shell command"
+    type: "string"
+    default: ''
+
+  attribute_columns:
+    label: "GFF Attributes in Summary"
+    description: 'GFF attributes to show in the beginning of the xlsx summary (Comma-separated list, e.g. "experiment, product, Dbxref")'
+    type: "string"
+    default: ''
+
+
+columns:
+  condition:
+    label: "Condition"
+    description: "Condition name of the sequencing run. May contain [A-Z, a-z, 0-9, _;!@^(),.[]-, Whitespace]"
+    type: "string"
+    character_set: ['A-Z', 'a-z', '0-9', '_', ';', '!', '@', '^', '(', ')', ',', '.', '[', ']', '-', ' ']
+
+
+single_end:
+  snakefile: "qual_analysis_se"
+
+  required_settings:
+    normalization_method:
+      label: "Normalization method"
+      description: "Normalization method used for expression data.\
+      \nChoices: tpm, rpkm"
+      type: 'enum'
+      default: "tpm"
+      choices:
+        tpm: 'tpm'
+        rpkm: 'rpkm'
+
+
+paired_end:
+  snakefile: "qual_analysis_pe"
+
+  required_settings:
+    normalization_method:
+      label: "Normalization method"
+      description: "Normalization method used for expression data.\
+      \nChoices: tpm, fpkm"
+      type: 'enum'
+      default: "tpm"
+      choices:
+        tpm: 'tpm'
+        fpkm: 'fpkm'
+
+
+report:
+  html_file: "qual_analysis.html"
+  new_tab: false
+  title: "Qualitative Analysis of RNA-Seq reads"

@@ -1,0 +1,190 @@
+from os import listdir
+from os.path import isfile
+
+import gzip
+
+def getConditions():
+    return set([seqRun['qual_analysis']['condition'] for seqRun in config['entries'].values()])
+
+def list_of_all_features(gff_path):
+  features = set()
+  if gff_path.endswith(".gz"):
+    f2r = gzip.open(gff_path, "rt")
+  else:
+    f2r = open(gff_path, "r")
+
+  for line in f2r.readlines():
+    if line.startswith("#"): #skip lines starting with #
+      continue
+    if not line or line.isspace():
+      continue
+    features.add(line.strip().split("\t")[2]) #feature
+  f2r.close()
+
+  # Features to check for either user selected or Curare pre-selected
+  if "%%GFF_FEATURE_TYPES%%":
+    features = features.intersection("%%ADDITIONAL_FEATCOUNTS_FEATURES%%".split(","))
+  else: 
+    allowed_features = ["CDS", "exon", "intron", "gene", "mRNA", "tRNA", "rRNA", "ncRNA", "operon", "snRNA", "snoRNA",
+        "miRNA", "pseudogene", "small regulatory ncRNA", "rasiRNA", "guide RNA", "siRNA", "stRNA", "sRNA"]
+    features = features.intersection(allowed_features)
+
+  return(list(features))
+
+localrules: qual_analysis__create_conditions
+ruleorder: qual_analysis__normalize_counts > qual_analysis__make_count_tables
+
+DUMP = "analysis/qual_analysis/deseq2.RData"
+FEATURE_LIST = list_of_all_features("%%GFF_PATH%%")
+
+rule all:
+    input:
+        "analysis/qual_analysis/count_tables/statistics",
+        expand("analysis/qual_analysis/count_tables/feature_sets/{feature_type}{normalization_method}_features.tsv", feature_type=FEATURE_LIST, normalization_method=["_%%NORMALIZATION_METHOD%%", ""])
+        #'analysis/qual_analysis/visualization/feature_assignments',
+        #expand('analysis/qual_analysis/summary/{COND}.xlsx', COND=getConditions()),
+        #".report/modules/qual_analysis.html"
+
+rule create_conditions:
+    output:
+        temp("analysis/qual_analysis/conditions.txt")
+    run:
+        with(open(output[0], 'w')) as output_file:
+            for name in sorted(config['entries'].keys()):
+                output_file.write('{}\t{}\n'.format(name, config['entries'][name]['qual_analysis']['condition']))
+
+rule summary_tsv_to_xslx:
+    input:
+        'analysis/qual_analysis/summary/{COND}.tsv'
+    output:
+        'analysis/qual_analysis/summary/{COND}.xlsx'
+    conda:
+        "../lib/conda_env.yaml"
+    params:
+        number_conditions = len(getConditions())-1
+    group:
+        "qual_analysis"
+    shell:
+        "python3 lib/deseq2_summary_tsv_to_xlsx.py --tsv \"{input}\" --conditions \"{params.number_conditions}\" --gff '%%GFF_PATH%%' --identifier \"%%GFF_FEATURE_NAME%%\" "
+        "--feature \"%%GFF_FEATURE_TYPE%%\" --attributes \"%%ATTRIBUTE_COLUMNS%%\" --output \"{output}\""
+
+rule make_count_tables:
+    input:
+        mappings=expand("mapping/{A}.bam", A=sorted(config['entries'].keys())),
+        reference_annotation="%%GFF_PATH%%"
+    output:
+        featcounts="analysis/qual_analysis/count_tables/{feature}.txt",
+        featcounts_summary="analysis/qual_analysis/count_tables/{feature}.txt.summary"
+    params:
+        output="analysis/qual_analysis/count_tables/"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "count_reads"
+    threads:
+        1
+    log:
+        log="analysis/qual_analysis/logs/count_tables/{feature}.log"
+    shell:
+        "featureCounts -p -T {threads} %%STRAND_SPECIFICITY%% %%ADDITIONAL_FEATCOUNTS_OPTIONS%% -t {wildcards.feature} -g '%%GFF_FEATURE_NAME%%' -a {input.reference_annotation} -o '{output.featcounts}' {input.mappings} 2>&1 | "
+        "tee {log.log};"
+
+rule normalize_counts:
+    input:
+        counts="analysis/qual_analysis/count_tables/{feature}.txt"
+    output:
+        normalized_file="analysis/qual_analysis/count_tables/{feature}_{normalization_method}.txt"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "count_reads"
+    threads:
+        1
+    log:
+        log="analysis/qual_analysis/logs/count_tables/{feature}_{normalization_method}_normalize.log"
+    shell:
+        "python3 lib/normalize_reads.py --input {input.counts} --output {output.normalized_file} --method {wildcards.normalization_method} --start_column_counts 7 --length_column 6 2>&1 | tee {log.log}; "
+
+rule visualize_count_statistics:
+    input:
+        count_tables=expand("analysis/qual_analysis/count_tables/{feature}{normalization_method}.txt", feature = FEATURE_LIST, normalization_method = ["_%%NORMALIZATION_METHOD%%", ""]),
+        conditions="analysis/qual_analysis/conditions.txt"
+    output:
+        results=directory("analysis/qual_analysis/count_tables/statistics"),
+        #feature_sets=expand("analysis/qual_analysis/count_tables/statistics/upsetplot/{feature_type}{normalization_method}_features.tsv", feature_type=FEATURE_LIST, normalization_method=["_%%NORMALIZATION_METHOD%%", ""])
+    params:
+        input_dir="analysis/qual_analysis/count_tables"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "count_reads"
+    threads:
+        1
+    log:
+        log="analysis/qual_analysis/logs/count_tables/statistics.log"
+    shell:
+        "python3 lib/count_statistics.py --count_tables_dir {params.input_dir} --output_dir {output.results} --start_column_counts 7 --length_column 6 --condition_table {input.conditions} --exp_threshold 1 2>&1 | tee {log.log}; "
+
+rule fill_feature_set_file:
+    input:
+        feature_sets_dir="analysis/qual_analysis/count_tables/statistics/",
+        reference_annotation="%%GFF_PATH%%"
+    output:
+        expand("analysis/qual_analysis/count_tables/feature_sets/{feature_type}{normalization_method}_features.tsv", feature_type=FEATURE_LIST, normalization_method=["_%%NORMALIZATION_METHOD%%", ""])
+    params:
+        input_suffix="_features.tsv",
+        output_dir="analysis/qual_analysis/count_tables/feature_sets/",
+        count_table_dir="analysis/qual_analysis/count_tables/"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "count_reads"
+    threads:
+        1
+    log:
+        log="analysis/qual_analysis/logs/count_tables/fill_feature_set_file.log"
+    shell:
+        "python3 lib/fill_feature_set_file.py --feature_set_dir {input.feature_sets_dir}/upsetplot/ --count_table_dir {params.count_table_dir} --feature_suffix={params.input_suffix} --annotation {input.reference_annotation} --output_dir {params.output_dir} --gff_feature_name %%GFF_FEATURE_NAME%% | tee {log.log}; "
+
+        
+rule visualize_assignments:
+    input:
+        expand("analysis/qual_analysis/count_tables/{feature}.txt", feature = FEATURE_LIST)
+    output:
+        directory('analysis/qual_analysis/visualization/feature_assignments')
+    params:
+        input="analysis/qual_analysis/count_tables/"
+    conda:
+        "../lib/conda_env.yaml"
+    shell:
+        "mkdir -p {output}; python3 lib/visualize_assignments.py -i {params.input} -o {output}"
+
+
+rule generate_report_data:
+    input:
+        stats="analysis/qual_analysis/counts.txt.summary",
+        comparisons="analysis/qual_analysis/deseq2_comparisons",
+        img_pca="analysis/qual_analysis/visualization/pca.svg",
+        correlation_heatmap="analysis/qual_analysis/visualization/correlation_heatmap.svg",
+        feature_assignment="analysis/qual_analysis/visualization/feature_assignments",
+        count_table="analysis/qual_analysis/counts.txt"
+    output:
+        qual_analysis_data=".report/data/qual_analysis_data.js",
+        qual_analysis_html=".report/modules/qual_analysis.html",
+        qual_analysis_js=".report/js/modules/qual_analysis.js",
+        qual_analysis_img_pca='.report/img/modules/qual_analysis/pca.svg',
+        qual_analysis_img_correlation='.report/img/modules/qual_analysis/correlation_heatmap.svg',
+        qual_analysis_img_feature_assignment=directory('.report/img/modules/qual_analysis/feature_assignment')
+    params:
+        visualization="analysis/qual_analysis/visualization"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "qual_analysis_report"
+    shell:
+        "python3 lib/generate_report_data.py --fc_stats {input.stats} --fc_main_feature '%%GFF_FEATURE_TYPE%%' --comparison_dir {input.comparisons} --visualization {params.visualization} --output {output.qual_analysis_data} --counttable '{input.count_table}' && "
+        "cp lib/report/qual_analysis.html {output.qual_analysis_html} && "
+        "cp lib/report/qual_analysis.js {output.qual_analysis_js} &&"
+        "cp {input.img_pca} {output.qual_analysis_img_pca} &&"
+        "cp {input.correlation_heatmap} {output.qual_analysis_img_correlation} &&"
+        "mkdir -p {output.qual_analysis_img_feature_assignment} && cp {input.feature_assignment}/*.svg {output.qual_analysis_img_feature_assignment}"

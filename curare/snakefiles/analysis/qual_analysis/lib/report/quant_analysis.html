@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CURARE Report</title>
+  <link rel="stylesheet" type="text/css" href="../css/buefy.min.css"/>
+
+  <script type="text/javascript" charset="utf8" src="../js/Chart.min.js"></script>
+  <script type="text/javascript" charset="utf8" src="../js/vue.min.js"></script>
+  <script type="text/javascript" charset="utf8" src="../js/buefy.min.js"></script>
+
+  <script defer src="../js/fontawesome.all.min.js"></script>
+  <script>
+      window.Curare = {}
+  </script>
+</head>
+
+<body class="has-navbar-fixed-top">
+<section>
+  <div id="navigation">
+    <navigation-bar modules-path="../modules/" main-html="../../report.html"></navigation-bar>
+  </div>
+</section>
+
+<section class="hero is-primary is-small is-bold">
+  <div class="hero-body">
+    <div class="container has-text-centered">
+      <h1 class="title is-size-1">CURARE</h1>
+      <h2 class="subtitle is-size-3">Pipeline Report</h2>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div id="deseq2" class="container">
+    <div class="columns" style="max-width: 100%">
+      <div class="column is-1"></div>
+      <div class="column" style="max-width: 100%">
+        <div class="content">
+          <section id="deseq2-body">
+            <h2>Differential Gene Expression Analysis</h2>
+            <div style="display: flex; justify-content: space-between">
+                <h3>FeatureCount Assignment of feature '{{ fc_main_feature }}'</h3>
+                <b-switch id="in-percent" type="is-info" v-model="counttable_in_percent"><p>in %</p></b-switch>
+            </div>
+            <canvas id='stacked_barchart' style="padding-top: 1rem; padding-bottom: 2rem"></canvas>
+            <div style="display: flex; flex-direction: row-reverse; justify-content: space-between">
+              <b-button id="get-counttable" type="is-primary" tag="a" :href="'../../' + count_table_path" target="_blank" rel="noopener noreferrer" size="is-medium">
+                <span style="padding-right: 0.5rem">Go to Count Table</span>
+                <i class="fas fa-external-link-alt fa-sm"></i>
+              </b-button>
+            </div>
+            <b-table 
+                :data="counttable_table" 
+                :columns="counttable_columns" 
+                scrollable
+                :paginated="counttable_table.length > 15"
+                per-page=15
+                :current-page.sync="currentPage"
+                icon-pack="fas"
+            ></b-table>
+
+            <hr style="margin-top: 2rem; margin-bottom: 3rem;">
+
+            <div style="display: flex; justify-content: space-between; align-items: center;" style="max-width: 100%;">
+              <h3>Type Assignment</h3>
+              <b-dropdown 
+                aria-role="list" 
+                scrollable
+                v-model="active_feature_assignment_menu">
+                
+                <template #trigger>
+                  <b-button
+                      type="is-primary"
+                      size="is-medium"
+                      icon-pack="fas"
+                      icon-right="sort-down">
+
+                    Sample: 
+                    {{ active_feature_assignment_menu }}
+                  </b-button>
+                </template>
+                
+                <template v-for="(menu, menu_index) in feature_assignment_keys">
+                  <b-dropdown-item
+                    :key="menu_index"
+                    :value="menu" aria-role="listitem">
+                    {{ menu }}
+                  </b-dropdown-item>
+                </template>
+              </b-dropdown>
+            </div>
+
+
+            <img :src="'../img/modules/dge_analysis/feature_assignment/' + feature_assignment[active_feature_assignment_menu]"
+                       :alt="'Feature Type Distribution for ' + active_feature_assignment_menu"
+                       style="margin-left: auto; margin-right: auto; display: block; padding-top: 1.5rem"
+                       width="85%">
+
+            <hr style="margin-top: 2rem; margin-bottom: 3rem;">
+
+            <h3>Principal Component Analysis</h3>
+            <img src="../img/modules/dge_analysis/pca.svg"
+                 alt="Principle Component Analysis"
+                 style="margin-left: auto; margin-right: auto; display: block; padding-top: 1.5rem"
+                 width="75%">
+
+            <hr style="margin-top: 2rem; margin-bottom: 3rem;">
+
+            <h3>Sample Correlation</h3>
+            <img src="../img/modules/dge_analysis/correlation_heatmap.svg"
+                 alt="Sample Correlation"
+                 style="margin-left: auto; margin-right: auto; display: block; padding-top: 1.5rem"
+                 width="75%">
+
+            <hr style="margin-top: 2rem; margin-bottom: 3rem;">
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <h3 style="margin-bottom: 0">DESeq2 Summary</h3>
+              <div>
+                <b-button id="get-deseq2-files" type="is-primary" tag="a" :href="'../../' + deseq2_folder_path" target="_blank" rel="noopener noreferrer" size="is-medium">
+                  <span style="padding-right: 0.5rem">Go to DESeq2 Files</span>
+                  <i class="fas fa-external-link-alt fa-sm"></i>
+                </b-button>
+                <b-dropdown 
+                  aria-role="list" 
+                  scrollable
+                  v-model="active_comparison_menu">
+                  
+                  <template #trigger>
+                    <b-button
+                        type="is-primary"
+                        size="is-medium"
+                        icon-pack="fas"
+                        icon-right="sort-down">
+
+                      Sample: 
+                      {{ deseq2_keys[active_comparison_menu][0] }}
+                    </b-button>
+                  </template>
+                  
+                  <template v-for="(menu, menu_index) in deseq2_keys">
+                    <b-dropdown-item
+                      :key="menu_index"
+                      :value="menu_index" 
+                      aria-role="listitem">
+                      {{ menu[0] }}
+                    </b-dropdown-item>
+                  </template>
+                </b-dropdown>
+            </div>
+            </div>
+
+            <b-table :data="deseq2_summary_table[deseq2_keys[active_comparison_menu][1]]" :columns="key_value_columns" :show-header="false"></b-table>
+            <h4 style="padding-top: 2rem">Log2 Fold Change Distribution</h4>
+            <canvas id='lfc_distribution' style="padding-top: 2rem"></canvas>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<footer id="footer" class="footer">
+  <curare-footer img-path="../img/"></curare-footer>
+</footer>
+
+<script type="text/javascript" charset="utf8" src="../data/navigation.js"></script>
+<script type="text/javascript" charset="utf8" src="../js/navigation_bar.js"></script>
+<script type="text/javascript" charset="utf8" src="../js/footer.js"></script>
+<script type="text/javascript" charset="utf8" src="../data/dge_analysis_data.js"></script>
+<script type="text/javascript" charset="utf8" src="../js/modules/dge_analysis.js"></script>
+
+</body>
+</html>
