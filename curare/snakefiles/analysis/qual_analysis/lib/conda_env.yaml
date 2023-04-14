@@ -6,7 +6,7 @@ channels:
   - defaults
 dependencies:
   - python=3.10
-  - subread=2.0.1
+  - subread=2.0.3
   - pandas=1.5.1
   - seaborn=0.12.1
   - upsetplot=0.7.0
