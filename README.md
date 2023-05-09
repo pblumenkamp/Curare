@@ -62,7 +62,16 @@ conda create -n curare -c bioconda -c conda-forge curare
 conda activate curare
 curare --help
 ```
-Alternatively, you can install Curare via GitHub release and install all dependencies in conda_environment.yaml manually. This would be enough to run Curare in `use-conda` mode. If you want to run Curare completely without Conda, you would also need to install the dependencies of all used Curare modules. You can find the dependencies of every module at `curare/snakefiles/<module_category>/<module>/lib/conda_env.yaml`.
+
+Alternatively, you can install Curare via GitHub release and install all dependencies in conda_environment.yaml manually. This would be enough to run Curare in `use-conda` mode. 
+
+```bash
+conda env create -n curare -f /path/to/Curare/conda_environment.yaml
+conda activate curare
+curare --help
+```
+
+If you want to run Curare completely without Conda, you would also need to install the dependencies of all used Curare modules. You can find the dependencies of every module at `curare/snakefiles/<module_category>/<module>/lib/conda_env.yaml`.
 
 If you want to test Curare, you can download our [example dataset](https://curare-dataset.s3.computational.bio.uni-giessen.de/curare-user-testcase.zip) with a pre-built configuration.
 
