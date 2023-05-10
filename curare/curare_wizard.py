@@ -37,6 +37,7 @@ Options:
 """
 
 from docopt import docopt
+import os
 from pathlib import Path
 import pprint
 import sys
@@ -72,7 +73,11 @@ def parse_snakefiles(snakefiles_folder: Path, is_paired_end: bool) -> Dict[str, 
     settings: Dict[str, Dict[str, Dict[str, Union[Dict[str, Dict[str, str]], str]]]] = {}  # Dict[module_group, Dict[module_name, Dict[]]]
     for group in ['analysis', 'mapping', 'premapping', 'preprocessing']:
         for module in sorted((snakefiles_folder / group).iterdir()):
-            module_settings = yaml.safe_load((module / (module.name + '.yaml')).open())
+            try:
+                module_settings = yaml.safe_load((module / (module.name + '.yaml')).open())
+            except PermissionError as ex:
+                print(ClColors.FAIL + "Missing permissions to read file: {}".format(module / (module.name + '.yaml')) + ClColors.ENDC)
+                sys.exit(2)
             sequencing_specific_settings: Dict = module_settings.get('paired_end' if is_paired_end else 'single_end', {})
             formatted_settings = {'label': module_settings.get('label', module.name), 'description': module_settings.get('description', ''),
                                   'required': {}, 'optional': {}}
@@ -192,56 +197,64 @@ def create_groups_file(selected_modules: Dict[str, List[Dict[str, str]]], all_mo
 
     table_header: str = 'name\t' + ('reads' if not is_paired_end else 'forward_reads\treverse_reads')
     output.parent.mkdir(parents=True, exist_ok=True)
-    with output.open('w') as out:
-        out.write('# name: Unique sample name. Only use alphanumeric characters and \'_\'. [Value Type: String]\n')
-        if is_paired_end:
-            out.write('# forward_reads: File path to fastq file containing forward reads. Either as an absolute path or relative to this file. [Value Type: Path]\n')
-            out.write('# reverse_reads: File path to fastq file containing reverse reads. Either as an absolute path or relative to this file. [Value Type: Path]\n')
-        else:
-            out.write('# reads: File path to fastq file containing reads. Either as absolute path or relative to this file. [Value Type: Path]\n')
-        for col in necessary_columns:
-            out.write('# {}: {} [Value Type: {}]\n'.format(col['name'], col['description'] if col['description'].endswith('.') else col['description'] + '.', col['type'].capitalize()))
-            table_header = table_header + '\t' + col['name']
-        out.write('\n')
-        out.write(table_header + '\n')
+    try:
+        with output.open('w') as out:
+            out.write('# name: Unique sample name. Only use alphanumeric characters and \'_\'. [Value Type: String]\n')
+            if is_paired_end:
+                out.write('# forward_reads: File path to fastq file containing forward reads. Either as an absolute path or relative to this file. [Value Type: Path]\n')
+                out.write('# reverse_reads: File path to fastq file containing reverse reads. Either as an absolute path or relative to this file. [Value Type: Path]\n')
+            else:
+                out.write('# reads: File path to fastq file containing reads. Either as absolute path or relative to this file. [Value Type: Path]\n')
+            for col in necessary_columns:
+                out.write('# {}: {} [Value Type: {}]\n'.format(col['name'], col['description'] if col['description'].endswith('.') else col['description'] + '.', col['type'].capitalize()))
+                table_header = table_header + '\t' + col['name']
+            out.write('\n')
+            out.write(table_header + '\n')
+    except PermissionError as ex:
+                print(ClColors.FAIL + "Missing permissions to write samples file: {}".format(output) + ClColors.ENDC)
+                sys.exit(3)
 
 
 def create_pipeline_file(selected_modules: Dict[str, List[Dict[str, str]]], all_modules: Dict[str, Dict[str, Dict[str, Union[Dict[str, Dict[str, str]], str]]]], output: Path, is_paired_end: bool) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
-    with output.open('w') as out:
-        out_write: Callable = lambda text='', indent=0: out.write(' ' * indent + text + '\n')
-        out_write("## Curare Pipeline File")
-        out_write("## This is an automatically created pipeline file for Curare.")
-        out_write('## All required parameters must be set (replace <Insert Config Here> with real value).')
-        out_write("## All optional parameters are commented out with a single '#'. For including these parameters, just remove the '#'.")
-        out_write()
-        out_write('pipeline:')
-        out_write('paired_end: {}'.format('true' if is_paired_end else 'false'), 2)
-        out_write()
-
-        for category in ['preprocessing', 'premapping', 'mapping', 'analysis']:
-            out_write(category + ':')
-            modules:  List[Dict[str, str]] = selected_modules[category]
-            out_write('modules: [{}]'.format(', '.join(['"' + module['name'] + '"' for module in modules])), 2)
+    try:
+        with output.open('w') as out:
+            out_write: Callable = lambda text='', indent=0: out.write(' ' * indent + text + '\n')
+            out_write("## Curare Pipeline File")
+            out_write("## This is an automatically created pipeline file for Curare.")
+            out_write('## All required parameters must be set (replace <Insert Config Here> with real value).')
+            out_write("## All optional parameters are commented out with a single '#'. For including these parameters, just remove the '#'.")
             out_write()
-            for module in modules:
-                module_settings = all_modules[category][module['name']]
-                if not module_settings.get('required', {}).keys() and not module_settings.get('optional', {}).keys():
-                    continue
-                out_write(module['name'] + ':', 2)
-                for setting_name, setting in module_settings.get('required', {}).items():
-                    for line in format_description(setting['description'], setting['type']):
-                        out_write(line, 4)
-                    if setting['type'] == 'enum':
-                        out_write('## Enum choices: {}'.format(', '.join(['"{}"'.format(choice) for choice in setting['choices']])), 4)
-                    out_write('{}: <Insert Config Here>'.format(setting_name), 4)
-                    out_write()
-                for setting_name, setting in module_settings.get('optional', {}).items():
-                    for line in format_description(setting['description'], setting['type']):
-                        out_write(line, 4)
-                    out_write('#{}: "{}"'.format(setting_name, setting['default']), 4)
-                    out_write()
+            out_write('pipeline:')
+            out_write('paired_end: {}'.format('true' if is_paired_end else 'false'), 2)
+            out_write()
+
+            for category in ['preprocessing', 'premapping', 'mapping', 'analysis']:
+                out_write(category + ':')
+                modules:  List[Dict[str, str]] = selected_modules[category]
+                out_write('modules: [{}]'.format(', '.join(['"' + module['name'] + '"' for module in modules])), 2)
                 out_write()
+                for module in modules:
+                    module_settings = all_modules[category][module['name']]
+                    if not module_settings.get('required', {}).keys() and not module_settings.get('optional', {}).keys():
+                        continue
+                    out_write(module['name'] + ':', 2)
+                    for setting_name, setting in module_settings.get('required', {}).items():
+                        for line in format_description(setting['description'], setting['type']):
+                            out_write(line, 4)
+                        if setting['type'] == 'enum':
+                            out_write('## Enum choices: {}'.format(', '.join(['"{}"'.format(choice) for choice in setting['choices']])), 4)
+                        out_write('{}: <Insert Config Here>'.format(setting_name), 4)
+                        out_write()
+                    for setting_name, setting in module_settings.get('optional', {}).items():
+                        for line in format_description(setting['description'], setting['type']):
+                            out_write(line, 4)
+                        out_write('#{}: "{}"'.format(setting_name, setting['default']), 4)
+                        out_write()
+                    out_write()
+    except PermissionError as ex:
+        print(ClColors.FAIL + "Missing permissions to write pipeline file: {}".format(output) + ClColors.ENDC)
+        sys.exit(4)
 
 def format_description(description: str, parameter_type: str) -> List[str]:
     formatted_description = []
@@ -288,6 +301,13 @@ def main() -> None:
                                          lambda x: x in ["y", "n"])
         if user_input == 'n':
             sys.exit(1)
+
+    if not (os.access(args["--samples"], os.R_OK) and os.access(args["--samples"], os.W_OK)):
+        print(ClColors.FAIL + "Missing permissions to write samples file: {}".format(args["--samples"]) + ClColors.ENDC)
+        sys.exit(3)
+    if not (os.access(args["--pipeline"], os.R_OK) and os.access(args["--pipeline"], os.W_OK)):
+        print(ClColors.FAIL + "Missing permissions to write pipeline file: {}".format(args["--pipeline"]) + ClColors.ENDC)
+        sys.exit(4)
 
     if args["--snakefiles"] is None:
         args["--snakefiles"] = Path(__file__).resolve().parent / "snakefiles"  
