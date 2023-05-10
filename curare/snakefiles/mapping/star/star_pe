@@ -45,17 +45,17 @@ rule mapping_stats_tsv:
                         elif splitted_line[0] == "Number of reads mapped to too many loci":
                             entries["aligned_too_many_times"] = int(splitted_line[1])
                         elif splitted_line[0] == "Number of reads unmapped: too many mismatches":
-                            if "aligned_conc_0_times" in entries:
+                            if "aligned_0_times" in entries:
                                 entries["aligned_0_times"] += int(splitted_line[1])
                             else:
                                 entries["aligned_0_times"] = int(splitted_line[1])
                         elif splitted_line[0] == "Number of reads unmapped: too short":
-                            if "aligned_conc_0_times" in entries:
+                            if "aligned_0_times" in entries:
                                 entries["aligned_0_times"] += int(splitted_line[1])
                             else:
                                 entries["aligned_0_times"] = int(splitted_line[1])
                         elif splitted_line[0] == "Number of reads unmapped: other":
-                            if "aligned_conc_0_times" in entries:
+                            if "aligned_0_times" in entries:
                                 entries["aligned_0_times"] += int(splitted_line[1])
                             else:
                                 entries["aligned_0_times"] = int(splitted_line[1])

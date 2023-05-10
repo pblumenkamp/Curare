@@ -112,6 +112,9 @@ def main():
     except NotADirectoryError as ex:
         print(ClColors.FAIL + str(ex) + ClColors.ENDC, file=sys.stderr)
         exit(4)
+    except EmptySamplesFileError as ex:
+        print(ClColors.FAIL + 'Error in {}:\n'.format(args["--samples"].name) + str(ex) + ClColors.ENDC, file=sys.stderr)
+        exit(5)
     except Exception as ex:
         print(ClColors.FAIL + "Unknown Error occured:\n" + str(ex) + ClColors.ENDC, file=sys.stderr)
         exit(9)
@@ -223,6 +226,13 @@ def parse_samples_file(samples_file: Path, modules: Dict[str, List['Module']], p
                 else:
                     entries[module_name][col_names[index]] = col
             table[columns[0]] = entries
+
+    if not table:
+        raise EmptySamplesFileError(
+                                'Samples file does not contain in samples: {}'.format(
+                                    samples_file.resolve()
+                                )
+                            )
 
     return table
 
@@ -651,6 +661,17 @@ class ColumnProperties:
         self.type = col_type
         self.description = description
         self.character_set = chr_set
+
+
+class EmptySamplesFileError(Exception):
+    """Exception raised for errors in the samples file.
+
+        Attributes:
+            message -- message displayed
+    """
+
+    def __init__(self, message: str):
+        super(EmptySamplesFileError, self).__init__(message)
 
 
 class InvalidSamplesFileError(Exception):
