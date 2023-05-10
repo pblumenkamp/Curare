@@ -5,11 +5,10 @@ preprocessing:
   modules: "none"
 
 mapping:
-  modules: "bowtie2"
+  modules: "bwa-mem"
 
-  bowtie2:
+  bwa-mem:
     genome_fasta: "../../reference/listeria_monocytogenes_egd_e.fasta"
-    alignment_type: "end-to-end"
 
 analysis:
   modules: ["count_table"]
