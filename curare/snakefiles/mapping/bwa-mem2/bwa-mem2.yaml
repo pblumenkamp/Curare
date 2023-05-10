@@ -1,0 +1,30 @@
+name: 'bwa-mem2'
+label: 'BWA-MEM2'
+description: "The next version of BWA MEM (https://github.com/bwa-mem2/bwa-mem2)"
+
+required_settings:
+
+  genome_fasta:
+    label: 'Reference Genome'
+    description: 'Path to genome fasta file'
+    type: 'file_input'
+
+optional_settings:
+  additional_bwa_mem_options:
+    label: 'Additional BWA MEM2 Options'
+    description: "Additional options to use when executing BWA MEM2"
+    type: "string"
+    default: ''
+
+
+single_end:
+  snakefile: 'bwa-mem2_se'
+
+paired_end:
+  snakefile: 'bwa-mem2_pe'
+
+
+report:
+  html_file: "bwa-mem2.html"
+  new_tab: false
+  title: "BWA-MEM2"

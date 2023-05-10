@@ -21,6 +21,12 @@ if [ $? -ne 0 ]; then FAILEDRUNS+=("Single_end_bwa_mem"); fi
 bash "`dirname $SCRIPTPATH`/paired_end_run_bwamem/run.sh"
 if [ $? -ne 0 ]; then FAILEDRUNS+=("Paired_end_bwa_mem"); fi
 
+bash "`dirname $SCRIPTPATH`/single_end_run_bwamem2/run.sh"
+if [ $? -ne 0 ]; then FAILEDRUNS+=("Single_end_bwa_mem2"); fi
+
+bash "`dirname $SCRIPTPATH`/paired_end_run_bwamem2/run.sh"
+if [ $? -ne 0 ]; then FAILEDRUNS+=("Paired_end_bwa_mem2"); fi
+
 bash "`dirname $SCRIPTPATH`/single_end_run_bwasw/run.sh"
 if [ $? -ne 0 ]; then FAILEDRUNS+=("Single_end_bwa_sw"); fi
 
