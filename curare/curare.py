@@ -768,7 +768,7 @@ class UnknownCommandLineArgumentError(Exception):
         """
 
     def __init__(self, message: str):
-        super(UnknownmCommandLineArgumentError, self).__init__(message)
+        super(UnknownCommandLineArgumentError, self).__init__(message)
 
 if __name__ == '__main__':
     main()
