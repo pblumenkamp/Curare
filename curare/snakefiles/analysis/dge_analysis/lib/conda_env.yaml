@@ -6,7 +6,7 @@ channels:
   - defaults
 dependencies:
   - python=3.10
-  - subread=2.0.1
+  - subread=2.0.3
   - pandas=1.5.3
   - matplotlib=3.7.1
   - docopt=0.6.2

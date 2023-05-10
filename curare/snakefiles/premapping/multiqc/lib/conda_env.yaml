@@ -5,5 +5,5 @@ channels:
   - anaconda
   - defaults
 dependencies:
-  - fastqc>=0.11.7
-  - multiqc>=1.5
+  - fastqc>=0.12.1
+  - multiqc>=1.14
