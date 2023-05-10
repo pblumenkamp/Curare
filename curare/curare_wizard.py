@@ -257,6 +257,13 @@ def format_description(description: str, parameter_type: str) -> List[str]:
     return formatted_description
 
 
+def user_question(question: str, answer_check: Callable):
+    answer : str = ""
+    while not answer_check(answer):
+        answer = input(question)
+    return answer
+
+
 def print_verbose(text: Any = '', file: IO = sys.stderr) -> None:
     print(ClColors.OKBLUE + str(text) + ClColors.ENDC, file=file)
 
@@ -270,6 +277,18 @@ def main() -> None:
     else:
         args["--samples"] = Path(args["--samples"]).resolve()
         args["--pipeline"] = Path(args["--pipeline"]).resolve()
+
+    if args["--samples"].exists():
+        user_input : str = user_question("File \"{}\" already exists. Do you want to overwrite it? [y/n]: ".format(args["--samples"]),
+                                         lambda x: x in ["y", "n"])
+        if user_input == 'n':
+            sys.exit(1)
+    if args["--pipeline"].exists():
+        user_input : str = user_question("File \"{}\" already exists. Do you want to overwrite it? [y/n]: ".format(args["--pipeline"]),
+                                         lambda x: x in ["y", "n"])
+        if user_input == 'n':
+            sys.exit(1)
+
     if args["--snakefiles"] is None:
         args["--snakefiles"] = Path(__file__).resolve().parent / "snakefiles"  
     else:
@@ -307,6 +326,17 @@ def main() -> None:
 
     create_pipeline_file(user_pipeline, settings, args["--pipeline"], is_paired_end)
     print('Pipeline file "{}" created.'.format(args["--pipeline"]))
+
+
+class MissingReadPermissionsError(Exception):
+    """Exception raised when using unknown command line argument.
+
+            Attributes:
+                message -- message displayed
+        """
+
+    def __init__(self, message: str):
+        super(MissingReadPermissionsError, self).__init__(message)
 
 
 if __name__ == '__main__':
