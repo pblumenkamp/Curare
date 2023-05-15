@@ -10,7 +10,7 @@ premapping:
 mapping:
   modules: "bwa-mem2"
 
-  bwa-mem:
+  bwa-mem2:
     genome_fasta: "../../reference/listeria_monocytogenes_egd_e.fasta"
 
 analysis:

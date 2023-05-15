@@ -1,6 +1,8 @@
 from os import listdir
 from os.path import isfile, splitext
 
+genome_base_name = "%%GENOME_FASTA%%".rsplit("/", 1)[-1]
+
 rule all:
     input:
         expand("mapping/{A}.bam", A=sorted(config['entries'].keys())),
@@ -107,25 +109,28 @@ rule bwa_index:
     input:
         genome="%%GENOME_FASTA%%"
     output:
-        expand("%%GENOME_FASTA%%.{SUFFIX}", SUFFIX=["amb", "ann", "bwt", "pac", "sa"])
+        expand("mapping/reference/" + genome_base_name + ".{SUFFIX}", SUFFIX=["0123", "bwt.2bit.64"])
+    params:
+        prefix = "mapping/reference/" + genome_base_name
     conda:
         "../lib/conda_env.yaml"
     group:
         "bwa_index"
     log:
-        "mapping/logs/bwa_index.log"
+        "mapping/logs/bwa_mem2_index.log"
     shell:
-        "bwa-mem2 index {input.genome} 2>&1 | tee {log}"
+        "bwa-mem2 index -p {params.prefix} {input.genome} 2>&1 | tee {log}"
 
 
 rule bwa_mem2_mapping:
     input:
-        genome="%%GENOME_FASTA%%",
-        genome_index=expand("%%GENOME_FASTA%%.{SUFFIX}", SUFFIX=["amb", "ann", "bwt", "pac", "sa"]),
+        genome_index=expand("mapping/reference/" + genome_base_name + ".{SUFFIX}", SUFFIX=["0123", "bwt.2bit.64"]),
         reads="preprocessing/{sample}_R1.fastq.gz",
 	    reads_reverse="preprocessing/{sample}_R2.fastq.gz"
     output:
         temp("mapping/sam/{sample}.sam")
+    params:
+        prefix = "mapping/reference/" + genome_base_name
     conda:
         "../lib/conda_env.yaml"
     group:
@@ -135,7 +140,7 @@ rule bwa_mem2_mapping:
     threads:
         2
     shell:
-        "bwa-mem2 mem %%ADDITIONAL_BWA_MEM_OPTIONS%% -t {threads} -o {output} {input.genome} {input.reads} {input.reads_reverse} 2>&1 |"
+        "bwa-mem2 mem %%ADDITIONAL_BWA_MEM2_OPTIONS%% -t {threads} -o {output} {params.prefix} {input.reads} {input.reads_reverse} 2>&1 |"
         "tee {log}"
 
 
@@ -177,10 +182,9 @@ rule write_settings:
     shell:
         """
         set +e
-        bwa_help=$(bwa-mem2 2>&1);
-        bwa_version=$(echo "$bwa_help" | grep "Version:" | sed 's/Version: \(.*\)/\\1/g');
+        bwa_version=$(bwa-mem2 version);
         echo "bwa_version: \\"$bwa_version\\"" > {output.settings};
-        echo 'additional_mem_parameters: "%%ADDITIONAL_BWA_MEM_OPTIONS%%"' >> {output.settings}; 
+        echo 'additional_mem_parameters: "%%ADDITIONAL_BWA_MEM2_OPTIONS%%"' >> {output.settings}; 
         """
 
 
