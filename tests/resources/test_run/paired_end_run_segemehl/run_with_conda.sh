@@ -4,4 +4,4 @@ SCRIPTPATH=`readlink -f $0`
 SCRIPTDIR=`dirname $SCRIPTPATH`
 
 rm -r ${SCRIPTDIR}/output_dir
-${SCRIPTDIR}/../../../../bin/curare --samples ${SCRIPTDIR}/samples.tsv --pipeline ${SCRIPTDIR}/pipeline.yml --output ${SCRIPTDIR}/output_dir -t 1 --use-conda --conda-prefix ../../envs/
+${SCRIPTDIR}/../../../../bin/curare --samples ${SCRIPTDIR}/samples.tsv --pipeline ${SCRIPTDIR}/pipeline.yml --output ${SCRIPTDIR}/output_dir -t 1 --use-conda --conda-frontend mamba --conda-prefix ../../envs/
