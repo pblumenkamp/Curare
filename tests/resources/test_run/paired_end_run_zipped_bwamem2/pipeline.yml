@@ -7,9 +7,8 @@ preprocessing:
 mapping:
   modules: "bwa-mem2"
 
-  bowtie2:
+  bwa-mem2:
     genome_fasta: "../../reference/listeria_monocytogenes_egd_e.fasta"
-    alignment_type: "end-to-end"
 
 analysis:
   modules: ["count_table"]

@@ -10,7 +10,7 @@ required_settings:
     type: 'file_input'
 
 optional_settings:
-  additional_bwa_mem_options:
+  additional_bwa_mem2_options:
     label: 'Additional BWA MEM2 Options'
     description: "Additional options to use when executing BWA MEM2"
     type: "string"
