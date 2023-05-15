@@ -26,7 +26,7 @@ Options:
     --conda-prefix <conda_prefix>                   The directory in which conda environments will be created. Relative paths will be relative to output folder! (Default: Output_folder)
     --create-conda-envs-only                        Only download and create conda environments.
     -t <cores> --cores <cores>                      Number of threads/cores. Defines locales cores in cluster mode. [Default: 1]
-    --latency-wait <seconds>                        Seconds to wait before checking if all files of a rule were created. Should be increased if using cluster mode. [Default: 3]
+    --latency-wait <seconds>                        Seconds to wait before checking if all files of a rule were created. Should be increased if using cluster mode. [Default: 5]
     -v --verbose                                    Print additional information
 
 
@@ -51,18 +51,16 @@ Options:
 """
 
 import datetime
-import errno
 import filecmp
 import math
-import os
 import re
 import shutil
+import subprocess
 import sys
 import yaml
 
 from pathlib import Path
 from typing import Dict, List, Tuple, Any, Optional
-from snakemake import snakemake
 from docopt import docopt
 from distutils.dir_util import copy_tree
 
@@ -102,33 +100,54 @@ def main():
         snakefile: Path = create_snakefile(args["--output"], samples, used_modules, args["--use-conda"], args["--conda-prefix"], args["--pipeline"])
     except UnknownInputFileError as ex:
         print(ClColors.FAIL + str(ex) + ClColors.ENDC, file=sys.stderr)
-        exit(1)
+        sys.exit(1)
     except InvalidPipelineFileError as ex:
         print(ClColors.FAIL + 'Error in {}:\n'.format(args["--pipeline"].name) + str(ex) + ClColors.ENDC, file=sys.stderr)
-        exit(2)
+        sys.exit(2)
     except InvalidSamplesFileError as ex:
         print(ClColors.FAIL + 'Error in {}:\n'.format(args["--samples"].name) + str(ex) + ClColors.ENDC, file=sys.stderr)
-        exit(3)
+        sys.exit(3)
     except NotADirectoryError as ex:
         print(ClColors.FAIL + str(ex) + ClColors.ENDC, file=sys.stderr)
-        exit(4)
+        sys.exit(4)
     except EmptySamplesFileError as ex:
         print(ClColors.FAIL + 'Error in {}:\n'.format(args["--samples"].name) + str(ex) + ClColors.ENDC, file=sys.stderr)
-        exit(5)
+        sys.exit(5)
     except Exception as ex:
         print(ClColors.FAIL + "Unknown Error occured:\n" + str(ex) + ClColors.ENDC, file=sys.stderr)
-        exit(9)
+        sys.exit(9)
 
     if args['--create-conda-envs-only']:
-        if not snakemake(str(snakefile), workdir=str(args["--output"]), verbose=args["--verbose"], cores=1,
-                         use_conda=True, conda_prefix=args["--conda-prefix"], conda_create_envs_only=True,
-                         conda_frontend=args["--conda-frontend"]):
-            exit(98)
+        sm_command: List[str] = ["snakemake", "--snakefile", str(snakefile), "--directory", str(args["--output"]),
+                                 "--cores", args["--cores"], "--use-conda", "--conda-create-envs-only",
+                                 "--conda-frontend", args["--conda-frontend"]]
+        if args["--conda-prefix"]:
+            sm_command.extend(["--conda-prefix", args["--conda-prefix"]])
+        if args["--verbose"]:
+            sm_command.append("--verbose")
+        try:
+            subprocess_results = subprocess.run(sm_command, check=True)
+        except subprocess.CalledProcessError as ex:
+            print(ex, file=sys.stderr)
+            sys.exit(98)
     else:
-        if not snakemake(str(snakefile), cores=int(args["--cores"]), local_cores=int(args["--cores"]), nodes=int(args["--cluster-nodes"]), workdir=str(args["--output"]),
-                         verbose=args["--verbose"], printshellcmds=True, cluster=args["--cluster-command"], cluster_config=args["--cluster-config-file"],
-                         use_conda=args["--use-conda"], conda_prefix=args["--conda-prefix"], conda_frontend=args["--conda-frontend"], latency_wait=int(args["--latency-wait"])):
-            exit(99)
+        sm_command: List[str] = ["snakemake", "--snakefile", str(snakefile), "--directory", str(args["--output"]),
+                                 "--cores", args["--cores"], "--use-conda", "--conda-frontend", args["--conda-frontend"],
+                                 "--printshellcmds", "--latency-wait", args["--latency-wait"]]
+        if args["--use-conda"]:
+            sm_command.append("--use-conda")
+        if args["--conda-frontend"]:
+            sm_command.extend(["--conda-frontend", args["--conda-frontend"]])
+        if args["--conda-prefix"]:
+            sm_command.extend(["--conda-prefix", args["--conda-prefix"]])
+        if args["--verbose"]:
+            sm_command.append("--verbose")
+        try:
+            subprocess_results = subprocess.run(sm_command, check=True)
+        except subprocess.CalledProcessError as ex:
+            print(ex, file=sys.stderr)
+            sys.exit(99)
+
         finish_time: datetime.datetime = datetime.datetime.utcnow()
         if args["--use-conda"]:
             generate_report.create_report(
@@ -771,4 +790,8 @@ class UnknownCommandLineArgumentError(Exception):
         super(UnknownCommandLineArgumentError, self).__init__(message)
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print(ClColors.FAIL + 'Interrupted' + ClColors.ENDC, file=sys.stderr)
+        sys.exit(130)
