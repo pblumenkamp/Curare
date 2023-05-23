@@ -302,12 +302,15 @@ def main() -> None:
         if user_input == 'n':
             sys.exit(1)
 
-    if not (os.access(args["--samples"], os.R_OK) and os.access(args["--samples"], os.W_OK)):
+    if args["--samples"].exists() and not (os.access(args["--samples"], os.R_OK) and os.access(args["--samples"], os.W_OK)):
         print(ClColors.FAIL + "Missing permissions to write samples file: {}".format(args["--samples"]) + ClColors.ENDC)
         sys.exit(3)
-    if not (os.access(args["--pipeline"], os.R_OK) and os.access(args["--pipeline"], os.W_OK)):
+    if args["--pipeline"].exists() and not (os.access(args["--pipeline"], os.R_OK) and os.access(args["--pipeline"], os.W_OK)):
         print(ClColors.FAIL + "Missing permissions to write pipeline file: {}".format(args["--pipeline"]) + ClColors.ENDC)
-        sys.exit(4)
+        sys.exit(3)
+    if not (os.access(args["--output"], os.R_OK) and os.access(args["--output"], os.W_OK) and os.access(args["--output"], os.EX_OK)):
+        print(ClColors.FAIL + "Missing permissions to write files in {}".format(args["--output"]) + ClColors.ENDC)
+        sys.exit(3)
 
     if args["--snakefiles"] is None:
         args["--snakefiles"] = Path(__file__).resolve().parent / "snakefiles"  
