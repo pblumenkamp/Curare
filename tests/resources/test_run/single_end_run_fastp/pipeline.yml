@@ -1,0 +1,18 @@
+pipeline:
+  paired_end: false
+
+preprocessing:
+  modules: "fastp"
+
+premapping:
+  modules: []
+
+mapping:
+  modules: "bowtie2"
+
+  bowtie2:
+    genome_fasta: "../../reference/listeria_monocytogenes_egd_e.fasta"
+    alignment_type: "end-to-end"
+
+analysis:
+  modules: []

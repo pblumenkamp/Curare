@@ -1,0 +1,15 @@
+name: "fastp"
+label: "fastp"
+description: "A module for automatized quality and adapter trimming with fastp. (https://github.com/OpenGene/fastp)"
+
+single_end:
+  snakefile: "fastp_se"
+
+paired_end:
+  snakefile: "fastp_pe"
+
+
+report:
+  html_file: "fastp.html"
+  new_tab: false
+  title: "fastp"

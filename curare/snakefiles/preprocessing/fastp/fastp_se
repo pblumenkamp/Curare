@@ -1,0 +1,57 @@
+from os import listdir
+from os.path import isfile, basename, splitext
+
+rule all:
+    input:
+        expand("preprocessing/fastp/{A}_fastp_report.html", A=config['entries'].keys()),
+        expand("preprocessing/{A}.fastq.gz", A=config['entries'].keys()),
+        expand("preprocessing/fastp/{A}_fastp_results.json", A=config['entries'].keys()),
+        ".report/modules/fastp.html"
+
+rule fastp:
+    input:
+        reads=lambda wildcard: config['entries'][wildcard.sample]['main']['reads']
+    output:
+        trimmed_reads ="preprocessing/{sample}.fastq.gz",
+        html="preprocessing/fastp/{sample}_fastp_report.html",
+        json="preprocessing/fastp/{sample}_fastp_results.json"
+
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "fastqc"
+    threads:
+        1
+    shell:
+        "fastp -i {input} -o {output.trimmed_reads} --html {output.html} --json {output.json}"
+
+rule groups_file:
+    input:
+        html=expand("preprocessing/fastp/{A}_fastp_report.html", A=config['entries'].keys())
+    output:
+        groups="preprocessing/fastp/groups.tsv"
+    run:
+        with open(output.groups, 'w+') as out:
+            out.write("Sample\tReport\n")
+            for entry in config['entries'].keys():
+                out.write("{}\t{}_fastp_report.html\n".format(entry, entry))
+
+
+rule generate_report:
+    input:
+        reports_list="preprocessing/fastp/groups.tsv",
+        reports=expand("preprocessing/fastp/{A}_fastp_report.html", A=config['entries'].keys())
+    output:
+        fastp_data=".report/data/fastp_data.js",
+        fastp_html=".report/modules/fastp.html",
+        fastp_js=".report/js/modules/fastp.js",
+        fastp_reports=directory(".report/modules/fastp/")
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "fastp_report"
+    shell:
+        "mkdir -p {output.fastp_reports} && cp {input.reports} {output.fastp_reports} && "
+        "python3 lib/generate_report_data.py --reports {input.reports_list} --output {output.fastp_data} && "
+        "cp lib/report/fastp.html {output.fastp_html} && "
+        "cp lib/report/fastp.js {output.fastp_js}"
