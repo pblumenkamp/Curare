@@ -55,10 +55,10 @@ At the end of a Curare run, you will also get an HTML report containing the most
 
 ## Usage
 ### Installation
-It is recommended to use [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html) for installing curare with all dependencies. Please notice that the conda channels **bioconda and conda-forge are required** for installing Curare correctly.
+It is recommended to use [mamba](https://mamba.readthedocs.io/en/latest/installation.html) for installing curare with all dependencies. Please notice that the channels bioconda **and** conda-forge are required for installing Curare correctly.
 
 ```bash
-conda create -n curare -c bioconda -c conda-forge curare
+mamba create -n curare -c bioconda -c conda-forge curare
 conda activate curare
 curare --help
 ```
@@ -68,7 +68,7 @@ Alternatively, you can install Curare via GitHub release and install all depende
 ```bash
 conda env create -n curare -f /path/to/Curare/conda_environment.yaml
 conda activate curare
-curare --help
+bin/curare --help
 ```
 
 If you want to run Curare completely without Conda, you would also need to install the dependencies of all used Curare modules. You can find the dependencies of every module at `curare/snakefiles/<module_category>/<module>/lib/conda_env.yaml`.
@@ -79,7 +79,6 @@ If you want to test Curare, you can download our [example dataset](https://curar
 The easiest way to create a new pipeline is by using the Curare wizard. It will guide through all steps, asks what module you wish to use and creates the two necessary files (`samples.tsv` and `pipeline.yml`). These files can then be edited with a standard file editor for customizing your data and analysis.  
 ```bash
 # Current working directory is inside of tool directory
-cd curare
 curare_wizard --samples target_directory/samples.tsv --pipeline target_directory/pipeline.yml
 ```
 
