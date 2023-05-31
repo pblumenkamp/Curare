@@ -63,10 +63,10 @@ conda activate curare
 curare --help
 ```
 
-Alternatively, you can install Curare via GitHub release and install all dependencies in conda_environment.yaml manually. This would be enough to run Curare in `use-conda` mode. 
+Alternatively, you can install Curare via GitHub release and install all dependencies in conda_environment.yaml manually. This would be enough to run Curare in `--use-conda` mode. 
 
 ```bash
-conda env create -n curare -f /path/to/Curare/conda_environment.yaml
+mamba env create -n curare -f /path/to/Curare/conda_environment.yaml
 conda activate curare
 bin/curare --help
 ```
