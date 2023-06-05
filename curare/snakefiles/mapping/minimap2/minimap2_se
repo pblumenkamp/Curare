@@ -1,0 +1,147 @@
+from os import listdir
+from os.path import isfile, splitext
+
+rule all:
+    input:
+        "mapping/stats/mapping_stats.xlsx",
+        expand("mapping/{A}.bam", A=sorted(config['entries'].keys())),
+        ".report/data/minimap2_data.js"
+
+
+rule mapping_stats_xlsx:
+    input:
+        "mapping/stats/mapping_stats.tsv"
+    output:
+        xlsx="mapping/stats/mapping_stats.xlsx",
+        plot_alignment_absolute="mapping/stats/alignment_stats.svg",
+        plot_alignment_relative="mapping/stats/alignment_stats_relative.svg"
+    params:
+        plot_dir="mapping/stats/"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "minimap2_statistics"
+    shell:
+        "python3 lib/se_mapping_stats_tsv_to_xlsx.py {input} {output.xlsx} {params.plot_dir}"
+
+
+rule mapping_stats_tsv:
+    input:
+        expand("mapping/logs/minimap2_mapping.{name}.log", name=config['entries'].keys())
+    output:
+        "mapping/stats/mapping_stats.tsv"
+    group:
+        "minimap2_statistics"
+    run:
+        tsv = open("mapping/stats/mapping_stats.tsv", "a")
+        tsv.write("sample	reads	reads[%]	aligned_0_times	aligned_0_times[%]	aligned_1_time	aligned_1_time[%]	aligned_more_than_1_times	aligned_more_than_1_times[%]	overall_alignment_rate\n")
+        for elem in input:
+            f = open(elem, "r")
+            sample = elem.split(".log")[0].split("minimap2_mapping.")[1]
+            for idx, line in enumerate(f):
+                if idx == 9:
+                    total = line.split(" ")[0]
+                if idx == 15:
+                    mapped = line.split(" ")[0]
+            tsv.write(f"{sample}	{total}	100	{int(total)-int(mapped)}	{100-int(mapped)/int(total)}	{mapped}	{int(mapped)/int(total)}	0	0	{mapped}\n")
+
+
+rule minimap2_index:
+    params:
+        prefix=splitext("%%GENOME_FASTA%%")[0]
+    input:
+        genome="%%GENOME_FASTA%%"
+    output:
+        splitext("%%GENOME_FASTA%%")[0]
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "minimap2_index"
+    log:
+        "mapping/logs/minimap2_index.log"
+    threads:
+        8
+    shell:
+        "minimap2 -t {threads} -d {params.prefix} {input.genome} 2>&1 |"
+        "tee {log}"
+
+
+rule minimap2_mapping:
+    params:
+        prefix=splitext("%%GENOME_FASTA%%")[0]
+    input:
+        genome="%%GENOME_FASTA%%",
+        genome_index=splitext("%%GENOME_FASTA%%")[0],
+        reads="preprocessing/{name}.fastq.gz"
+    output:
+        temp("mapping/sam/{name}.sam")
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "minimap2_mapping"
+    log:
+        "mapping/logs/minimap2_mapping.{name}.log"
+    threads:
+        2
+    shell:
+        "minimap2 -t {threads} -a {params.prefix} {input.reads} 2>&1 > {output} |"
+        "tee {log};"
+        "samtools flagstat {output} >> {log}"
+
+
+rule sam_to_bam:
+    input:
+        "mapping/sam/{sample}.sam"
+    output:
+        bam="mapping/{sample}.bam",
+        bai="mapping/{sample}.bam.bai",
+        bam_unmapped="mapping/unmapped/{sample}_unmapped.bam"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "minimap2_mapping"
+    threads:
+        2
+    shell:
+        "samtools view -F 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam} - && samtools index {output.bam};"
+        "samtools view -f 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam_unmapped} -"
+
+rule write_settings:
+    output:
+        settings="mapping/settings.yaml"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "minimap2_report"
+    shell:
+        """
+        set +e
+        echo 'used_mapping_preset: "%%ALIGNMENT_TYPE%%"' > {output.settings};
+        mm2_help=$(minimap2 --help)
+        mm2_version=$(echo "$mm2_help" | head -n1 | sed 's/.*version \(.*\) by.*/\\1/g')
+        echo "minimap2_version: \\"$mm2_version\\"" >> {output.settings};
+        echo "use_shared_memory: 'true'" >> {output.settings};
+        echo 'additional_parameters: "%%ADDITIONAL_MINIMAP2_OPTIONS%%"' >> {output.settings}; 
+        """
+
+rule generate_report_data:
+    input:
+        stats_tsv="mapping/stats/mapping_stats.tsv",
+        images=["mapping/stats/alignment_stats.svg", "mapping/stats/alignment_stats_relative.svg"],
+        settings="mapping/settings.yaml"
+    output:
+        mm2_data=".report/data/minimap2_data.js",
+        mm2_html=".report/modules/minimap2.html",
+        mm2_js=".report/js/modules/minimap2.js",
+        mm2_css=".report/css/modules/minimap2.css",
+        mm2_images=directory(".report/img/modules/minimap2/")
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "minimap2_report"
+    shell:
+        "python3 lib/generate_report_data.py --stats {input.stats_tsv} --output {output.mm2_data} --settings {input.settings} && "
+        "cp lib/report/minimap2.html {output.mm2_html} && "
+        "cp lib/report/minimap2.js {output.mm2_js} && "
+        "cp lib/report/minimap2.css {output.mm2_css} &&"
+        "mkdir -p {output.mm2_images} && cp {input.images} {output.mm2_images}"
