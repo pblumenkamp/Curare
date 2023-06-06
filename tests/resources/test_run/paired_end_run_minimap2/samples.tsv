@@ -1,0 +1,13 @@
+# name: Unique sample name. Only use alphanumeric characters and '_'. [Value Type: String]
+# forward_reads: File path to fastq file containing forward reads. Either as an absolute path or relative to this file. [Value Type: Path]
+# reverse_reads: File path to fastq file containing reverse reads. Either as an absolute path or relative to this file. [Value Type: Path]
+
+name	forward_reads	reverse_reads
+5535	../../input_data/ERR985535_R1.fastq	../../input_data/ERR985535_R2.fastq
+5536	../../input_data/ERR985536_R1.fastq	../../input_data/ERR985536_R2.fastq
+5535_subset	../../input_data/ERR985535_subset_R1.fastq	../../input_data/ERR985535_subset_R2.fastq
+5536_subset	../../input_data/ERR985536_subset_R1.fastq	../../input_data/ERR985536_subset_R2.fastq
+mix	../../input_data/mix_R1.fastq	../../input_data/mix_R2.fastq
+mix_subset	../../input_data/mix_subset_R1.fastq	../../input_data/mix_subset_R2.fastq
+5535_2	../../input_data/ERR985535_R1.fastq	../../input_data/ERR985535_R2.fastq
+5536_2	../../input_data/ERR985536_R1.fastq	../../input_data/ERR985536_R2.fastq

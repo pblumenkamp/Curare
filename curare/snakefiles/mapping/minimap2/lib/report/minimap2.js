@@ -35,15 +35,15 @@ new Vue({
                 },
                 {
                     key: "Used Minimap2 Preset",
-                    value: '"' + vue.minimap2_settings["used_mapping_preset"] + '"'
+                    value: (vue.minimap2_settings["preset"]) ? '"' + vue.minimap2_settings["preset"] + '"' : "-"
                 },
                 {
-                    key: "Used Shared-Memory Mode (-mm)",
-                    value: (vue.minimap2_settings["use_shared_memory"] === "true") ? "True" : "False"
+                    key: "Additional Minimap2 Index Parameters",
+                    value: (vue.minimap2_settings["additional_index_parameters"]) ? '"' + vue.minimap2_settings["additional_index_parameters"] + '"' : "-"
                 },
                 {
-                    key: "Additional Minimap2 Parameters",
-                    value: (vue.minimap2_settings["additional_parameters"]) ? '"' + vue.minimap2_settings["additional_parameters"] + '"' : "-"
+                    key: "Additional Minimap2 Alignment Parameters",
+                    value: (vue.minimap2_settings["additional_alignment_parameters"]) ? '"' + vue.minimap2_settings["additional_alignment_parameters"] + '"' : "-"
                 }
             ]
             return settings

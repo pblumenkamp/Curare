@@ -1,6 +1,8 @@
 from os import listdir
 from os.path import isfile, splitext
 
+genome_base_name = "%%GENOME_FASTA%%".rsplit("/", 1)[-1]
+
 def get_reads_file_path(sample, mate):
     if mate == 1:
         gzipped_extension = config['entries'][sample]['main']['forward_reads_gzipped']
@@ -56,12 +58,10 @@ rule mapping_stats_tsv:
             tsv.write(f"{sample}	{total}	100	{int(total)-int(mapped)}	{100-int(mapped)/int(total)}	{mapped}	{int(mapped)/int(total)}	0	0	0	0	0	0	0	0	0	0	0	0	{mapped}\n")
 
 rule minimap2_index:
-    params:
-        prefix=splitext("%%GENOME_FASTA%%")[0]
     input:
         genome="%%GENOME_FASTA%%"
     output:
-        splitext("%%GENOME_FASTA%%")[0]
+        "mapping/reference/" + genome_base_name + ".mmi"
     conda:
         "../lib/conda_env.yaml"
     group:
@@ -71,16 +71,13 @@ rule minimap2_index:
     threads:
         8
     shell:
-        "minimap2 -t {threads} -d {params.prefix} {input.genome} 2>&1 |"
+        "minimap2 %%MINIMAP2_PRESET%% %%ADDITIONAL_INDEX_OPTIONS%% -t {threads} -d {output} {input.genome} 2>&1 |"
         "tee {log}"
 
 
 rule minimap2_mapping:
-    params:
-        prefix=splitext("%%GENOME_FASTA%%")[0]
     input:
-        genome="%%GENOME_FASTA%%",
-	    genome_index=splitext("%%GENOME_FASTA%%")[0],
+	    genome_index="mapping/reference/" + genome_base_name + ".mmi",
 	    reads="preprocessing/{sample}_R1.fastq.gz",
 	    reads_reverse="preprocessing/{sample}_R2.fastq.gz"
     output:
@@ -94,7 +91,7 @@ rule minimap2_mapping:
     threads:
         2
     shell:
-        "minimap2 -t {threads} -ax sr {params.prefix} {input.reads} {input.reads_reverse} 2>&1 > {output} |"
+        "minimap2 %%MINIMAP2_PRESET%% %%ADDITIONAL_ALIGNMENT_OPTIONS%% -t {threads} -a %%MINIMAP2_PRESET%% {input.genome_index} {input.reads} {input.reads_reverse} 2>&1 > {output} |"
         "tee {log};"
         "samtools flagstat {output} >> {log}"
 
@@ -137,12 +134,11 @@ rule write_settings:
     shell:
         """
         set +e
-        echo 'used_mapping_preset: "%%ALIGNMENT_TYPE%%"' > {output.settings};
-        bw2_help=$(minimap2 --help)
-        bw2_version=$(echo "$bw2_help" | head -n1 | sed 's/.*version \(.*\) by.*/\\1/g')
-        echo "minimap2_version: \\"$bw2_version\\"" >> {output.settings};
-        echo "use_shared_memory: 'true'" >> {output.settings};
-        echo 'additional_parameters: "%%ADDITIONAL_MINIMAP2_OPTIONS%%"' >> {output.settings}; 
+        m2_version=$(minimap2 --version)
+        echo "minimap2_version: \\"$m2_version\\"" >> {output.settings};
+        echo "preset: '%%MINIMAP2_PRESET%%'" >> {output.settings};
+        echo 'additional_index_parameters: "%%ADDITIONAL_INDEX_OPTIONS%%"' >> {output.settings}; 
+        echo 'additional_alignment_parameters: "%%ADDITIONAL_ALIGNMENT_OPTIONS%%"' >> {output.settings}; 
         """
 
 
