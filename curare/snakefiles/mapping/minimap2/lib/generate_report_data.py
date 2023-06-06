@@ -32,7 +32,6 @@ def create_minimap2_settings_js_object(settings_file: Path) -> Dict[str, Any]:
     settings = yaml.safe_load(settings_file.open('r'))
     return settings
 
-
 def generate_report_data(output_file: Path, stats_file: Path, settings_file: Path, is_paired_end: bool):
     stats = create_minimap2_stats_js_object(stats_file)
     settings = create_minimap2_settings_js_object(settings_file)

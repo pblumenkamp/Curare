@@ -1,6 +1,8 @@
 from os import listdir
 from os.path import isfile, splitext
 
+genome_base_name = "%%GENOME_FASTA%%".rsplit("/", 1)[-1]
+
 rule all:
     input:
         "mapping/stats/mapping_stats.xlsx",
@@ -47,12 +49,10 @@ rule mapping_stats_tsv:
 
 
 rule minimap2_index:
-    params:
-        prefix=splitext("%%GENOME_FASTA%%")[0]
     input:
         genome="%%GENOME_FASTA%%"
     output:
-        splitext("%%GENOME_FASTA%%")[0]
+        "mapping/reference/" + genome_base_name + ".mmi"
     conda:
         "../lib/conda_env.yaml"
     group:
@@ -62,16 +62,13 @@ rule minimap2_index:
     threads:
         8
     shell:
-        "minimap2 -t {threads} -d {params.prefix} {input.genome} 2>&1 |"
+        "minimap2 %%MINIMAP2_PRESET%% %%ADDITIONAL_INDEX_OPTIONS%% -t {threads} -d {output} {input.genome} 2>&1 |"
         "tee {log}"
 
 
 rule minimap2_mapping:
-    params:
-        prefix=splitext("%%GENOME_FASTA%%")[0]
     input:
-        genome="%%GENOME_FASTA%%",
-        genome_index=splitext("%%GENOME_FASTA%%")[0],
+        genome_index="mapping/reference/" + genome_base_name + ".mmi",
         reads="preprocessing/{name}.fastq.gz"
     output:
         temp("mapping/sam/{name}.sam")
@@ -84,7 +81,7 @@ rule minimap2_mapping:
     threads:
         2
     shell:
-        "minimap2 -t {threads} -a {params.prefix} {input.reads} 2>&1 > {output} |"
+        "minimap2 %%MINIMAP2_PRESET%%  %%ADDITIONAL_ALIGNMENT_OPTIONS%% -t {threads} -a {input.genome_index} {input.reads} 2>&1 > {output} |"
         "tee {log};"
         "samtools flagstat {output} >> {log}"
 
@@ -116,12 +113,11 @@ rule write_settings:
     shell:
         """
         set +e
-        echo 'used_mapping_preset: "%%ALIGNMENT_TYPE%%"' > {output.settings};
-        mm2_help=$(minimap2 --help)
-        mm2_version=$(echo "$mm2_help" | head -n1 | sed 's/.*version \(.*\) by.*/\\1/g')
-        echo "minimap2_version: \\"$mm2_version\\"" >> {output.settings};
-        echo "use_shared_memory: 'true'" >> {output.settings};
-        echo 'additional_parameters: "%%ADDITIONAL_MINIMAP2_OPTIONS%%"' >> {output.settings}; 
+        m2_version=$(minimap2 --version)
+        echo "minimap2_version: \\"$m2_version\\"" >> {output.settings};
+        echo "preset: '%%MINIMAP2_PRESET%%'" >> {output.settings};
+        echo 'additional_index_parameters: "%%ADDITIONAL_INDEX_OPTIONS%%"' >> {output.settings}; 
+        echo 'additional_alignment_parameters: "%%ADDITIONAL_ALIGNMENT_OPTIONS%%"' >> {output.settings}; 
         """
 
 rule generate_report_data:

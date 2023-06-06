@@ -1,0 +1,40 @@
+## Curare Pipeline File
+## This is an automatically created pipeline file for Curare.
+## All required parameters must be set (replace <Insert Config Here> with real value).
+## All optional parameters are commented out with a single '#'. For including these parameters, just remove the '#'.
+
+pipeline:
+  paired_end: false
+
+preprocessing:
+  modules: ["none"]
+
+premapping:
+  modules: []
+
+mapping:
+  modules: ["minimap2"]
+
+  minimap2:
+    ## Path to reference genome fasta file. [Value Type: File_input]
+    genome_fasta: "../../reference/listeria_monocytogenes_egd_e.fasta"
+
+    ## Presets for various mapping situation: map-pb, map-ont, map-hifi, sr, none
+    ##  map-pb/map-ont: PacBio CLR/Nanopore vs reference mapping
+    ##  map-hifi: PacBio HiFi reads vs reference mapping
+    ##  sr: Genomic short-read mapping
+    ##  none: No preset selected. Default settings from Minimap2.
+    ## [Value Type: Enum]
+    ## Enum choices: "map-pb", "map-ont", "map-hifi", "sr", "none"
+    minimap2_preset: "sr"
+
+    ## Additional options to use for the index command. [Value Type: String]
+    # additional_index_options: ""
+
+    ## Additional options to use for the alignment command. [Value Type: String]
+    # additional_alignment_options: ""
+
+
+analysis:
+  modules: []
+
