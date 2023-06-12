@@ -6,13 +6,79 @@ genome_base_name = "%%GENOME_FASTA%%".rsplit("/", 1)[-1]
 rule all:
     input:
         "mapping/stats/mapping_stats.xlsx",
+        "mapping/statistics/flagstat_summary.tsv",
         expand("mapping/{A}.bam", A=sorted(config['entries'].keys())),
         ".report/data/minimap2_data.js"
+
+rule summarize_flagstat:
+    input:
+        expand("mapping/statistics/{NAME}_flagstat.txt", NAME=config['entries'].keys())
+    output:
+        "mapping/statistics/flagstat_summary.tsv"
+    group:
+        "bwa_mapping"
+    run:
+        with open(output[0], "w") as summary_file:
+            total_pattern = re.compile(r"(\d+) \+ (\d+) in total \(QC-passed reads \+ QC-failed reads\)")
+            secondary_pattern = re.compile(r"(\d+) \+ (\d+) secondary")
+            supplementary_pattern = re.compile(r"(\d+) \+ (\d+) supplementary")
+            duplicates_pattern = re.compile(r"(\d+) \+ (\d+) duplicates")
+            mapped_pattern = re.compile( r"(\d+) \+ (\d+) mapped \((.+):(.+)\)")
+            paired_in_sequencing_pattern = re.compile(r"(\d+) \+ (\d+) paired in sequencing")
+            read1_pattern = re.compile(r"(\d+) \+ (\d+) read1")
+            read2_pattern = re.compile(r"(\d+) \+ (\d+) read2")
+            properly_paired_pattern = re.compile(r"(\d+) \+ (\d+) properly paired \((.+):(.+)\)")
+            with_itself_and_mate_pattern = re.compile(r"(\d+) \+ (\d+) with itself and mate mapped")
+            singletons_pattern = re.compile(r"(\d+) \+ (\d+) singletons \((.+):(.+)\)")
+            summary_file.write("sample	total alignments	secondary	supplementary	duplicates	mapped	mapped[%]\n")
+            for i in input:
+                summary_file.write(i.replace("_flagstat.txt", "").replace("mapping/statistics/", "") + "	")
+                with open(i, "r") as input_file:
+                    for line in input_file:
+                        total_match = total_pattern.match(line)
+                        if total_match:
+                            total = int(total_match.group(1))
+                            continue
+                        secondary_match = secondary_pattern.match(line)
+                        if secondary_match:
+                            secondary = int(secondary_match.group(1))
+                            continue
+                        supplementary_match = supplementary_pattern.match(line)
+                        if supplementary_match:
+                            supplementary = int(supplementary_match.group(1))
+                            continue
+                        duplicates_match = duplicates_pattern.match(line)
+                        if duplicates_match:
+                            duplicates = int(duplicates_match.group(1))
+                            continue
+                        mapped_match = mapped_pattern.match(line)
+                        if mapped_match:
+                            mapped = int(mapped_match.group(1))
+                            continue
+                    summary_file.write(("{}\t"*5 + "{:2f}\n").format(
+                        total,
+                        secondary,
+                        supplementary,
+                        duplicates,
+                        mapped, mapped/total*100))
+
+
+rule samtools_flagstat:
+    input:
+        "mapping/sam/{name}.sam"
+    output:
+        "mapping/statistics/{name}_flagstat.txt"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "bwa_mapping"
+    shell:
+        "samtools flagstat {input} > {output}"
 
 
 rule mapping_stats_xlsx:
     input:
-        "mapping/stats/mapping_stats.tsv"
+        "mapping/statistics/flagstat_summary.tsv"
     output:
         xlsx="mapping/stats/mapping_stats.xlsx",
         plot_alignment_absolute="mapping/stats/alignment_stats.svg",
@@ -27,25 +93,6 @@ rule mapping_stats_xlsx:
         "python3 lib/se_mapping_stats_tsv_to_xlsx.py {input} {output.xlsx} {params.plot_dir}"
 
 
-rule mapping_stats_tsv:
-    input:
-        expand("mapping/logs/minimap2_mapping.{name}.log", name=config['entries'].keys())
-    output:
-        "mapping/stats/mapping_stats.tsv"
-    group:
-        "minimap2_statistics"
-    run:
-        tsv = open("mapping/stats/mapping_stats.tsv", "a")
-        tsv.write("sample	reads	reads[%]	aligned_0_times	aligned_0_times[%]	aligned_1_time	aligned_1_time[%]	aligned_more_than_1_times	aligned_more_than_1_times[%]	overall_alignment_rate\n")
-        for elem in input:
-            f = open(elem, "r")
-            sample = elem.split(".log")[0].split("minimap2_mapping.")[1]
-            for idx, line in enumerate(f):
-                if idx == 9:
-                    total = line.split(" ")[0]
-                if idx == 15:
-                    mapped = line.split(" ")[0]
-            tsv.write(f"{sample}	{total}	100	{int(total)-int(mapped)}	{100-int(mapped)/int(total)}	{mapped}	{int(mapped)/int(total)}	0	0	{mapped}\n")
 
 
 rule minimap2_index:
@@ -122,7 +169,7 @@ rule write_settings:
 
 rule generate_report_data:
     input:
-        stats_tsv="mapping/stats/mapping_stats.tsv",
+        stats_tsv="mapping/statistics/flagstat_summary.tsv",
         images=["mapping/stats/alignment_stats.svg", "mapping/stats/alignment_stats_relative.svg"],
         settings="mapping/settings.yaml"
     output:
