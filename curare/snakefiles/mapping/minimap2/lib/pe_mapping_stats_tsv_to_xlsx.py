@@ -26,14 +26,16 @@ def format_w2c(min_color: str = '#FFFFFF', max_color: str = '#000000', min_value
 
 
 def create_charts(df: pd.DataFrame, output_dir: Path):
-    absolute_alignments: pd.DataFrame = df[["sample", "aligned_conc_1_time", "aligned_conc_more_than_1_times", "aligned_disconc_1_time", "pairs_aligned_0_times_conc_or_disconc"]]
+    absolute_alignments: pd.DataFrame = df[["sample", "mapped", "secondary", "total alignments", "supplementary", "duplicates"]]
     absolute_alignments = absolute_alignments.set_index("sample")
     absolute_alignments.index.names = [None]
     absolute_alignments = absolute_alignments.apply(pd.to_numeric, errors="ignore")
-    absolute_alignments = absolute_alignments.rename(columns={"aligned_conc_1_time": "Aligned Conc. 1 Time",
-                                                              "aligned_conc_more_than_1_times": "Aligned Conc. >1 Times",
-                                                              "aligned_disconc_1_time": "Aligned Disconc.",
-                                                              "pairs_aligned_0_times_conc_or_disconc": "Not Aligned Conc. Or Disconc."})
+    absolute_alignments["total alignments"] = absolute_alignments["total alignments"] - absolute_alignments["mapped"]
+    absolute_alignments = absolute_alignments.rename(columns={"mapped": "Mapped",
+                                                              "secondary": "Secondary",
+                                                              "total alignments": "Not Mapped",
+                                                              "supplementary": "Supplementary",
+                                                              "duplicates": "Duplicates"})
     ax = absolute_alignments.plot(kind='bar', stacked=True, alpha=0.7)
     ax.legend(loc='lower center', bbox_to_anchor=(0.5, 1.05), fancybox=True, shadow=False, ncol=2)
 
@@ -111,15 +113,15 @@ def main():
     worksheet.write(5, columns + 2, "bad", super_bad)
 
     # conditional formatting
-    worksheet.conditional_format(1, columns, rows - 1, columns, format_w2c(max_color='#FFFFFF', min_color="#FF0000"))
-    worksheet.conditional_format(1, columns - 1, rows - 1, columns - 1, format_w2c(min_color='#FFFFFF', max_color="#FF0000"))
-    worksheet.conditional_format(1, columns - 3, rows - 1, columns - 3, format_w2c(max_color='#FFFFFF', min_color="#FF0000"))
-    worksheet.conditional_format(1, columns - 5, rows - 1, columns - 5, format_w2c(min_color='#FFFFFF', max_color="#FF0000"))
-    worksheet.conditional_format(1, columns - 10, rows - 1, columns - 10, format_w2c(max_color='#FFFFFF', min_color="#FF0000"))
-    worksheet.conditional_format(1, columns - 13, rows - 1, columns - 13, format_w2c(min_color='#FFFFFF', max_color="#FF0000"))
-    worksheet.conditional_format(1, columns - 15, rows - 1, columns - 15, format_w2c(max_color='#FFFFFF', min_color="#FF0000"))
-    worksheet.conditional_format(1, columns - 17, rows - 1, columns - 17, format_w2c(min_color='#FFFFFF', max_color="#FF0000"))
-    worksheet.conditional_format(1, columns - 20, rows - 1, columns - 20, {'type': 'data_bar', 'bar_color': "#BBCFDA", 'bar_solid': True})
+    #worksheet.conditional_format(1, columns, rows - 1, columns, format_w2c(max_color='#FFFFFF', min_color="#FF0000"))
+    #worksheet.conditional_format(1, columns - 1, rows - 1, columns - 1, format_w2c(min_color='#FFFFFF', max_color="#FF0000"))
+    #worksheet.conditional_format(1, columns - 3, rows - 1, columns - 3, format_w2c(max_color='#FFFFFF', min_color="#FF0000"))
+    #worksheet.conditional_format(1, columns - 5, rows - 1, columns - 5, format_w2c(min_color='#FFFFFF', max_color="#FF0000"))
+    #worksheet.conditional_format(1, columns - 10, rows - 1, columns - 10, format_w2c(max_color='#FFFFFF', min_color="#FF0000"))
+    #worksheet.conditional_format(1, columns - 13, rows - 1, columns - 13, format_w2c(min_color='#FFFFFF', max_color="#FF0000"))
+    #worksheet.conditional_format(1, columns - 15, rows - 1, columns - 15, format_w2c(max_color='#FFFFFF', min_color="#FF0000"))
+    #worksheet.conditional_format(1, columns - 17, rows - 1, columns - 17, format_w2c(min_color='#FFFFFF', max_color="#FF0000"))
+    #worksheet.conditional_format(1, columns - 20, rows - 1, columns - 20, {'type': 'data_bar', 'bar_color': "#BBCFDA", 'bar_solid': True})
 
     writer.close()
 
