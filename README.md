@@ -58,7 +58,7 @@ At the end of a Curare run, you will also get an HTML report containing the most
 It is recommended to use [mamba](https://mamba.readthedocs.io/en/latest/installation.html) for installing curare with all dependencies. Please notice that the channels bioconda **and** conda-forge are required for installing Curare correctly.
 
 ```bash
-mamba create -n curare -c bioconda -c conda-forge curare
+mamba create -n curare -c conda-forge -c bioconda curare
 conda activate curare
 curare --help
 ```
