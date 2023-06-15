@@ -1,0 +1,52 @@
+name: 'minimap2'
+label: 'Minimap2'
+description: "Use Minimap2 for read alignment. (https://github.com/lh3/minimap2)"
+
+required_settings:
+
+  genome_fasta:
+    label: 'Reference Genome'
+    description: 'Path to reference genome fasta file'
+    type: 'file_input'
+
+  minimap2_preset:
+    label: 'Minimap2 Presets'
+    description: "Presets for various mapping situation: map-pb, map-ont, map-hifi, sr, none\n
+                  map-pb/map-ont: PacBio CLR/Nanopore vs reference mapping\n
+                  map-hifi: PacBio HiFi reads vs reference mapping\n
+                  sr: Genomic short-read mapping\n
+                  none: No preset selected. Default settings from Minimap2"
+    type: 'enum'
+    default: 'none'
+    choices:
+      map-pb: '-x map-pb'
+      map-ont: '-x map-ont'
+      map-hifi: '-x map-hifi'
+      sr: '-x sr'
+      none: ''
+
+optional_settings:
+  
+  additional_index_options:
+    label: 'Additional Minimap2 Index Options'
+    description: "Additional options to use for the index command"
+    type: "string"
+    default: ''
+
+  additional_alignment_options:
+    label: 'Additional Minimap2 Alignment Options'
+    description: "Additional options to use for the alignment command"
+    type: "string"
+    default: ''
+
+single_end:
+  snakefile: 'minimap2_se'
+
+paired_end:
+  snakefile: 'minimap2_pe'
+
+
+report:
+  html_file: "minimap2.html"
+  new_tab: false
+  title: "Minimap2"
