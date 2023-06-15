@@ -2,11 +2,78 @@ name: "fastp"
 label: "fastp"
 description: "A module for automatized quality and adapter trimming with fastp. (https://github.com/OpenGene/fastp)"
 
+optional_settings:
+  phred_score_type:
+    label: 'Phred Score Type'
+    description: 'Choose phred33 (Sanger/Illumina 1.9+ encoding) or phred64 (Illumina 1.5 encoding)'
+    type: 'enum'
+    default: 'phred33'
+    choices:
+      phred33: ''
+      phred64: '--phred64'
+
+  trim_low_qualities:
+    label: 'Trim Low Quality Bases'
+    description: 'Trim low-quality starts and ends from reads. (see "Phred Score Trimming Threshold")'
+    type: 'enum'
+    default: 'active'
+    choices:
+      active: '--cut_front --cut_tail'
+      inactive: ''
+
+  quality_threshold:
+    label: 'Phred Score Trimming Threshold'
+    description: 'Trim low-quality starts and ends from reads. (Default: 20)'
+    type: 'number'
+    number_type: 'integer'
+    default: '20'
+    range:
+      min: 1
+      max: 36
+
 single_end:
   snakefile: "fastp_se"
 
+  optional_settings:
+    adapter_trimming:
+      label: 'Adapter Trimming'
+      description: 'Activates adapter trimming. See "Adapter Sequence" for specifying a specific sequence.'
+      type: 'enum'
+      default: 'active'
+      choices:
+        active: ''
+        inactive: '--disable_adapter_trimming'
+
+    adapter_sequence:
+      label: 'Adapter Sequence'
+      description: "Adapter sequence to be trimmed. If not specified explicitly, fastp will try to auto-detect adapter sequence."
+      type: 'string'
+      default: ''
+
 paired_end:
   snakefile: "fastp_pe"
+
+  optional_settings:
+    adapter_trimming:
+      label: 'Adapter Trimming'
+      description: 'Activates adapter trimming. See "Adapter Sequence" for specifying a specific sequence.'
+      type: 'enum'
+      default: 'active'
+      choices:
+        active: ''
+        inactive: '--disable_adapter_trimming'
+
+    adapter_sequence_forward:
+      label: 'Adapter Sequence (Forward)'
+      description: "Adapter sequence to be trimmed of forward read. If not specified, fastp will try to auto-detect adapter sequence."
+      type: 'string'
+      default: ''
+
+    adapter_sequence_reverse:
+      label: 'Adapter Sequence (Reverse)'
+      description: "Adapter sequence to be trimmed of reverse read. If not specified, fastp will try to auto-detect adapter sequence. If not specified and 'adapter_sequence_forward' is specified, uses 'adapter_sequence_forward' for both."
+      type: 'string'
+      default: ''
 
 
 report:

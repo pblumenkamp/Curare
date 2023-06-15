@@ -8,6 +8,18 @@ def getFilePath(sample_name, forward=True):
         path = config['entries'][sample_name]['main']['reverse_reads']
     return path
 
+def fastp_parameters():
+    forward_adapter_command = "--adapter_sequence %%ADAPTER_SEQUENCE_FORWARD%%" if "%%ADAPTER_SEQUENCE_FORWARD%%" else ""
+    reverse_adapter_command = "--adapter_sequence_r2 %%ADAPTER_SEQUENCE_REVERSE%%" if "%%ADAPTER_SEQUENCE_REVERSE%%" else ""
+    return " ".join([parameter for parameter in [
+                                                "%%PHRED_SCORE_TYPE%%", 
+                                                "%%TRIM_LOW_QUALITIES%%", 
+                                                "--cut_mean_quality %%QUALITY_THRESHOLD%%",
+                                                "%%ADAPTER_TRIMMING%%",
+                                                forward_adapter_command,
+                                                reverse_adapter_command
+                                                ] if parameter]) 
+
 rule all:
     input:
         expand("preprocessing/fastp/{A}_fastp_report.html", A=config['entries'].keys()),
@@ -25,7 +37,8 @@ rule fastp:
         output_reverse="preprocessing/{sample}_R2.fastq.gz",
         html= "preprocessing/fastp/{sample}_fastp_report.html",
         json= "preprocessing/fastp/{sample}_fastp_results.json"
-
+    params:
+        additional_settings = fastp_parameters()
     conda:
         "../lib/conda_env.yaml"
     group:
@@ -33,7 +46,7 @@ rule fastp:
     threads:
         1
     shell:
-        "fastp -i {input.reads_forward} -I {input.reads_reverse} -o {output.output_forward} -O {output.output_reverse} --html {output.html} --json {output.json}"
+        "fastp {params.additional_settings} --thread {threads} -i {input.reads_forward} -I {input.reads_reverse} -o {output.output_forward} -O {output.output_reverse} --html {output.html} --json {output.json}"
 
 rule groups_file:
     input:
