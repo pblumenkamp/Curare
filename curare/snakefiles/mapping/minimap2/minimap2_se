@@ -1,0 +1,190 @@
+from os import listdir
+from os.path import isfile, splitext
+
+genome_base_name = "%%GENOME_FASTA%%".rsplit("/", 1)[-1]
+
+rule all:
+    input:
+        "mapping/stats/mapping_stats.xlsx",
+        "mapping/statistics/flagstat_summary.tsv",
+        expand("mapping/{A}.bam", A=sorted(config['entries'].keys())),
+        ".report/data/minimap2_data.js"
+
+rule summarize_flagstat:
+    input:
+        expand("mapping/statistics/{NAME}_flagstat.txt", NAME=config['entries'].keys())
+    output:
+        "mapping/statistics/flagstat_summary.tsv"
+    group:
+        "bwa_mapping"
+    run:
+        with open(output[0], "w") as summary_file:
+            total_pattern = re.compile(r"(\d+) \+ (\d+) in total \(QC-passed reads \+ QC-failed reads\)")
+            secondary_pattern = re.compile(r"(\d+) \+ (\d+) secondary")
+            supplementary_pattern = re.compile(r"(\d+) \+ (\d+) supplementary")
+            duplicates_pattern = re.compile(r"(\d+) \+ (\d+) duplicates")
+            mapped_pattern = re.compile( r"(\d+) \+ (\d+) mapped \((.+):(.+)\)")
+            paired_in_sequencing_pattern = re.compile(r"(\d+) \+ (\d+) paired in sequencing")
+            read1_pattern = re.compile(r"(\d+) \+ (\d+) read1")
+            read2_pattern = re.compile(r"(\d+) \+ (\d+) read2")
+            properly_paired_pattern = re.compile(r"(\d+) \+ (\d+) properly paired \((.+):(.+)\)")
+            with_itself_and_mate_pattern = re.compile(r"(\d+) \+ (\d+) with itself and mate mapped")
+            singletons_pattern = re.compile(r"(\d+) \+ (\d+) singletons \((.+):(.+)\)")
+            summary_file.write("sample	total alignments	secondary	supplementary	duplicates	mapped	mapped[%]\n")
+            for i in input:
+                summary_file.write(i.replace("_flagstat.txt", "").replace("mapping/statistics/", "") + "	")
+                with open(i, "r") as input_file:
+                    for line in input_file:
+                        total_match = total_pattern.match(line)
+                        if total_match:
+                            total = int(total_match.group(1))
+                            continue
+                        secondary_match = secondary_pattern.match(line)
+                        if secondary_match:
+                            secondary = int(secondary_match.group(1))
+                            continue
+                        supplementary_match = supplementary_pattern.match(line)
+                        if supplementary_match:
+                            supplementary = int(supplementary_match.group(1))
+                            continue
+                        duplicates_match = duplicates_pattern.match(line)
+                        if duplicates_match:
+                            duplicates = int(duplicates_match.group(1))
+                            continue
+                        mapped_match = mapped_pattern.match(line)
+                        if mapped_match:
+                            mapped = int(mapped_match.group(1))
+                            continue
+                    summary_file.write(("{}\t"*5 + "{:2f}\n").format(
+                        total,
+                        secondary,
+                        supplementary,
+                        duplicates,
+                        mapped, mapped/total*100))
+
+
+rule samtools_flagstat:
+    input:
+        "mapping/sam/{name}.sam"
+    output:
+        "mapping/statistics/{name}_flagstat.txt"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "bwa_mapping"
+    shell:
+        "samtools flagstat {input} > {output}"
+
+
+rule mapping_stats_xlsx:
+    input:
+        "mapping/statistics/flagstat_summary.tsv"
+    output:
+        xlsx="mapping/stats/mapping_stats.xlsx",
+        plot_alignment_absolute="mapping/stats/alignment_stats.svg",
+        plot_alignment_relative="mapping/stats/alignment_stats_relative.svg"
+    params:
+        plot_dir="mapping/stats/"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "minimap2_statistics"
+    shell:
+        "python3 lib/se_mapping_stats_tsv_to_xlsx.py {input} {output.xlsx} {params.plot_dir}"
+
+
+
+
+rule minimap2_index:
+    input:
+        genome="%%GENOME_FASTA%%"
+    output:
+        "mapping/reference/" + genome_base_name + ".mmi"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "minimap2_index"
+    log:
+        "mapping/logs/minimap2_index.log"
+    threads:
+        8
+    shell:
+        "minimap2 %%MINIMAP2_PRESET%% %%ADDITIONAL_INDEX_OPTIONS%% -t {threads} -d {output} {input.genome} 2>&1 |"
+        "tee {log}"
+
+
+rule minimap2_mapping:
+    input:
+        genome_index="mapping/reference/" + genome_base_name + ".mmi",
+        reads="preprocessing/{name}.fastq.gz"
+    output:
+        temp("mapping/sam/{name}.sam")
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "minimap2_mapping"
+    log:
+        "mapping/logs/minimap2_mapping.{name}.log"
+    threads:
+        2
+    shell:
+        "minimap2 %%MINIMAP2_PRESET%%  %%ADDITIONAL_ALIGNMENT_OPTIONS%% -t {threads} -a {input.genome_index} {input.reads} 2>&1 > {output} |"
+        "tee {log};"
+        "samtools flagstat {output} >> {log}"
+
+
+rule sam_to_bam:
+    input:
+        "mapping/sam/{sample}.sam"
+    output:
+        bam="mapping/{sample}.bam",
+        bai="mapping/{sample}.bam.bai",
+        bam_unmapped="mapping/unmapped/{sample}_unmapped.bam"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "minimap2_mapping"
+    threads:
+        2
+    shell:
+        "samtools view -F 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam} - && samtools index {output.bam};"
+        "samtools view -f 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam_unmapped} -"
+
+rule write_settings:
+    output:
+        settings="mapping/settings.yaml"
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "minimap2_report"
+    shell:
+        """
+        set +e
+        m2_version=$(minimap2 --version)
+        echo "minimap2_version: \\"$m2_version\\"" >> {output.settings};
+        echo "preset: '%%MINIMAP2_PRESET%%'" >> {output.settings};
+        echo 'additional_index_parameters: "%%ADDITIONAL_INDEX_OPTIONS%%"' >> {output.settings}; 
+        echo 'additional_alignment_parameters: "%%ADDITIONAL_ALIGNMENT_OPTIONS%%"' >> {output.settings}; 
+        """
+
+rule generate_report_data:
+    input:
+        stats_tsv="mapping/statistics/flagstat_summary.tsv",
+        images=["mapping/stats/alignment_stats.svg", "mapping/stats/alignment_stats_relative.svg"],
+        settings="mapping/settings.yaml"
+    output:
+        mm2_data=".report/data/minimap2_data.js",
+        mm2_html=".report/modules/minimap2.html",
+        mm2_js=".report/js/modules/minimap2.js",
+        mm2_css=".report/css/modules/minimap2.css",
+        mm2_images=directory(".report/img/modules/minimap2/")
+    conda:
+        "../lib/conda_env.yaml"
+    group:
+        "minimap2_report"
+    shell:
+        "python3 lib/generate_report_data.py --stats {input.stats_tsv} --output {output.mm2_data} --settings {input.settings} && "
+        "cp lib/report/minimap2.html {output.mm2_html} && "
+        "cp lib/report/minimap2.js {output.mm2_js} && "
+        "cp lib/report/minimap2.css {output.mm2_css} &&"
+        "mkdir -p {output.mm2_images} && cp {input.images} {output.mm2_images}"
