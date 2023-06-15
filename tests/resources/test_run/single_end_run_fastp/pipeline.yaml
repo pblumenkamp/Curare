@@ -1,0 +1,48 @@
+## Curare Pipeline File
+## This is an automatically created pipeline file for Curare.
+## All required parameters must be set (replace <Insert Config Here> with real value).
+## All optional parameters are commented out with a single '#'. For including these parameters, just remove the '#'.
+
+pipeline:
+  paired_end: false
+
+preprocessing:
+  modules: ["fastp"]
+
+  fastp:
+    ## Choose phred33 (Sanger/Illumina 1.9+ encoding) or phred64 (Illumina 1.5 encoding). [Value Type: Enum]
+    #phred_score_type: "phred33"
+
+    ## Trim low-quality starts and ends from reads. (see "Phred Score Trimming Threshold"). [Value Type: Enum]
+    #trim_low_qualities: "active"
+
+    ## Trim low-quality starts and ends from reads. (Default: 20). [Value Type: Number]
+    #quality_threshold: "20"
+
+    ## Activates adapter trimming. See "Adapter Sequence" for specifying a specific sequence. [Value Type: Enum]
+    #adapter_trimming: "active"
+
+    ## Adapter sequence to be trimmed. If not specified explicitly, fastp will try to auto-detect adapter sequence. [Value Type: String]
+    #adapter_sequence: ""
+
+
+premapping:
+  modules: []
+
+mapping:
+  modules: ["bowtie2"]
+
+  bowtie2:
+    ## Path to reference genome fasta file. [Value Type: File_input]
+    genome_fasta: "../../reference/listeria_monocytogenes_egd_e.fasta"
+
+    ## Additional options to use in shell command. [Value Type: String]
+    #additional_bowtie2_options: ""
+
+    ## Choose between "local" or "end-to-end" alignment (Default: "end-to-end"). [Value Type: Enum]
+    #alignment_type: "end-to-end"
+
+
+analysis:
+  modules: []
+

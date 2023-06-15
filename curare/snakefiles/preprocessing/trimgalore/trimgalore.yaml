@@ -1,6 +1,6 @@
 name: 'trimgalore'
 label: 'Trim Galore'
-description: "A module for automatized quality and adapter trimming. (https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)"
+description: "A module for automatized quality and adapter trimming with Trim Galore. (https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)"
 
 optional_settings:
   phred_score_type:
