@@ -51,5 +51,3 @@ new Vue({
     },
     methods: {}
 });
-
-console.log(Curare.minimap2.stats);
