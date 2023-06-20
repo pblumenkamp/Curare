@@ -13,8 +13,7 @@ def get_reads_file_path(sample, mate):
 
 rule all:
     input:
-        "mapping/stats/mapping_stats.xlsx",
-        "mapping/statistics/flagstat_summary.tsv",
+        "mapping/statistics/flagstats/mapping_stats.xlsx",
         expand("mapping/{A}.bam", A=sorted(config['entries'].keys())),
         ".report/modules/minimap2.html"
 
@@ -89,11 +88,11 @@ rule mapping_stats_xlsx:
     input:
         "mapping/statistics/flagstat_summary.tsv"
     output:
-        xlsx="mapping/stats/mapping_stats.xlsx",
-        plot_alignment_absolute="mapping/stats/alignment_stats.svg",
-        plot_alignment_relative="mapping/stats/alignment_stats_relative.svg"
+        xlsx="mapping/statistics/flagstats/mapping_stats.xlsx",
+        plot_alignment_absolute="mapping/statistics/flagstats/alignment_stats.svg",
+        plot_alignment_relative="mapping/statistics/flagstats/alignment_stats_relative.svg"
     params:
-        plot_dir="mapping/stats/"
+        plot_dir="mapping/statistics/flagstats/"
     conda:
         "../lib/conda_env.yaml"
     group:
@@ -190,21 +189,21 @@ rule write_settings:
 rule generate_report_data:
     input:
         stats_tsv="mapping/statistics/flagstat_summary.tsv",
-        images=["mapping/stats/alignment_stats.svg", "mapping/stats/alignment_stats_relative.svg"],
+        images=["mapping/statistics/flagstats/alignment_stats.svg", "mapping/statistics/flagstats/alignment_stats_relative.svg"],
         settings="mapping/settings.yaml"
     output:
-        bw2_data=".report/data/minimap2_data.js",
-        bw2_html=".report/modules/minimap2.html",
-        bw2_js=".report/js/modules/minimap2.js",
-        bw2_css=".report/css/modules/minimap2.css",
-        bw2_images=directory(".report/img/modules/minimap2/")
+        mm2_data=".report/data/minimap2_data.js",
+        mm2_html=".report/modules/minimap2.html",
+        mm2_js=".report/js/modules/minimap2.js",
+        mm2_css=".report/css/modules/minimap2.css",
+        mm2_images=directory(".report/img/modules/minimap2/")
     conda:
         "../lib/conda_env.yaml"
     group:
         "minimap2_report"
     shell:
-        "python3 lib/generate_report_data.py --stats {input.stats_tsv} --output {output.bw2_data} --settings {input.settings} --paired-end && "
-        "cp lib/report/minimap2.html {output.bw2_html} && "
-        "cp lib/report/minimap2.js {output.bw2_js} && "
-        "cp lib/report/minimap2.css {output.bw2_css} &&"
-        "mkdir -p {output.bw2_images} && cp {input.images} {output.bw2_images}"
+        "python3 lib/generate_report_data.py --stats {input.stats_tsv} --output {output.mm2_data} --settings {input.settings} --paired-end && "
+        "cp lib/report/minimap2.html {output.mm2_html} && "
+        "cp lib/report/minimap2.js {output.mm2_js} && "
+        "cp lib/report/minimap2.css {output.mm2_css} &&"
+        "mkdir -p {output.mm2_images} && cp {input.images} {output.mm2_images}"

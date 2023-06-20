@@ -40,7 +40,7 @@
             <h2>Minimap2</h2>
 
             <h3>Settings</h3>
-            <b-table :data="bw2_settings_data" :columns="bw2_settings_columns" :show-header="false" style="margin-bottom: 2rem;"></b-table>
+            <b-table :data="mm2_settings_data" :columns="mm2_settings_columns" :show-header="false" style="margin-bottom: 2rem;"></b-table>
 
             <div v-if="minimap2_stats.length >= 7" style="display: flex; justify-content: space-between">
               <h3 id="statistics_plots">Alignment Distribution</h3>
@@ -81,113 +81,67 @@
               <template v-if="paired_end">
                 <table v-if="stats_in_percent.length" id="minimap2-stats-percent" class="table">
                   <thead>
-                  <tr>
-                    <th rowspan="3" class="right-border">Sample</th>
-                    <th rowspan="3" class="right-border">#Pairs</th>
-                    <th colspan="4" class="left-border right-border">Pairs Aligned</th>
-                    <th colspan="3" class="left-border">Single Mates Aligned (Relative To "Not Aligned Conc. Or Disconc.")</th>
-                  </tr>
-                  <tr>
-                    <th colspan="2" class="left-border right-border">Concordantly Aligned 0 Times</th>
-                    <th rowspan="2" class="left-border right-border">Concordantly Aligned 1 Times</th>
-                    <th rowspan="2" class="left-border right-border">Concordantly Aligned >1 Times</th>
-                    <th rowspan="2" class="left-border right-border">Mate Aligned 0 Times</th>
-                    <th rowspan="2" class="left-border right-border">Mate Aligned 1 Times</th>
-                    <th rowspan="2" class="left-border">Mate Aligned >1 Times</th>
-                  </tr>
-                  <tr>
-                    <th class="left-border right-border">Disconcordantly Aligned</th>
-                    <th class="left-border right-border">Not Aligned Conc. Or Disconc.</th>
-                  </tr>
+                    <tr>
+                      <th class="right-border">Sample</th>
+                      <th class="right-border">#Reads</th>
+                      <th class="left-border right-border">Aligned</th>
+                      <th class="left-border right-border">Aligned [%]</th>
+                      <th class="left-border right-border">Unaligned</th>
+                      <th class="left-border right-border">Unaligned [%]</th>
+                    </tr>
                   </thead>
                   <tfoot v-if="minimap2_stats.length > 12">
-                  <tr>
-                    <th rowspan="3" class="right-border">Sample</th>
-                    <th rowspan="3" class="right-border">#Pairs</th>
-                    <th class="left-border right-border">Disconcordantly Aligned</th>
-                    <th class="left-border right-border">NOT Aligned Conc. Or Disconc.</th>
-                    <th rowspan="2" class="left-border right-border">Concordantly Alligned 1 Times</th>
-                    <th rowspan="2" class="left-border right-border">Concordantly Alligned >1 Times</th>
-                    <th rowspan="2" class="left-border right-border">Mate Aligned 0 Times</th>
-                    <th rowspan="2" class="left-border right-border">Mate Aligned 1 Times</th>
-                    <th rowspan="2" class="left-border">Mate Aligned >1 Times</th>
-                  </tr>
-                  <tr>
-                    <th colspan="2" class="left-border right-border">Concordantly Alligned 0 Times</th>
-                  </tr>
-                  <tr>
-                    <th colspan="4" class="left-border right-border">Pairs Aligned</th>
-                    <th colspan="3" class="left-border">Single Mates Aligned (Relative To "Not Aligned Conc. Or Disconc.")</th>
-                  </tr>
+                    <tr>
+                      <th class="right-border">Sample</th>
+                      <th class="right-border">#Reads</th>
+                      <th class="left-border right-border">Aligned</th>
+                      <th class="left-border right-border">Aligned [%]</th>
+                      <th class="left-border right-border">Unaligned</th>
+                      <th class="left-border right-border">Unaligned [%]</th>
+                    </tr>
                   </tfoot>
                   <tbody>
                     <tr v-for="seqrun of minimap2_stats" :key="seqrun.sample">
                       <td class="right-border" style="font-weight: bold">{{ seqrun.sample }}</td>
-                      <td class="right-border">{{ seqrun.reads }}</td>
-                      <td>{{ (parseFloat(seqrun["aligned_disconc_1_time"]) / parseFloat(seqrun["reads"]) * 100).toFixed(2) }}</td>
-                      <td>{{ (parseFloat(seqrun["pairs_aligned_0_times_conc_or_disconc"]) / parseFloat(seqrun["reads"]) * 100).toFixed(2) }}</td>
-                      <td>{{ parseFloat(seqrun["aligned_conc_1_time[%]"]).toFixed(2) }}</td>
-                      <td class="right-border">{{ parseFloat(seqrun["aligned_conc_more_than_1_times[%]"]).toFixed(2) }}</td>
-                      <td>{{ parseFloat(seqrun["mates_aligned_0_times[%]"]).toFixed(2) }}</td>
-                      <td>{{ parseFloat(seqrun["mates_aligned_1_time[%]"]).toFixed(2) }}</td>
-                      <td>{{ parseFloat(seqrun["mates_aligned_more_than_1_times[%]"]).toFixed(2) }}</td>
+                      <td class="right-border">{{ seqrun["total alignments"] / 2 }}</td>
+                      <td>{{ seqrun["mapped"] }}</td>
+                      <td class="right-border">{{ (seqrun["mapped"] / seqrun["total alignments"] * 100).toFixed(2) }}</td>
+                      <td>{{ seqrun["total alignments"] - seqrun["mapped"] }}</td>
+                      <td>{{ ((1 - seqrun["mapped"] / seqrun["total alignments"]) * 100).toFixed(2) }}</td>
                     </tr>
-                  </tbody>
+                    </tbody>
                 </table>
                 <table v-else id="minimap2-stats-absolute" class="table">
                   <thead>
-                  <tr>
-                    <th rowspan="3" class="right-border">Sample</th>
-                    <th rowspan="3" class="right-border">#Pairs</th>
-                    <th colspan="4" class="left-border right-border">Pairs Aligned</th>
-                    <th colspan="3" class="left-border">Single Mates Aligned (Relative To "Not Aligned Conc. Or Disconc.")</th>
-                  </tr>
-                  <tr>
-                    <th colspan="2" class="left-border right-border">Concordantly Aligned 0 Times</th>
-                    <th rowspan="2" class="left-border right-border">Concordantly Aligned 1 Times</th>
-                    <th rowspan="2" class="left-border right-border">Concordantly Aligned >1 Times</th>
-                    <th rowspan="2" class="left-border right-border">Mate Aligned 0 Times</th>
-                    <th rowspan="2" class="left-border right-border">Mate Aligned 1 Times</th>
-                    <th rowspan="2" class="left-border">Mate Aligned >1 Times</th>
-                  </tr>
-                  <tr>
-                    <th class="left-border right-border">Disconcordantly Aligned</th>
-                    <th class="left-border right-border">Not Aligned Conc. Or Disconc.</th>
-                  </tr>
+                    <tr>
+                      <th class="right-border">Sample</th>
+                      <th class="right-border">#Reads</th>
+                      <th class="left-border right-border">Aligned</th>
+                      <th class="left-border right-border">Aligned [%]</th>
+                      <th class="left-border right-border">Unaligned</th>
+                      <th class="left-border right-border">Unaligned [%]</th>
+                    </tr>
                   </thead>
                   <tfoot v-if="minimap2_stats.length > 12">
-                  <tr>
-                    <th rowspan="3" class="right-border">Sample</th>
-                    <th rowspan="3" class="right-border">#Pairs</th>
-                    <th class="left-border right-border">Disconcordantly Aligned</th>
-                    <th class="left-border right-border">NOT Aligned Conc. Or Disconc.</th>
-                    <th rowspan="2" class="left-border right-border">Concordantly Alligned 1 Times</th>
-                    <th rowspan="2" class="left-border right-border">Concordantly Alligned >1 Times</th>
-                    <th rowspan="2" class="left-border right-border">Mate Aligned 0 Times</th>
-                    <th rowspan="2" class="left-border right-border">Mate Aligned 1 Times</th>
-                    <th rowspan="2" class="left-border">Mate Aligned >1 Times</th>
-                  </tr>
-                  <tr>
-                    <th colspan="2" class="left-border right-border">Concordantly Alligned 0 Times</th>
-                  </tr>
-                  <tr>
-                    <th colspan="4" class="left-border right-border">Pairs Aligned</th>
-                    <th colspan="3" class="left-border">Single Mates Aligned (Relative To "Not Aligned Conc. Or Disconc.")</th>
-                  </tr>
+                    <tr>
+                      <th class="right-border">Sample</th>
+                      <th class="right-border">#Reads</th>
+                      <th class="left-border right-border">Aligned</th>
+                      <th class="left-border right-border">Aligned [%]</th>
+                      <th class="left-border right-border">Unaligned</th>
+                      <th class="left-border right-border">Unaligned [%]</th>
+                    </tr>
                   </tfoot>
                   <tbody>
                     <tr v-for="seqrun of minimap2_stats" :key="seqrun.sample">
                       <td class="right-border" style="font-weight: bold">{{ seqrun.sample }}</td>
-                      <td class="right-border">{{ seqrun.reads }}</td>
-                      <td>{{ seqrun["aligned_disconc_1_time"] }}</td>
-                      <td>{{ seqrun["pairs_aligned_0_times_conc_or_disconc"] }}</td>
-                      <td>{{ seqrun["aligned_conc_1_time"] }}</td>
-                      <td class="right-border">{{ seqrun["aligned_conc_more_than_1_times"] }}</td>
-                      <td>{{ seqrun["mates_aligned_0_times"] }}</td>
-                      <td>{{ seqrun["mates_aligned_1_time"] }}</td>
-                      <td>{{ seqrun["mates_aligned_more_than_1_times"] }}</td>
+                      <td class="right-border">{{ seqrun["total alignments"] / 2 }}</td>
+                      <td>{{ seqrun["mapped"] }}</td>
+                      <td class="right-border">{{ (seqrun["mapped"] / seqrun["total alignments"] * 100).toFixed(2) }}</td>
+                      <td>{{ seqrun["total alignments"] - seqrun["mapped"] }}</td>
+                      <td>{{ ((1 - seqrun["mapped"] / seqrun["total alignments"]) * 100).toFixed(2) }}</td>
                     </tr>
-                  </tbody>
+                    </tbody>
                 </table>
               </template>
               <template v-else>
@@ -195,59 +149,65 @@
                   <thead>
                     <tr>
                       <th class="right-border">Sample</th>
-                      <th class="left-border right-border">#Pairs</th>
-                      <th class="left-border right-border">Aligned 0 Times</th>
-                      <th class="left-border right-border">Aligned 1 Times</th>
-                      <th class="left-border">Aligned >1 Times</th>
+                      <th class="right-border">#Reads</th>
+                      <th class="left-border right-border">Aligned</th>
+                      <th class="left-border right-border">Aligned [%]</th>
+                      <th class="left-border right-border">Unaligned</th>
+                      <th class="left-border right-border">Unaligned [%]</th>
                     </tr>
                   </thead>
                   <tfoot v-if="minimap2_stats.length > 12">
-                  <tr>
-                    <th class="right-border">Sample</th>
-                    <th class="left-border right-border">#Pairs</th>
-                    <th class="left-border right-border">Aligned 0 Times</th>
-                    <th class="left-border right-border">Aligned 1 Times</th>
-                    <th class="left-border">Aligned >1 Times</th>
-                  </tr>
+                    <tr>
+                      <th class="right-border">Sample</th>
+                      <th class="right-border">#Reads</th>
+                      <th class="left-border right-border">Aligned</th>
+                      <th class="left-border right-border">Aligned [%]</th>
+                      <th class="left-border right-border">Unaligned</th>
+                      <th class="left-border right-border">Unaligned [%]</th>
+                    </tr>
                   </tfoot>
                   <tbody>
                     <tr v-for="seqrun of minimap2_stats" :key="seqrun.sample">
                       <td class="right-border" style="font-weight: bold">{{ seqrun.sample }}</td>
-                      <td class="right-border">{{ seqrun.reads }}</td>
-                      <td>{{ parseFloat(seqrun["aligned_0_times[%]"]).toFixed(2) }}</td>
-                      <td>{{ parseFloat(seqrun["aligned_1_time[%]"]).toFixed(2) }}</td>
-                      <td>{{ parseFloat(seqrun["aligned_more_than_1_times[%]"]).toFixed(2) }}</td>
+                      <td class="right-border">{{ seqrun["total alignments"] / 2 }}</td>
+                      <td>{{ seqrun["mapped"] }}</td>
+                      <td class="right-border">{{ (seqrun["mapped"] / seqrun["total alignments"] * 100).toFixed(2) }}</td>
+                      <td>{{ seqrun["total alignments"] - seqrun["mapped"] }}</td>
+                      <td>{{ ((1 - seqrun["mapped"] / seqrun["total alignments"]) * 100).toFixed(2) }}</td>
                     </tr>
-                  </tbody>
+                    </tbody>
                 </table>
                 <table v-else id="minimap2-stats-absolute" class="table">
                   <thead>
-                  <tr>
-                    <th class="right-border">Sample</th>
-                    <th class="left-border right-border">#Pairs</th>
-                    <th class="left-border right-border">Aligned 0 Times</th>
-                    <th class="left-border right-border">Aligned 1 Times</th>
-                    <th class="left-border">Aligned >1 Times</th>
-                  </tr>
+                    <tr>
+                      <th class="right-border">Sample</th>
+                      <th class="right-border">#Reads</th>
+                      <th class="left-border right-border">Aligned</th>
+                      <th class="left-border right-border">Aligned [%]</th>
+                      <th class="left-border right-border">Unaligned</th>
+                      <th class="left-border right-border">Unaligned [%]</th>
+                    </tr>
                   </thead>
                   <tfoot v-if="minimap2_stats.length > 12">
-                  <tr>
-                    <th class="right-border">Sample</th>
-                    <th class="left-border right-border">#Pairs</th>
-                    <th class="left-border right-border">Aligned 0 Times</th>
-                    <th class="left-border right-border">Aligned 1 Times</th>
-                    <th class="left-border">Aligned >1 Times</th>
-                  </tr>
+                    <tr>
+                      <th class="right-border">Sample</th>
+                      <th class="right-border">#Reads</th>
+                      <th class="left-border right-border">Aligned</th>
+                      <th class="left-border right-border">Aligned [%]</th>
+                      <th class="left-border right-border">Unaligned</th>
+                      <th class="left-border right-border">Unaligned [%]</th>
+                    </tr>
                   </tfoot>
                   <tbody>
                     <tr v-for="seqrun of minimap2_stats" :key="seqrun.sample">
                       <td class="right-border" style="font-weight: bold">{{ seqrun.sample }}</td>
-                      <td class="right-border">{{ seqrun.reads }}</td>
-                      <td>{{ seqrun["aligned_0_times"] }}</td>
-                      <td>{{ seqrun["aligned_1_time"] }}</td>
-                      <td >{{ seqrun["aligned_more_than_1_times"] }}</td>
+                      <td class="right-border">{{ seqrun["total alignments"] / 2 }}</td>
+                      <td>{{ seqrun["mapped"] }}</td>
+                      <td class="right-border">{{ (seqrun["mapped"] / seqrun["total alignments"] * 100).toFixed(2) }}</td>
+                      <td>{{ seqrun["total alignments"] - seqrun["mapped"] }}</td>
+                      <td>{{ ((1 - seqrun["mapped"] / seqrun["total alignments"]) * 100).toFixed(2) }}</td>
                     </tr>
-                  </tbody>
+                    </tbody>
                 </table>
               </template>
             </div>
