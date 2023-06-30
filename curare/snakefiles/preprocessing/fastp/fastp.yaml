@@ -30,6 +30,12 @@ optional_settings:
     range:
       min: 1
       max: 36
+  
+  additional_parameter:
+    label: 'Additional fastp options'
+    description: "Additional options to use in shell command"
+    type: 'string'
+    default: ''
 
 single_end:
   snakefile: "fastp_se"
