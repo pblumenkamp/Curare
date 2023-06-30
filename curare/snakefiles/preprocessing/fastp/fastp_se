@@ -34,7 +34,7 @@ rule fastp:
     threads:
         1
     shell:
-        "fastp {params.additional_settings} --thread {threads} -i {input} -o {output.trimmed_reads} --html {output.html} --json {output.json}"
+        "fastp %%ADDITIONAL_PARAMETER%% {params.additional_settings} --thread {threads} -i {input} -o {output.trimmed_reads} --html {output.html} --json {output.json}"
 
 rule groups_file:
     input:
