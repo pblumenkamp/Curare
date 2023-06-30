@@ -4,7 +4,7 @@ Customizable and Reproducible Analysis Pipeline for RNA-Seq Experiments (Curare)
 
 Usage:
     curare.py --samples <samples_file> --pipeline <pipeline_file> --output <output_folder>
-                 [--use-conda] [--conda-frontend <frontend>] [--conda-prefix <conda_prefix>] [--cores <cores>] [--latency-wait <seconds>] [--verbose]
+                 [--use-conda] [--conda-frontend <frontend>] [--conda-prefix <conda_prefix>] [--cores <cores>] [--keep-going] [--latency-wait <seconds>] [--verbose]
     curare.py --samples <samples_file> --pipeline <pipeline_file> --output <output_folder> --create-conda-envs-only [--conda-frontend <frontend>] [--conda-prefix <conda_prefix>] [--verbose]
     curare.py (--version | --help)
 
@@ -20,8 +20,9 @@ Options:
     --conda-frontend <frontend>                     Choose conda frontend for creating and installing conda environments (conda, mamba) [Default: mamba]
     --conda-prefix <conda_prefix>                   The directory in which conda environments will be created. Relative paths will be relative to output folder! (Default: Output_folder)
     --create-conda-envs-only                        Only download and create conda environments.
-    -t <cores> --cores <cores>                      Number of threads/cores. Defines locales cores in cluster mode. [Default: 1]
-    --latency-wait <seconds>                        Seconds to wait before checking if all files of a rule were created. Should be increased if using cluster mode. [Default: 5]
+    -t <cores> --cores <cores>                      Number of threads/cores. [Default: 1]
+    --keep-going                                    Keep going with individual jobs if a job fails.
+    --latency-wait <seconds>                        Seconds to wait before checking if all files of a rule were created. [Default: 5]
     -v --verbose                                    Print additional information
 
 
@@ -127,7 +128,7 @@ def main():
             sys.exit(98)
     else:
         sm_command: List[str] = ["snakemake", "--snakefile", str(snakefile), "--directory", str(args["--output"]),
-                                 "--cores", args["--cores"], "--use-conda", "--conda-frontend", args["--conda-frontend"],
+                                 "--cores", args["--cores"],
                                  "--printshellcmds", "--latency-wait", args["--latency-wait"]]
         if args["--use-conda"]:
             sm_command.append("--use-conda")
@@ -135,6 +136,8 @@ def main():
             sm_command.extend(["--conda-frontend", args["--conda-frontend"]])
         if args["--conda-prefix"]:
             sm_command.extend(["--conda-prefix", args["--conda-prefix"]])
+        if args["--keep-going"]:
+            sm_command.append("--keep-going")
         if args["--verbose"]:
             sm_command.append("--verbose")
         try:
@@ -605,12 +608,10 @@ def parse_arguments():
     args["--pipeline"] = Path(args["--pipeline"]).resolve()
     if args["--conda-prefix"]:
         args["--conda-prefix"] = Path(args["--conda-prefix"]).resolve()
-    if args["--cluster-config-file"]:
-        args["--cluster-config-file"] = Path(args["--cluster-config-file"]).resolve()
     if args["--conda-frontend"] not in ["conda", "mamba"]:
         raise UnknownCommandLineArgumentError("Command Line Arguments: Argument {} unknown for command line option '{}'".format(args["--conda-frontend"], "--conda-frontend"))
 
-    for file in ["--samples", "--pipeline", "--cluster-config-file"]:
+    for file in ["--samples", "--pipeline"]:
         if args[file]:
             if not args[file].exists():
                 raise UnknownInputFileError("Command Line Arguments: Unknown file: {}".format(args[file]))
