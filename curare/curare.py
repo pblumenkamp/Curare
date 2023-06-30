@@ -4,7 +4,6 @@ Customizable and Reproducible Analysis Pipeline for RNA-Seq Experiments (Curare)
 
 Usage:
     curare.py --samples <samples_file> --pipeline <pipeline_file> --output <output_folder>
-                 [--cluster-command <cluster_command>] [--cluster-config-file <config_file>] [--cluster-nodes <nodes>]
                  [--use-conda] [--conda-frontend <frontend>] [--conda-prefix <conda_prefix>] [--cores <cores>] [--latency-wait <seconds>] [--verbose]
     curare.py --samples <samples_file> --pipeline <pipeline_file> --output <output_folder> --create-conda-envs-only [--conda-frontend <frontend>] [--conda-prefix <conda_prefix>] [--verbose]
     curare.py (--version | --help)
@@ -17,10 +16,6 @@ Options:
     --pipeline <pipeline_file>                      File containing information about the RNA-seq pipeline
     --output <output_folder>                        Output folder (will be created if not existing)
 
-    --cluster-command <command>                     Command for cluster execution. , e.g. 'qsub'. For resource requests use also --cluster-config
-    --cluster-config-file <config_file>             File containing cluster settings for individual rules.
-                                                    See also: https://snakemake.readthedocs.io/en/stable/snakefiles/configuration.html#cluster-configuration
-    --cluster-nodes <nodes>                         Maximal number of parallel jobs send to the cluster. Only used in cluster mode is used. [Default: 1]
     --use-conda                                     Install and use separate conda environments for pipeline modules [Default: False]
     --conda-frontend <frontend>                     Choose conda frontend for creating and installing conda environments (conda, mamba) [Default: mamba]
     --conda-prefix <conda_prefix>                   The directory in which conda environments will be created. Relative paths will be relative to output folder! (Default: Output_folder)
