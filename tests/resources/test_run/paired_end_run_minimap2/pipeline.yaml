@@ -26,7 +26,7 @@ mapping:
     ##  none: No preset selected. Default settings from Minimap2.
     ## [Value Type: Enum]
     ## Enum choices: "map-pb", "map-ont", "map-hifi", "sr", "none"
-    minimap2_preset: "none"
+    minimap2_preset: "sr"
 
     ## Additional options to use for the index command. [Value Type: String]
     # additional_index_options: ""
