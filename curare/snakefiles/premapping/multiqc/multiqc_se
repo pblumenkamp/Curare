@@ -25,17 +25,21 @@ rule multiqc:
     input:
         expand("premapping/multiqc/fastqc/{A}_fastqc.html", A=config['entries'].keys())
     output:
-        "premapping/multiqc/multiqc_report.html"
+        html = "premapping/multiqc/multiqc_report.html",
+        multiqc_dir = directory("premapping/multiqc/multiqc_data")
     conda:
         "../lib/conda_env.yaml"
     params:
-        input_dir="premapping/multiqc/fastqc"
+        input_dir = "premapping/multiqc/fastqc",
+        output_dir = "premapping/multiqc/"
     group:
         "multiqc"
     threads:
         1
     shell:
-        "multiqc -o premapping/multiqc {params.input_dir}"
+        "[ -e {output.html} ] && rm {output.html}; "
+        "[ -e {output.multiqc_dir} ] && rm -r {output.multiqc_dir}; "
+        "multiqc -o {params.output_dir} {params.input_dir}"
 
 rule generate_report_data:
     input:
