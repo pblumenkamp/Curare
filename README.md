@@ -29,22 +29,24 @@ Curare was developed to simplify the automized execution of RNA-Seq workflows on
 ##### Available modules
 + Preprocessing
   + Trim-Galore
+  + Fastp
 + Premapping
   + FastQC
   + MultiQC
 + Mapping
   + Bowtie
   + Bowtie2
-  + BWA (Backtrack)
-  + BWA (Mem)
-  + BWA (SW)
+  + BWA-Backtrack
+  + BWA-MEM
+  + BWA-MEM2
+  + BWA-SW
+  + Minimap2
   + Segemehl
   + Star
 + Analysis
   + Count Table (FeatureCounts)
   + DGE Analysis (DESeq2)
   + Normalized Coverage
-  + ReadXplorer
 
 ### Results Report
 At the end of a Curare run, you will also get an HTML report containing the most important results and an overview of all used settings. The start page will include Curare statistics, the runtime of this analysis, sample descriptions, and all dependencies of the tools used in this pipeline. From the navigation bar at the top, you can then navigate to the specific reports of each module with detailed charts and many statistics. (Images created with Curare using the data from: Banerjee R et al., "Tailoring a Global Iron Regulon to a Uropathogen.", mBio, 2020 Mar 24;11(2))
