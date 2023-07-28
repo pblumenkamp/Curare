@@ -31,7 +31,6 @@ def list_of_all_features(gff_path):
 
 localrules: dge_analysis__create_conditions
 
-DUMP = "analysis/dge_analysis/deseq2.RData"
 
 rule all:
     input:
@@ -60,7 +59,7 @@ rule summary_tsv_to_xslx:
 
 rule make_count_tables:
     input:
-        mappings=expand("mapping/{A}.bam", A=sorted(config['entries'].keys()))
+        mappings=expand("mapping/{A}.bam", A=config['entry_order'])
     output:
         featcounts="analysis/dge_analysis/count_tables/{feature}.txt",
         featcounts_summary="analysis/dge_analysis/count_tables/{feature}.txt.summary"
@@ -120,10 +119,10 @@ rule count_reads:
 
 rule create_conditions:
     output:
-        temp("analysis/dge_analysis/conditions.txt")
+        "analysis/dge_analysis/conditions.txt"
     run:
         with(open(output[0], 'w')) as output_file:
-            for name in sorted(config['entries'].keys()):
+            for name in config['entry_order']:
                 output_file.write('{}\t{}\n'.format(name, config['entries'][name]['dge_analysis']['condition']))
 
 
@@ -132,7 +131,7 @@ rule genexvis_condition_file:
         "analysis/dge_analysis/genexvis_conditions.txt"
     run:
         conditions = set()
-        for name in sorted(config['entries'].keys()):
+        for name in config['entry_order']:
             conditions.add(config['entries'][name]['dge_analysis']['condition'])
         with(open(output[0], 'w')) as output_file:
             for cond in conditions:
@@ -144,7 +143,7 @@ rule dge_analysis_normalize_counts:
         conditions = "analysis/dge_analysis/conditions.txt",
         feature_counts_log = "analysis/dge_analysis/counts.txt.summary"
     output:
-        dump=DUMP,
+        dump="analysis/dge_analysis/deseq2.RData",
         correlation_heatmap="analysis/dge_analysis/visualization/correlation_heatmap.svg",
         pca="analysis/dge_analysis/visualization/pca.svg",
         assignment_statistics_rel="analysis/dge_analysis/visualization/counts_assignment_relative.svg",
@@ -166,7 +165,7 @@ rule dge_analysis_normalize_counts:
 
 rule deseq2_create_comparison_files:
     input:
-        dump = DUMP,
+        dump = "analysis/dge_analysis/deseq2.RData",
         feature_counts_log = "analysis/dge_analysis/counts.txt.summary"
     output:
         summary=expand('analysis/dge_analysis/summary/{COND}.tsv', COND=getConditions()),

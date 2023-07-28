@@ -19,19 +19,9 @@ output_folder <- args[match('--output', args) + 1]
 threads <- args[match('--threads', args) + 1]
 
 # Required packages
-for (package in c("DESeq2")) {
+for (package in c("DESeq2", "BiocParallel", "ggplot2", "gplots", "fastcluster")) {
     if (!(package %in% rownames(installed.packages()))) {
         library("crayon")
-        stop(paste('Package "', package, '" not installed', sep=""))
-    } else {
-        print(paste("Import:", package))
-        library(package, character.only=TRUE)
-    }
-}
-
-# "Optional" packages
-for (package in c("BiocParallel", "ggplot2", "gplots")) {
-    if (!(package %in% rownames(installed.packages()))) {
         stop(paste('Package "', package, '" not installed', sep=""))
     } else {
         print(paste("Import:", package))

@@ -19,19 +19,9 @@ output_count <- args[match('--output-count', args) + 1]
 threads <- args[match('--threads', args) + 1]
 
 # Required packages
-for (package in c("DESeq2")) {
+for (package in c("DESeq2", "BiocParallel", "pheatmap", "ggplot2", "reshape2", "gplots", "svglite")) {
     if (!(package %in% rownames(installed.packages()))) {
         library("crayon")
-        stop(paste('Package "', package, '" not installed', sep=""))
-    } else {
-        print(paste("Import:", package))
-        library(package, character.only=TRUE)
-    }
-}
-
-# "Optional" packages
-for (package in c("BiocParallel", "pheatmap", "ggplot2", "reshape2", "gplots", "svglite")) {
-    if (!(package %in% rownames(installed.packages()))) {
         stop(paste('Package "', package, '" not installed', sep=""))
     } else {
         print(paste("Import:", package))
@@ -59,7 +49,8 @@ colnames(countdata) <- as.vector(sapply(colnames(countdata), function(x) gsub("m
 conditiontable <- read.csv(condition_file, header = FALSE, row.names = 1, sep = "\t", comment.char = "#")
 rownames(conditiontable) <- gsub("-", ".", rownames(conditiontable))
 colnames(conditiontable) <- c('condition')
-condition <- as.factor(conditiontable[, 1])
+conditiontable$condition <- factor(conditiontable$condition, levels = unique(conditiontable$condition))
+condition <- as.factor(conditiontable$condition)
 
 deseqDataset <- DESeqDataSetFromMatrix(countData = countdata, colData = conditiontable, design = ~ condition)
 
