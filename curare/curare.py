@@ -579,6 +579,7 @@ def create_snakefile(output_folder: Path, samples: Dict[str, Dict[str, Dict[str,
 def create_snakemake_config_file(output_folder: Path, samples: Dict[str, Dict[str, Dict[str, Any]]]) -> Path:
     config_path = output_folder / SNAKEFILES_TARGET_DIRECTORY / 'snakefile_config.yml'
     with config_path.open('w') as config_file:
+        config_file.write('entry_order: [{}]\n'.format(", ".join(samples.keys())))
         config_file.write('entries:\n')
         for row, modules in samples.items():
             config_file.write('    "{}":\n'.format(row))
