@@ -13,8 +13,7 @@ def get_reads_file_path(sample, mate):
 
 rule all:
     input:
-        "mapping/stats/mapping_stats.xlsx",
-        "mapping/statistics/flagstat_summary.tsv",
+        "mapping/statistics/flagstats/mapping_stats.xlsx",
         expand("mapping/{A}.bam", A=sorted(config['entries'].keys())),
         ".report/modules/minimap2.html"
 
@@ -39,7 +38,7 @@ rule summarize_flagstat:
             properly_paired_pattern = re.compile(r"(\d+) \+ (\d+) properly paired \((.+):(.+)\)")
             with_itself_and_mate_pattern = re.compile(r"(\d+) \+ (\d+) with itself and mate mapped")
             singletons_pattern = re.compile(r"(\d+) \+ (\d+) singletons \((.+):(.+)\)")
-            summary_file.write("sample	total alignments	secondary	supplementary	duplicates	mapped	mapped[%]\n")
+            summary_file.write("sample	total alignments	secondary	supplementary	duplicates	mapped	mapped[%]	paired in sequencing	read1	read2	properly paired	properly paired[%]	with itself and mate mapped	singletons	singletons[%]\n")
             for i in input:
                 summary_file.write(i.replace("_flagstat.txt", "").replace("mapping/statistics/", "") + "	")
                 with open(i, "r") as input_file:
@@ -64,12 +63,41 @@ rule summarize_flagstat:
                         if mapped_match:
                             mapped = int(mapped_match.group(1))
                             continue
-                    summary_file.write(("{}\t"*5 + "{:2f}\n").format(
+                        paired_in_sequencing_match = paired_in_sequencing_pattern.match(line)
+                        if paired_in_sequencing_match:
+                            paired_in_sequencing = int(paired_in_sequencing_match.group(1))
+                            continue
+                        read1_match = read1_pattern.match(line)
+                        if read1_match:
+                            read1 = int(read1_match.group(1))
+                            continue
+                        read2_match = read2_pattern.match(line)
+                        if read2_match:
+                            read2 = int(read2_match.group(1))
+                            continue
+                        properly_paired_match = properly_paired_pattern.match(line)
+                        if properly_paired_match:
+                            properly_paired = int(properly_paired_match.group(1))
+                            continue
+                        with_itself_and_mate_match = with_itself_and_mate_pattern.match(line)
+                        if with_itself_and_mate_match:
+                            with_itself_and_mate = int(with_itself_and_mate_match.group(1))
+                            continue
+                        singletons_match = singletons_pattern.match(line)
+                        if singletons_match:
+                            singletons = int(singletons_match.group(1))
+                            continue
+                    summary_file.write(("{}\t"*5 + "{:2f}\t" + "{}\t"*4 + "{:2f}" + "\t{}\t{}\t{:2f}\n").format(
                         total,
                         secondary,
                         supplementary,
                         duplicates,
-                        mapped, mapped/total*100))
+                        mapped, mapped/total*100,
+                        paired_in_sequencing,
+                        read1, read2,
+                        properly_paired, properly_paired/paired_in_sequencing*100,
+                        with_itself_and_mate,
+                        singletons, singletons/paired_in_sequencing*100))
 
 
 rule samtools_flagstat:
@@ -89,11 +117,11 @@ rule mapping_stats_xlsx:
     input:
         "mapping/statistics/flagstat_summary.tsv"
     output:
-        xlsx="mapping/stats/mapping_stats.xlsx",
-        plot_alignment_absolute="mapping/stats/alignment_stats.svg",
-        plot_alignment_relative="mapping/stats/alignment_stats_relative.svg"
+        xlsx="mapping/statistics/flagstats/mapping_stats.xlsx",
+        plot_alignment_absolute="mapping/statistics/flagstats/alignment_stats.svg",
+        plot_alignment_relative="mapping/statistics/flagstats/alignment_stats_relative.svg"
     params:
-        plot_dir="mapping/stats/"
+        plot_dir="mapping/statistics/flagstats/"
     conda:
         "../lib/conda_env.yaml"
     group:
@@ -126,7 +154,7 @@ rule minimap2_mapping:
 	    reads="preprocessing/{sample}_R1.fastq.gz",
 	    reads_reverse="preprocessing/{sample}_R2.fastq.gz"
     output:
-        temp("mapping/sam/{sample}.sam")
+        "mapping/sam/{sample}.sam"
     conda:
         "../lib/conda_env.yaml"
     group:
@@ -148,8 +176,7 @@ rule index_bam:
         bam="mapping/{sample}.bam",
         bai="mapping/{sample}.bam.bai",
         bam_unmapped="mapping/unmapped/{sample}_unmapped.bam",
-        bam_singleton="mapping/singleton/{sample}_singletons.bam",
-        bam_disconc="mapping/disconcordantly/{sample}_disconc.bam"
+        bam_singleton="mapping/singleton/{sample}_singletons.bam"
     params:
         tmp_singleton=temp("mapping/singleton/{sample}_tmp.sam")
     conda:
@@ -159,12 +186,10 @@ rule index_bam:
     threads:
         2
     shell:
-        "samtools view -F 12 -f 2 -Shb {input} | samtools sort -@ {threads} -o {output.bam} - && samtools index {output.bam};"
+        "samtools view -F 12 -Shb {input} | samtools sort -@ {threads} -o {output.bam} - && samtools index {output.bam};"
 
         "samtools view -f 4 -F 8 -Sh {input} > {params.tmp_singleton} && samtools view -f 8 -F 4 -S {input} >> {params.tmp_singleton} "
         "&& samtools view -Shb {params.tmp_singleton} | samtools sort -@ {threads} -o {output.bam_singleton} - && rm {params.tmp_singleton};"
-
-        "samtools view -F 14 -Shb {input} | samtools sort -@ {threads} -o {output.bam_disconc} -;"
 
         "samtools view -f 12 -Shb {input} | samtools sort -@ {threads} -o {output.bam_unmapped} -;"
 
@@ -190,21 +215,21 @@ rule write_settings:
 rule generate_report_data:
     input:
         stats_tsv="mapping/statistics/flagstat_summary.tsv",
-        images=["mapping/stats/alignment_stats.svg", "mapping/stats/alignment_stats_relative.svg"],
+        images=["mapping/statistics/flagstats/alignment_stats.svg", "mapping/statistics/flagstats/alignment_stats_relative.svg"],
         settings="mapping/settings.yaml"
     output:
-        bw2_data=".report/data/minimap2_data.js",
-        bw2_html=".report/modules/minimap2.html",
-        bw2_js=".report/js/modules/minimap2.js",
-        bw2_css=".report/css/modules/minimap2.css",
-        bw2_images=directory(".report/img/modules/minimap2/")
+        mm2_data=".report/data/minimap2_data.js",
+        mm2_html=".report/modules/minimap2.html",
+        mm2_js=".report/js/modules/minimap2.js",
+        mm2_css=".report/css/modules/minimap2.css",
+        mm2_images=directory(".report/img/modules/minimap2/")
     conda:
         "../lib/conda_env.yaml"
     group:
         "minimap2_report"
     shell:
-        "python3 lib/generate_report_data.py --stats {input.stats_tsv} --output {output.bw2_data} --settings {input.settings} --paired-end && "
-        "cp lib/report/minimap2.html {output.bw2_html} && "
-        "cp lib/report/minimap2.js {output.bw2_js} && "
-        "cp lib/report/minimap2.css {output.bw2_css} &&"
-        "mkdir -p {output.bw2_images} && cp {input.images} {output.bw2_images}"
+        "python3 lib/generate_report_data.py --stats {input.stats_tsv} --output {output.mm2_data} --settings {input.settings} --paired-end && "
+        "cp lib/report/minimap2.html {output.mm2_html} && "
+        "cp lib/report/minimap2.js {output.mm2_js} && "
+        "cp lib/report/minimap2.css {output.mm2_css} &&"
+        "mkdir -p {output.mm2_images} && cp {input.images} {output.mm2_images}"

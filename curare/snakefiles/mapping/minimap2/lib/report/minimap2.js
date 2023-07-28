@@ -8,7 +8,7 @@ new Vue({
         minimap2_settings: Curare.minimap2.settings,
         stats_percent_header_paired_end: ["", ""],
         stats_in_percent: [],
-        bw2_settings_columns: [
+        mm2_settings_columns: [
             {
                 field: 'key',
                 label: 'Key',
@@ -22,7 +22,7 @@ new Vue({
         ]
     },
     computed: {
-        bw2_settings_data: function() {
+        mm2_settings_data: function() {
             let vue = this
             let settings = [
                 {

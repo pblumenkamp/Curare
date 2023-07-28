@@ -5,8 +5,7 @@ genome_base_name = "%%GENOME_FASTA%%".rsplit("/", 1)[-1]
 
 rule all:
     input:
-        "mapping/stats/mapping_stats.xlsx",
-        "mapping/statistics/flagstat_summary.tsv",
+        "mapping/statistics/flagstats/mapping_stats.xlsx",
         expand("mapping/{A}.bam", A=sorted(config['entries'].keys())),
         ".report/data/minimap2_data.js"
 
@@ -80,11 +79,11 @@ rule mapping_stats_xlsx:
     input:
         "mapping/statistics/flagstat_summary.tsv"
     output:
-        xlsx="mapping/stats/mapping_stats.xlsx",
-        plot_alignment_absolute="mapping/stats/alignment_stats.svg",
-        plot_alignment_relative="mapping/stats/alignment_stats_relative.svg"
+        xlsx="mapping/statistics/flagstats/mapping_stats.xlsx",
+        plot_alignment_absolute="mapping/statistics/flagstats/alignment_stats.svg",
+        plot_alignment_relative="mapping/statistics/flagstats/alignment_stats_relative.svg"
     params:
-        plot_dir="mapping/stats/"
+        plot_dir="mapping/statistics/flagstats/"
     conda:
         "../lib/conda_env.yaml"
     group:
@@ -170,7 +169,7 @@ rule write_settings:
 rule generate_report_data:
     input:
         stats_tsv="mapping/statistics/flagstat_summary.tsv",
-        images=["mapping/stats/alignment_stats.svg", "mapping/stats/alignment_stats_relative.svg"],
+        images=["mapping/statistics/flagstats/alignment_stats.svg", "mapping/statistics/flagstats/alignment_stats_relative.svg"],
         settings="mapping/settings.yaml"
     output:
         mm2_data=".report/data/minimap2_data.js",
