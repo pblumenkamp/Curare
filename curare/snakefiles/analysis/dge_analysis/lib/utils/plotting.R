@@ -5,7 +5,7 @@ create_correlation_matrix <- function(countdata, conditiontable) {
     countdata.normalized.processed <- log2(countdata.normalized.processed + 1)
     sample_cor <- cor(countdata.normalized.processed, method = 'pearson', use = 'pairwise.complete.obs')
 
-    return(pheatmap(sample_cor, annotation_col = conditiontable, annotation_row = conditiontable))
+    return(pheatmap(sample_cor, annotation_row = conditiontable))
 }
 
 # Bar charts showing the assignment of allignments to genes (featureCounts statistics)
