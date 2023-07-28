@@ -31,7 +31,7 @@ rule multiqc:
         "../lib/conda_env.yaml"
     params:
         input_dir = "premapping/multiqc/fastqc",
-        outout_dir = "premapping/multiqc/"
+        output_dir = "premapping/multiqc/"
     group:
         "multiqc"
     threads:
