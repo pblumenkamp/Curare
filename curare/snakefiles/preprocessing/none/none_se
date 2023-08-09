@@ -7,7 +7,7 @@ def getPath(sample):
 
 rule all:
     input: 
-        expand("preprocessing/{sample}.fastq.gz", sample=config['entries'].keys())
+        expand("preprocessing/{sample}.fastq.gz", sample=config['entry_order'])
 
 rule gzip_files:
     input:
