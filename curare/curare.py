@@ -4,7 +4,7 @@ Customizable and Reproducible Analysis Pipeline for RNA-Seq Experiments (Curare)
 
 Usage:
     curare.py --samples <samples_file> --pipeline <pipeline_file> --output <output_folder>
-                 [--use-conda] [--conda-frontend <frontend>] [--conda-prefix <conda_prefix>] [--cores <cores>] [--keep-going] [--latency-wait <seconds>] [--verbose]
+                 [--use-conda | --no-conda] [--conda-frontend <frontend>] [--conda-prefix <conda_prefix>] [--cores <cores>] [--keep-going] [--latency-wait <seconds>] [--verbose]
     curare.py --samples <samples_file> --pipeline <pipeline_file> --output <output_folder> --create-conda-envs-only [--conda-frontend <frontend>] [--conda-prefix <conda_prefix>] [--verbose]
     curare.py (--version | --help)
 
@@ -16,7 +16,8 @@ Options:
     --pipeline <pipeline_file>                      File containing information about the RNA-seq pipeline
     --output <output_folder>                        Output folder (will be created if not existing)
 
-    --use-conda                                     Install and use separate conda environments for pipeline modules [Default: False]
+    --use-conda                                     DEPRECATED, BY DEFAULT ON - Install and use separate conda environments for pipeline modules
+    --no-conda                                      Don't use Conda/Mamba for the installation of module tools. (All tools necessary must be installed manually in advance) 
     --conda-frontend <frontend>                     Choose conda frontend for creating and installing conda environments (conda, mamba) [Default: mamba]
     --conda-prefix <conda_prefix>                   The directory in which conda environments will be created. Relative paths will be relative to output folder! (Default: Output_folder)
     --create-conda-envs-only                        Only download and create conda environments.
@@ -93,7 +94,7 @@ def main():
         used_modules, paired_end = load_pipeline_file(args["--pipeline"])
         samples: Dict[str, Dict[str, Dict[str, str]]] = parse_samples_file(args["--samples"], used_modules, paired_end)
         create_output_directory(args["--output"])
-        snakefile: Path = create_snakefile(args["--output"], samples, used_modules, args["--use-conda"], args["--conda-prefix"], args["--pipeline"])
+        snakefile: Path = create_snakefile(args["--output"], samples, used_modules, not args["--no-conda"], args["--conda-prefix"], args["--pipeline"])
     except UnknownInputFileError as ex:
         print(ClColors.FAIL + str(ex) + ClColors.ENDC, file=sys.stderr)
         sys.exit(1)
@@ -130,12 +131,12 @@ def main():
         sm_command: List[str] = ["snakemake", "--snakefile", str(snakefile), "--directory", str(args["--output"]),
                                  "--cores", args["--cores"],
                                  "--printshellcmds", "--latency-wait", args["--latency-wait"]]
-        if args["--use-conda"]:
+        if not args["--no-conda"]:
             sm_command.append("--use-conda")
-        if args["--conda-frontend"]:
-            sm_command.extend(["--conda-frontend", args["--conda-frontend"]])
-        if args["--conda-prefix"]:
-            sm_command.extend(["--conda-prefix", args["--conda-prefix"]])
+            if args["--conda-frontend"]:
+                sm_command.extend(["--conda-frontend", args["--conda-frontend"]])
+            if args["--conda-prefix"]:
+                sm_command.extend(["--conda-prefix", args["--conda-prefix"]])
         if args["--keep-going"]:
             sm_command.append("--keep-going")
         if args["--verbose"]:
@@ -147,7 +148,7 @@ def main():
             sys.exit(99)
 
         finish_time: datetime.datetime = datetime.datetime.utcnow()
-        if args["--use-conda"]:
+        if not args["--no-conda"]:
             generate_report.create_report(
                 src_folder=REPORT_SRC_DIRECTORY,
                 snakefiles_folder=SNAKEFILES_LIBRARY,
@@ -579,7 +580,7 @@ def create_snakefile(output_folder: Path, samples: Dict[str, Dict[str, Dict[str,
 def create_snakemake_config_file(output_folder: Path, samples: Dict[str, Dict[str, Dict[str, Any]]]) -> Path:
     config_path = output_folder / SNAKEFILES_TARGET_DIRECTORY / 'snakefile_config.yml'
     with config_path.open('w') as config_file:
-        config_file.write('entry_order: [{}]\n'.format(", ".join(samples.keys())))
+        config_file.write('entry_order: [{}]\n'.format(", ".join(['"' + sample + '"' for sample in samples.keys()])))
         config_file.write('entries:\n')
         for row, modules in samples.items():
             config_file.write('    "{}":\n'.format(row))
@@ -616,6 +617,8 @@ def parse_arguments():
         if args[file]:
             if not args[file].exists():
                 raise UnknownInputFileError("Command Line Arguments: Unknown file: {}".format(args[file]))
+            
+    
 
     return args
 

@@ -65,7 +65,7 @@ conda activate curare
 curare --help
 ```
 
-Alternatively, you can install Curare via GitHub release and install all dependencies in conda_environment.yaml manually. This would be enough to run Curare in `--use-conda` mode. 
+Alternatively, you can install Curare via GitHub release and install all dependencies in conda_environment.yaml manually. 
 
 ```bash
 mamba env create -n curare -f /path/to/Curare/conda_environment.yaml
@@ -73,7 +73,7 @@ conda activate curare
 bin/curare --help
 ```
 
-If you want to run Curare completely without Conda, you would also need to install the dependencies of all used Curare modules. You can find the dependencies of every module at `curare/snakefiles/<module_category>/<module>/lib/conda_env.yaml`.
+If you want to run Curare completely without Conda, you would also need to install the dependencies of all used Curare modules. You can find the dependencies of every module at `curare/snakefiles/<module_category>/<module>/lib/conda_env.yaml`. To omit the usage of conda/mamba, use the `--no-conda` option when starting Curare.
 
 If you want to test Curare, you can download our [example dataset](https://curare-dataset.s3.computational.bio.uni-giessen.de/curare-user-testcase.zip) with a pre-built configuration.
 
@@ -169,7 +169,7 @@ mapping:
 
 
 analysis:
-  modules: ["dge_analysis", "readxplorer"]
+  modules: ["dge_analysis"]
 
   dge_analysis:
     ## Used feature type, e.g. gene or exon. [Value Type: String]
@@ -189,14 +189,6 @@ analysis:
 
     ## GFF attributes to show in the beginning of the xlsx summary (Comma-separated list, e.g. "experiment, product, Dbxref"). [Value Type: String]
     #attribute_columns: ""
-
-
-  readxplorer:
-    ## Path to ReadXplorer CLI executable. [Value Type: File_input]
-    readxplorer_cli_path: <Insert Config Here>
-
-    ## Path to reference genome sequence. [Value Type: File_input]
-    reference_genome: <Insert Config Here>
 ```
 <details>
   <summary>Filled pipeline file</summary>
@@ -252,7 +244,7 @@ mapping:
 
 
 analysis:
-  modules: ["dge_analysis", "readxplorer"]
+  modules: ["dge_analysis"]
 
   dge_analysis:
     ## Used feature type, e.g. gene or exon. [Value Type: String]
@@ -272,14 +264,6 @@ analysis:
 
     ## GFF attributes to show in the beginning of the xlsx summary (Comma-separated list, e.g. "experiment, product, Dbxref"). [Value Type: String]
     #attribute_columns: ""
-
-
-  readxplorer:
-    ## Path to ReadXplorer CLI executable. [Value Type: File_input]
-    readxplorer_cli_path: /usr/share/readxplorer/bin/readxplorer-cli
-
-    ## Path to reference genome sequence. [Value Type: File_input]
-    reference_genome: "reference/my_genome.fasta"
 ```
 </details>
 
@@ -289,7 +273,7 @@ Curare can be started with this command:
 # Current working directory inside of root tool directory
 cd curare
 conda activate curare
-curare --samples <target_directory>/samples.tsv --pipeline <target_directory>/pipeline.yml --output <results_directory> --use-conda
+curare --samples <target_directory>/samples.tsv --pipeline <target_directory>/pipeline.yml --output <results_directory>
 ```
 
 All results, including the conda environments and a final report, will be written in `results_directory`.
