@@ -121,7 +121,7 @@ def main():
     worksheet.conditional_format(1, columns - 17, rows - 1, columns - 17, format_w2c(min_color='#FFFFFF', max_color="#FF0000"))
     worksheet.conditional_format(1, columns - 20, rows - 1, columns - 20, {'type': 'data_bar', 'bar_color': "#BBCFDA", 'bar_solid': True})
 
-    writer.save()
+    writer.close()
 
 
 if __name__ == '__main__':
