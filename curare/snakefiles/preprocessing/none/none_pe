@@ -9,7 +9,7 @@ def getPath(sample, mate):
 
 rule all:
     input: 
-         expand("preprocessing/{sample}_R{mate}.fastq.gz", sample=config['entries'].keys(), mate=[1,2])
+         expand("preprocessing/{sample}_R{mate}.fastq.gz", sample=config['entry_order'], mate=[1,2])
 
 rule create_hardlink:
     input:
