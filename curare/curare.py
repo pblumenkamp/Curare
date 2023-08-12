@@ -370,6 +370,18 @@ def get_setting(setting_name, setting_properties, user_settings, pipeline_file_p
             if not file.exists():
                 raise InvalidFileError('Error in option "{}": File does not exist.\nUser input: {}\nResolved to: {}'.format(setting_name, user_settings[setting_name], file))
         setting = str(file)
+    elif setting_type == 'boolean':
+        if isinstance(user_settings[setting_name], str):
+            if user_settings[setting_name].upper() in ["TRUE", "YES", "ON", "Y"]:
+                setting = True
+            elif user_settings[setting_name].upper() in ["FALSE", "NO", "OFF", "N"]:
+                setting = False
+            else:
+                raise InvalidBooleanTypeError('Error in option "{}": "{}" cannot be converted into an boolean'.format(setting_name, user_settings[setting_name]))
+        elif not isinstance(user_settings[setting_name], bool):
+            raise InvalidBooleanTypeError('Error in option "{}": "{}" cannot be converted into an boolean'.format(setting_name, user_settings[setting_name]))
+        else:
+            setting = user_settings[setting_name]
     elif setting_type == 'enum':
         if user_settings[setting_name] not in setting_properties['choices']:
             raise UnknownEnumError('Error in option "{}": Unknown value "{}". Allowed choices:\n{}'.format(setting_name, user_settings[setting_name], ''.join([' + {}\n'.format(choice) for choice in setting_properties['choices'].keys()])))
@@ -408,9 +420,44 @@ def get_default_setting(setting_name, setting_properties):
     if setting_type == 'enum':
         if default_setting not in setting_properties['choices']:
             raise UnknownEnumError('Error in option "{}": Unknown default value "{}". Allowed choices:\n{}'.format(setting_name, default_setting, ''.join([' + {}\n'.format(choice) for choice in setting_properties['choices'].keys()])))
-        return setting_properties['choices'][default_setting]
+        setting = setting_properties['choices'][default_setting]
+    elif setting_type == 'boolean':
+        if isinstance(default_setting, str):
+            if default_setting.upper() in ["TRUE", "YES", "ON", "Y"]:
+                setting = True
+            elif default_setting.upper() in ["FALSE", "NO", "OFF", "N"]:
+                setting = False
+            else:
+                raise InvalidBooleanTypeError('Error in option "{}": "{}" cannot be converted into an boolean'.format(setting_name, default_setting))
+        elif not isinstance(default_setting, bool):
+            raise InvalidBooleanTypeError('Error in option "{}": "{}" cannot be converted into an boolean'.format(setting_name, default_setting))
+        else:
+            setting = default_setting
+    elif setting_type == 'number':
+        value = default_setting
+        number_type = setting_properties['number_type']
+        min_value = -math.inf if setting_properties['range']['min'] == "-Inf" else setting_properties['range']['min']
+        max_value = math.inf if setting_properties['range']['max'] == "Inf" else setting_properties['range']['max']
+        if number_type == 'integer':
+            try:
+                value = int(value)
+            except ValueError:
+                raise InvalidNumberTypeError('Error in option "{}": "{}" cannot be converted into an integer'.format(setting_name, value))
+        elif number_type == 'float':
+            try:
+                value = float(value)
+            except ValueError:
+                raise InvalidNumberTypeError('Error in option "{}": "{}" cannot be converted into a float'.format(setting_name, value))
+        else:
+            raise InvalidPipelineFileError('Error in option "{}": Unknown number type'.format(setting_name))
+        if min_value <= value <= max_value:
+            setting = value
+        else:
+            raise OutOfBondError('Error in option "{}": Value out of valid range. Used value: {} - Range: {}-{}'.format(setting_name, default_setting, min_value, max_value))
     else:
-        return default_setting
+        setting = default_setting
+    
+    return setting
 
 
 def load_module(category: str, module_name: str, user_settings: Dict[str, str], pipeline_file_path: Path, paired_end: bool) -> 'Module':
@@ -739,6 +786,17 @@ class OutOfBondError(Exception):
 
 class InvalidNumberTypeError(Exception):
     """Exception raised for an invalid number type.
+
+        Attributes:
+            message -- message displayed
+    """
+
+    def __init__(self, message: str):
+        super(InvalidNumberTypeError, self).__init__(message)
+
+
+class InvalidBooleanTypeError(Exception):
+    """Exception raised for an invalid boolean type.
 
         Attributes:
             message -- message displayed
