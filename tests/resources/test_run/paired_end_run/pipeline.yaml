@@ -1,0 +1,60 @@
+## Curare Pipeline File
+## This is an automatically created pipeline file for Curare.
+## All required parameters must be set (replace <Insert Config Here> with real value).
+## All optional parameters are commented out with a single '#'. For including these parameters, just remove the '#'.
+
+pipeline:
+  paired_end: true
+
+preprocessing:
+  modules: ["none"]
+
+premapping:
+  modules: []
+
+mapping:
+  modules: ["bowtie2"]
+
+  bowtie2:
+    ## Path to reference genome fasta file. [Value Type: File_input]
+    genome_fasta: "../../reference/GCF_000007445.1_ASM744v1_genomic.fna"
+
+    ## Additional options to use in shell command. [Value Type: String]
+    #additional_bowtie2_options: ""
+
+    ## Choose between "local" or "end-to-end" alignment (Default: "end-to-end"). [Value Type: Enum]
+    #alignment_type: "end-to-end"
+
+
+analysis:
+  modules: ["dge_analysis"]
+
+  dge_analysis:
+    ## Used feature type, e.g. gene or exon. (See column 3 of GFF). [Value Type: String]
+    gff_feature_type: CDS
+
+    ## File path to (uncompressed) gff file. Defaults are set for GFF3 format. [Value Type: File_input]
+    gff_path: "../../reference/GCF_000007445.1_ASM744v1_genomic.gff"
+
+    ## Descriptor for feature name, e.g. ID or gene_id. Counts will be summed up when features share the same name. (See column 9 of GFF). [Value Type: String]
+    #gff_feature_name: "ID"
+
+    ## Descriptor for feature parent (in most cases 'Parent'). Relevant, if exons should be summed up by its mRNAs name. (See column 9 of GFF). [Value Type: String]
+    #gff_feature_parent: "Parent"
+
+    ## Should be set 'true' if features should be summed up by its hierarchical parent instead of its ID, for example, when counting exons but summarizing by their transcript ID. (Only for main feature 'gff_feature_type'). [Value Type: Boolean]
+    use_parent_instead_of_id: "yes"
+
+    ## Strand specificity of reads. Specifies if reads must lie on the same strand as the feature, the opposite strand, or can be on both. Options: "unstranded, stranded, reversely_stranded". [Value Type: Enum]
+    strand_specificity: "stranded"
+
+    ## List of features, which should also be counted in a count table. Values as comma-separated list (e.g. "ncRNA,rRNA,tRNA") (Default: All feature types in annotation and in allowlist)
+    ## Allowlist: "CDS", "exon", "intron", "gene", "mRNA", "tRNA", "rRNA", "ncRNA", "operon", "snRNA", "snoRNA", "miRNA", "pseudogene", "small regulatory ncRNA", "rasiRNA", "guide RNA", "siRNA", "stRNA", "sRNA".
+    ## [Value Type: String]
+    additional_featcounts_tables: "CDS,rRNA,tRNA"
+
+    ## Additional options to use in shell command. [Value Type: String]
+    #additional_featcounts_options: ""
+
+    ## GFF attributes to show in the beginning of the xlsx summary (Comma-separated list, e.g. "experiment, product, Dbxref"). [Value Type: String]
+    attribute_columns: "name, product"

@@ -17,10 +17,10 @@ mapping:
 
   star:
     ## Path to genome fasta file. [Value Type: File]
-    genome_fasta: "../../reference/listeria_monocytogenes_egd_e.fasta"
+    genome_fasta: "../../reference/GCF_000007445.1_ASM744v1_genomic.fna"
 
     ## Path to genome GTF/GFF file. If you are using GFF, please also use "GFF Parent Keyword", "GFF ID Keyword", and "GFF Feature Type". [Value Type: File]
-    genome_annotation: "../../reference/listeria_monocytogenes_egd_e.gff3"
+    genome_annotation: "../../reference/GCF_000007445.1_ASM744v1_genomic.gff"
 
     ## Keyword for parent attribute in gff file. [Value Type: String]
     gff_parent_keyword: "Parent"
@@ -46,7 +46,7 @@ analysis:
     gff_feature_name: "ID"
 
     ## File path to gff file. [Value Type: File_input]
-    gff_path: "../../reference/listeria_monocytogenes_egd_e.gff3"
+    gff_path: "../../reference/GCF_000007445.1_ASM744v1_genomic.gff"
 
     ## List of features, which should also be counted in a count table. Values as comma-separated list (e.g. "ncRNA,rRNA,tRNA") (Default: All feature types in annotation and in allowlist)
     ## Allowlist: "CDS", "exon", "intron", "gene", "mRNA", "tRNA", "rRNA", "ncRNA", "operon", "snRNA", "snoRNA", "miRNA", "pseudogene", "small regulatory ncRNA", "rasiRNA", "guide RNA", "siRNA", "stRNA", "sRNA".

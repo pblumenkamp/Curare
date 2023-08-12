@@ -1,5 +1,0 @@
-# name: Unique sample name. Only use alphanumeric characters and '_'. [Value Type: String]
-# forward_reads: File path to fastq file containing forward reads. Either as an absolute path or relative to this file. [Value Type: Path]
-# reverse_reads: File path to fastq file containing reverse reads. Either as an absolute path or relative to this file. [Value Type: Path]
-
-name	forward_reads	reverse_reads

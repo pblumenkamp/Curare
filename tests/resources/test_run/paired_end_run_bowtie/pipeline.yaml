@@ -1,0 +1,18 @@
+#This is a comment
+
+pipeline:
+  paired_end: true
+
+preprocessing:
+  modules: ["none"]
+
+mapping:
+  modules: ["bowtie"]
+
+  bowtie:
+    genome_fasta: "../../reference/GCF_000007445.1_ASM744v1_genomic.fna"
+    allowed_overall_mismatches: -1
+
+analysis:
+  modules: []
+

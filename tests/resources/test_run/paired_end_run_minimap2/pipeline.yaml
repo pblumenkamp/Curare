@@ -17,7 +17,7 @@ mapping:
 
   minimap2:
     ## Path to reference genome fasta file. [Value Type: File_input]
-    genome_fasta: "../../reference/listeria_monocytogenes_egd_e.fasta"
+    genome_fasta: "../../reference/GCF_000007445.1_ASM744v1_genomic.fna"
 
     ## Presets for various mapping situation: map-pb, map-ont, map-hifi, sr, none
     ##  map-pb/map-ont: PacBio CLR/Nanopore vs reference mapping

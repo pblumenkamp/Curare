@@ -1,0 +1,25 @@
+#This is a comment
+
+pipeline:
+  paired_end: false
+
+preprocessing:
+  modules: ["none"]
+
+premapping:
+  modules: []
+
+mapping:
+  modules: ["bowtie2"]
+
+  bowtie2:
+    genome_fasta: "../../reference/GCF_000007445.1_ASM744v1_genomic.fna"
+    alignment_type: "local"
+    # additional attributes: "--abc"
+
+analysis:
+  modules: ["normalized_coverage"]
+
+  normalized_coverage:
+    output_format: "bedgraph"
+    normalize_method: "None"
