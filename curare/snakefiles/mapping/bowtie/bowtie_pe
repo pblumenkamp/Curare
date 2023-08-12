@@ -96,7 +96,7 @@ rule bowtie_mapping:
         temp("mapping/sam/{sample}.sam")
     params:
         prefix=splitext("%%GENOME_FASTA%%")[0],
-        overall_mismatches=lambda wildcards: "" if len("%%ALLOWED_OVERALL_MISMATCHES%%") == 0 else "-v %%ALLOWED_OVERALL_MISMATCHES%% "
+        overall_mismatches=lambda wildcards: "" if %%ALLOWED_OVERALL_MISMATCHES%% == -1 else "-v %%ALLOWED_OVERALL_MISMATCHES%% "
     conda:
         "../lib/conda_env.yaml"
     group:

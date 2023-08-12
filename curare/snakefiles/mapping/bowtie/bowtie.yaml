@@ -12,13 +12,13 @@ required_settings:
 optional_settings:
   allowed_overall_mismatches:
     label: 'Allowed mismatches'
-    description: "Allowed mismatches (-v) for end-to-end alignment (0-3). If not used, bowtie will run in a local alignment mode."
+    description: "Report alignments with at most (0-3) mismatches. -1 for Bowtie default."
     type: 'number'
     number_type: 'integer'
     range:
-      min: 0
+      min: -1
       max: 3
-    default: ''
+    default: -1
 
   additional_bowtie_options:
     label: 'Additional Bowtie Options'
