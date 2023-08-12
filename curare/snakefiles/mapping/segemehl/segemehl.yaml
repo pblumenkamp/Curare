@@ -17,7 +17,7 @@ optional_settings:
     description: 'All reads with a best alignment below this threshold (in percent) will be discarded.'
     type: 'number'
     number_type: 'integer'
-    default: '90'
+    default: 90
     range:
       min: 0
       max: 100
