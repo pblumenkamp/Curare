@@ -1,13 +1,15 @@
 # name: Unique sample name. Only use alphanumeric characters and '_'. [Value Type: String]
-# forward_reads: File path to fastq file containing forward reads. Either as an absolute path or relative to this file. [Value Type: Path]
-# reverse_reads: File path to fastq file containing reverse reads. Either as an absolute path or relative to this file. [Value Type: Path]
+# forward_reads: File path to fastq file containing forward reads. Either as absolute path or relative to this file. [Value Type: Path]
+# reverse_reads: File path to fastq file containing reverse reads. Either as absolute path or relative to this file. [Value Type: Path]
+# condition: Condition name of sequencing run. May contain any character but '/', '\' and '#'. [Value Type: String]
 
-name	forward_reads	reverse_reads
-5535	../../input_data/ERR985535_R1.fastq	../../input_data/ERR985535_R2.fastq
-5536	../../input_data/ERR985536_R1.fastq	../../input_data/ERR985536_R2.fastq
-5535_subset	../../input_data/ERR985535_subset_R1.fastq	../../input_data/ERR985535_subset_R2.fastq
-5536_subset	../../input_data/ERR985536_subset_R1.fastq	../../input_data/ERR985536_subset_R2.fastq
-mix	../../input_data/mix_R1.fastq	../../input_data/mix_R2.fastq
-mix_subset	../../input_data/mix_subset_R1.fastq	../../input_data/mix_subset_R2.fastq
-5535_2	../../input_data/ERR985535_R1.fastq	../../input_data/ERR985535_R2.fastq
-5536_2	../../input_data/ERR985536_R1.fastq	../../input_data/ERR985536_R2.fastq
+name	forward_reads	reverse_reads	condition
+WT1	../../input_data/WT1_R1.fastq	../../input_data/WT1_R2.fastq	WT
+WT2	../../input_data/WT2_R1.fastq	../../input_data/WT2_R2.fastq	WT
+WT3	../../input_data/WT3_R1.fastq	../../input_data/WT3_R2.fastq	WT
+dFUR1	../../input_data/dFUR1_R1.fastq	../../input_data/dFUR1_R2.fastq	dFUR
+dFUR2	../../input_data/dFUR2_R1.fastq	../../input_data/dFUR2_R2.fastq	dFUR
+dFUR3	../../input_data/dFUR3_R1.fastq	../../input_data/dFUR3_R2.fastq	dFUR
+dRHYB1	../../input_data/dRHYB1_R1.fastq	../../input_data/dRHYB1_R2.fastq	dRHYB
+dRHYB2	../../input_data/dRHYB2_R1.fastq	../../input_data/dRHYB2_R2.fastq	dRHYB
+dRHYB3	../../input_data/dRHYB3_R1.fastq	../../input_data/dRHYB3_R2.fastq	dRHYB

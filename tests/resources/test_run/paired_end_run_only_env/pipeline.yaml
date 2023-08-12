@@ -1,0 +1,35 @@
+pipeline:
+  paired_end: true
+
+preprocessing:
+  modules: ""
+
+premapping:
+  modules: ["fastqc", "multiqc"]
+
+mapping:
+  modules: "bowtie2"
+
+  bowtie2:
+    genome_fasta: "../../reference/GCF_000007445.1_ASM744v1_genomic.fna"
+    alignment_type: "local"
+
+analysis:
+  modules: ["count_table", "dge_analysis"]
+
+  count_table:
+    gff_feature_type: "gene"
+    gff_feature_name: "ID"
+    gff_path: "../../reference/GCF_000007445.1_ASM744v1_genomic.gff"
+
+  readxplorer:
+    reference_genome: "../../reference/GCF_000007445.1_ASM744v1_genomic.gff"
+    readxplorer_cli_path: "../../../../../../../../bioinformatics/tools/readxplorer-cli/bin/readxplorer-cli"
+
+  dge_analysis:
+    gff_feature_type: "gene"
+    gff_feature_name: "ID"
+    gff_path: "../../reference/GCF_000007445.1_ASM744v1_genomic.gff"
+    additional_featcounts_options: "-B"
+    attribute_columns: "'name','product'"
+

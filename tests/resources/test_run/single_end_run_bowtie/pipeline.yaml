@@ -1,0 +1,19 @@
+pipeline:
+  paired_end: false
+
+preprocessing:
+  modules: ""
+
+premapping:
+  modules: []
+
+mapping:
+  modules: "bowtie"
+
+  bowtie:
+    genome_fasta: "../../reference/GCF_000007445.1_ASM744v1_genomic.fna"
+    allowed_overall_mismatches: 3
+    additional_bowtie_options: "-k 2"
+
+analysis:
+  modules: []

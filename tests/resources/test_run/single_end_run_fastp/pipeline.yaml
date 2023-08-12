@@ -34,7 +34,7 @@ mapping:
 
   bowtie2:
     ## Path to reference genome fasta file. [Value Type: File_input]
-    genome_fasta: "../../reference/listeria_monocytogenes_egd_e.fasta"
+    genome_fasta: "../../reference/GCF_000007445.1_ASM744v1_genomic.fna"
 
     ## Additional options to use in shell command. [Value Type: String]
     #additional_bowtie2_options: ""
