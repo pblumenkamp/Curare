@@ -11,7 +11,7 @@ dependencies:
   - matplotlib=3.7.1
   - docopt=0.6.2
   - xlsxwriter=3.0.9
-  - bioconductor-deseq2=1.38.0
+  - bioconductor-deseq2=1.40.2
   - r-ggplot2=3.4.2
   - r-reshape2=1.4.4
   - r-stringi=1.7.12

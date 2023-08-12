@@ -20,14 +20,22 @@ def list_of_all_features(gff_path):
   f2r.close()
 
   # Features to check for either user selected or Curare pre-selected
-  if "%%ADDITIONAL_FEATCOUNTS_FEATURES%%":
-    features = features.intersection("%%ADDITIONAL_FEATCOUNTS_FEATURES%%".split(","))
+  if "%%ADDITIONAL_FEATCOUNTS_TABLES%%":
+    features = features.intersection("%%ADDITIONAL_FEATCOUNTS_TABLES%%".split(","))
   else: 
     allowed_features = ["CDS", "exon", "intron", "gene", "mRNA", "tRNA", "rRNA", "ncRNA", "operon", "snRNA", "snoRNA",
         "miRNA", "pseudogene", "small regulatory ncRNA", "rasiRNA", "guide RNA", "siRNA", "stRNA", "sRNA"]
     features = features.intersection(allowed_features)
 
   return(list(features))
+
+def get_main_feature_name():
+    use_parent_as_id = %%USE_PARENT_INSTEAD_OF_ID%%
+    if use_parent_as_id:
+        return "%%GFF_FEATURE_PARENT%%"
+    else:
+        return "%%GFF_FEATURE_NAME%%"
+
 
 localrules: dge_analysis__create_conditions
 
@@ -55,7 +63,7 @@ rule summary_tsv_to_xslx:
         "dge_analysis"
     shell:
         "python3 lib/deseq2_summary_tsv_to_xlsx.py --tsv \"{input}\" --conditions \"{params.number_conditions}\" --gff \"%%GFF_PATH%%\" --identifier \"%%GFF_FEATURE_NAME%%\" "
-        "--feature \"%%GFF_FEATURE_TYPE%%\" --attributes \"%%ATTRIBUTE_COLUMNS%%\" --output \"{output}\""
+        "--attributes \"%%ATTRIBUTE_COLUMNS%%\" --output \"{output}\""
 
 rule make_count_tables:
     input:
@@ -103,19 +111,23 @@ rule visualize_assignments:
 
 rule count_reads:
     input:
-        counts = "analysis/dge_analysis/count_tables/%%GFF_FEATURE_TYPE%%.txt",
-        summary= "analysis/dge_analysis/count_tables/%%GFF_FEATURE_TYPE%%.txt.summary"
+        mappings=expand("mapping/{A}.bam", A=config['entry_order'])
     output:
         counts = "analysis/dge_analysis/counts.txt",
         summary = "analysis/dge_analysis/counts.txt.summary"
+    params:
+        feature_name = get_main_feature_name()
     conda:
         "../lib/conda_env.yaml"
     group:
         "count_reads"
     threads:
         1
+    log:
+        log="analysis/dge_analysis/logs/count_tables/counts.log"
     shell:
-        "cp {input.counts} {output.counts}; cp {input.summary} {output.summary}"
+        "featureCounts -p --countReadPairs -T {threads} %%STRAND_SPECIFICITY%% -t %%GFF_FEATURE_TYPE%% -g {params.feature_name} -a %%GFF_PATH%% %%ADDITIONAL_FEATCOUNTS_OPTIONS%% -o '{output.counts}' {input.mappings} 2>&1 | "
+        "tee {log.log};"
 
 rule create_conditions:
     output:

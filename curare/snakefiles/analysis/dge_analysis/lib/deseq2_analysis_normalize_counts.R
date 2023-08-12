@@ -60,7 +60,7 @@ countdata.normalized <- counts(deseqDataset, normalized = TRUE)
 write.table(data.frame("geneid"=rownames(countdata.normalized),countdata.normalized, check.names=FALSE), file = output_count, sep = "\t", row.names = FALSE)
 
 # Often called dds
-deseq.results <- DESeq(object = deseqDataset, parallel = TRUE)
+deseq.results <- DESeq(object = deseqDataset, parallel = FALSE)
 
 # Save R state in file
 save.image(file = r_data)

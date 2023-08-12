@@ -40,7 +40,6 @@ def parse_arguments():
     parser.add_argument('--conditions', dest='number_of_conditions', type=int, help="Number of Conditions in TSV minus 1 (#Cond - 1)")
     parser.add_argument('--gff', help="GFF/GTF file used for creating the TSV")
     parser.add_argument('--identifier', help="GFF identifier, e.g. ID")
-    parser.add_argument('--feature', help="Used GFF feature, e.g. gene or CDS")
     parser.add_argument('--attributes', type=str, default="",
                         help="Comma-seperated GFF attributes (e.g product,locus_tag) to show as columns at the beginning of the XLSX file")
     parser.add_argument('--output', help="Output path for XLSX file")
@@ -73,7 +72,6 @@ def main():
     # e.g. ID
     identifier = args.identifier.upper()
     # e.g. gene or CDS
-    feature = args.feature
     wanted_gff_attributes = [arg.strip().upper() for arg in args.attributes.split(",")]
 
     annotations = {}
@@ -92,12 +90,13 @@ def main():
             columns = line.strip().split("\t")
             if len(columns) != 9:
                 continue
-            if columns[2] == feature:
-                wanted_gff_attributes_plus_id = wanted_gff_attributes + [identifier]
-                attributes_string = columns[8]
-                parsed_attributes = parse_attributes(attributes_string, attribute_separator=attribute_separator, key_value_separator=key_value_separator).items()
-                attributes = {a.strip().upper(): b.strip() for a, b in parsed_attributes
-                              if a.strip().upper() in wanted_gff_attributes_plus_id}
+            
+            wanted_gff_attributes_plus_id = wanted_gff_attributes + [identifier]
+            attributes_string = columns[8]
+            parsed_attributes = parse_attributes(attributes_string, attribute_separator=attribute_separator, key_value_separator=key_value_separator).items()
+            attributes = {a.strip().upper(): b.strip() for a, b in parsed_attributes
+                            if a.strip().upper() in wanted_gff_attributes_plus_id}
+            if identifier in attributes:
                 stripped_identifier: str = attributes[identifier].strip('"\'')
                 annotations[stripped_identifier] = {}
                 annotations[stripped_identifier]['attr'] = attributes_string.replace(';', '; ')
