@@ -263,81 +263,12 @@ new Vue({
             if (chartId in vue.charts && vue.charts[chartId] !== undefined) {
                 vue.charts[chartId].destroy()
             }
+            Chart.defaults.font.size = 16;
             vue.charts[chartId] = new Chart(ctx, {
                 type: type,
                 data: data,
                 options: options,
             });
-        },
-        create_stacked_bar_chart() {
-            const vue = this
-            const colors = [
-                'rgba(0,160,250,1)',
-                'rgba(10,155,75,1)',
-                'rgba(255,130,95,1)',
-                'rgba(250,120,250,1)',
-                'rgba(160,250,130,1)',
-                'rgba(170,10,60,1)',
-                'rgba(0,110,130,1)',
-                'rgba(234,214,68,1)',
-                'rgba(130,20,160,1)',
-                'rgba(20,210,220,1)',
-                'rgba(0,90,200,1)',
-                'rgba(250,230,130,1)',
-                'rgba(0,0,0,1)',
-                'rgba(125,125,125,1)'
-            ]
-            const datasets = []
-
-            for (const [i, category] of vue.counttable_columns.entries()) {
-                if (!['name', 'reads'].includes(category.field) && category.visible) {
-                    const data = []
-                    for (const row of vue.counttable_table) {
-                        data.push(row[category.field])
-                    }
-                    const color = colors[i-2]  // 'name' and 'reads' don't need any color
-                    datasets.push({
-                        label: category.label,
-                        data: data,
-                        backgroundColor: data.map((x) => color),
-                        borderColor: data.map((x) => color),
-                        borderWidth: 2
-                    })
-                }
-            }
-            const chartID = 'stacked_barchart'
-            var data = {
-                datasets: datasets,
-                labels: vue.counttable_table.map((x) => x['name']),
-            }
-            var options = {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    }
-                },
-                scales: {
-                    x: {
-                      stacked: true,
-                    },
-                    y: {
-                      stacked: true,
-                      beginAtZero: true
-                    }
-                  }
-            }
-
-            if (vue.counttable_in_percent) {
-                options.scales.y.max = 100
-            }
-
-            this.createChart(
-                chartID,
-                'bar',
-                data,
-                options
-            )
         },
         create_lfc_distribution_chart() {
             const vue = this
@@ -357,7 +288,7 @@ new Vue({
                     labels: data_label,
                     datasets: [{
                         data: data,
-                        backgroundColor: 'rgba(0,160,250,1)',
+                        backgroundColor: 'rgba(72,120,208,1)',
                         barPercentage: 0.95,
                         categoryPercentage: 1,
                         xAxisID: "xA"
@@ -396,9 +327,6 @@ new Vue({
         }
     },
     watch: {
-      counttable_in_percent: function () {
-          this.create_stacked_bar_chart()
-      },
       active_comparison_menu: function () {
           this.create_lfc_distribution_chart()
       }
@@ -406,7 +334,6 @@ new Vue({
     mounted: function () {
         const vue = this
         this.$nextTick(function () {
-            this.create_stacked_bar_chart()
             this.create_lfc_distribution_chart()
         })
     }

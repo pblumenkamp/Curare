@@ -87,6 +87,9 @@ if (("ggplot2" %in% rownames(installed.packages())) && ("reshape2" %in% rownames
 {
     rld <- rlog(deseqDataset)
     svglite(paste(output_vis, 'pca.svg', sep = "/"))
-    print(plotPCA(rld))
+    print(plotPCA(rld) +
+          theme(text = element_text(size = 16),
+                legend.position = "bottom", 
+                legend.title = element_blank()))
     dev.off()
 }

@@ -2,12 +2,14 @@ import csv
 import matplotlib
 matplotlib.use('Agg')
 matplotlib.rcParams.update({'figure.autolayout': True})
+matplotlib.rcParams.update({'font.size': 12})
 import matplotlib.pyplot as plt
 import pandas as pd
 import sys
 
 from pathlib import Path
 from typing import Dict, List, Union
+from matplotlib.colors import ListedColormap
 
 
 def get_col_widths(df: pd.DataFrame) -> List[int]:
@@ -26,6 +28,7 @@ def format_w2c(min_color: str = '#FFFFFF', max_color: str = '#000000', min_value
 
 
 def create_charts(df: pd.DataFrame, output_dir: Path):
+    colors = ListedColormap(['#4878d0', '#ff7f00', '#e41a1c'])
     absolute_alignments: pd.DataFrame = df[["sample", "aligned_1_time", "aligned_more_than_1_times", "aligned_0_times"]]
     absolute_alignments = absolute_alignments.set_index("sample")
     absolute_alignments.index.names = [None]
@@ -33,15 +36,15 @@ def create_charts(df: pd.DataFrame, output_dir: Path):
     absolute_alignments = absolute_alignments.rename(columns={"aligned_0_times": "Aligned 0 Times",
                                                               "aligned_1_time": "Aligned 1 Time",
                                                               "aligned_more_than_1_times": "Aligned >1 Times"})
-    ax = absolute_alignments.plot(kind='bar', stacked=True, alpha=0.7)
-    ax.legend(loc='lower center', bbox_to_anchor=(0.5, 1.05), fancybox=True, shadow=False, ncol=2)
+    ax = absolute_alignments.plot(kind='bar', stacked=True, colormap=colors)
+    ax.legend(loc='lower center', bbox_to_anchor=(0.5, 1.01), ncols=3, frameon=False)
 
     ax.set_ylabel("#Read Pairs")
     plt.savefig(str(output_dir / "alignment_stats.svg"))
 
     relative_alignments = absolute_alignments.div(other=absolute_alignments.sum(axis=1), axis=0).mul(100)
-    ax = relative_alignments.plot(kind='bar', stacked=True, alpha=0.7)
-    ax.legend(loc='lower center', bbox_to_anchor=(0.5, 1.05), fancybox=True, shadow=False, ncol=2)
+    ax = relative_alignments.plot(kind='bar', stacked=True, colormap=colors)
+    ax.legend(loc='lower center', bbox_to_anchor=(0.5, 1.01), ncols=3, frameon=False)
     ax.set_ylabel("Read Pairs [%]")
     plt.savefig(str(output_dir / "alignment_stats_relative.svg"))
 
