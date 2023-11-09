@@ -5,7 +5,8 @@ rule all:
     input:
         "mapping/stats/mapping_stats.xlsx",
         ".report/modules/star.html",
-        expand("mapping/{A}.bam", A=sorted(config['entries'].keys()))
+        expand("mapping/{A}.bam", A=sorted(config['entries'].keys())),
+        expand("mapping/{A}.bam.csi", A=sorted(config['entries'].keys()))
 
 
 rule mapping_stats_xlsx:
@@ -123,12 +124,11 @@ rule star_mapping:
         """
 
 
-rule index_bam:
+rule sam_to_bam:
     input:
         "mapping/raw_star_output/{sample}_Aligned.sortedByCoord.out.bam"
     output:
         bam="mapping/{sample, [^/]+}.bam",
-        bai="mapping/{sample, [^/]+}.bam.bai",
         bam_unmapped="mapping/unmapped/{sample, [^/]+}_unmapped.bam",
         bam_singleton="mapping/singleton/{sample, [^/]+}_singletons.bam",
         bam_disconc="mapping/disconcordantly/{sample, [^/]+}_disconc.bam"
@@ -139,7 +139,7 @@ rule index_bam:
     threads:
         4
     shell:
-        "samtools view -F 12 -f 2 -Shb {input} | samtools sort -@ {threads} -o {output.bam} - && samtools index {output.bam};\n"
+        "samtools view -F 12 -f 2 -Shb {input} | samtools sort -@ {threads} -o {output.bam} -; \n"
 
         "samtools view -f 4 -F 8 -Sh {input} > {params.tmp_singleton} && samtools view -f 8 -F 4 -S {input} >> {params.tmp_singleton} "
         "&& samtools view -Shb {params.tmp_singleton} | samtools sort -@ {threads} -o {output.bam_singleton} - && rm {params.tmp_singleton};\n"
@@ -147,6 +147,16 @@ rule index_bam:
         "samtools view -F 14 -Shb {input} | samtools sort -@ {threads} -o {output.bam_disconc} -;\n"
 
         "samtools view -f 12 -Shb {input} | samtools sort -@ {threads} -o {output.bam_unmapped} -;\n"
+
+rule index_bam:
+    input:
+        bam="mapping/{sample}.bam"
+    output:
+        csi="mapping/{sample}.bam.csi",
+    conda:
+        "../lib/conda_env.yaml"
+    shell:
+        "samtools index -c {input.bam}"
 
 rule write_settings:
     output:
