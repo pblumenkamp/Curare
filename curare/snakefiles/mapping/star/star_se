@@ -5,7 +5,8 @@ rule all:
     input:
         "mapping/stats/mapping_stats.xlsx",
         ".report/modules/star.html",
-        expand("mapping/{A}.bam", A=sorted(config['entries'].keys()))
+        expand("mapping/{A}.bam", A=sorted(config['entries'].keys())),
+        expand("mapping/{A}.bam.csi", A=sorted(config['entries'].keys()))
 
 
 rule mapping_stats_xlsx:
@@ -126,13 +127,23 @@ rule sam_to_bam:
         "mapping/raw_star_output/{sample}_Aligned.sortedByCoord.out.bam"
     output:
         bam="mapping/{sample}.bam",
-        bai="mapping/{sample}.bam.bai",
         bam_unmapped="mapping/unmapped/{sample}_unmapped.bam"
     threads:
         4
     shell:
-        "samtools view -F 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam} - && samtools index {output.bam};"
+        "samtools view -F 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam} -;"
         "samtools view -f 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam_unmapped} -"
+
+rule bam_index:
+    input:
+        bam="mapping/{sample}.bam"
+    output:
+        csi="mapping/{sample}.bam.csi",
+    threads:
+        4
+    shell:
+        "samtools index -c {input.bam}"
+
 
 rule write_settings:
     output:

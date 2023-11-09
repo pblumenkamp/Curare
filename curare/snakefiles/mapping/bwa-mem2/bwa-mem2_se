@@ -120,7 +120,7 @@ rule sam_to_bam:
         "mapping/sam/{sample}.sam"
     output:
         bam="mapping/{sample}.bam",
-        bai="mapping/{sample}.bam.bai",
+        csi="mapping/{sample}.bam.csi",
         bam_unmapped="mapping/unmapped/{sample}_unmapped.bam"
     conda:
         "../lib/conda_env.yaml"
@@ -129,7 +129,7 @@ rule sam_to_bam:
     threads:
         1
     shell:
-        "samtools view -F 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam} - && samtools index {output.bam};"
+        "samtools view -F 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam} - && samtools index -c {output.bam};"
         "samtools view -f 4 -Shb {input} | samtools sort -@ {threads} -o {output.bam_unmapped} -"
 
 
