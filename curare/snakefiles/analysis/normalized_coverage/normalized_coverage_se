@@ -19,7 +19,8 @@ rule all:
 
 rule normalize_bed:
     input:
-        "mapping/{sample}.bam"
+        bam="mapping/{sample}.bam",
+        csi="mapping/{sample}.bam.csi"
     output:
         temp("analysis/normalized_coverage/{sample}.bed")
     conda:
@@ -29,12 +30,13 @@ rule normalize_bed:
     threads:
         1
     shell:
-        "bamCoverage -p {threads} %%ADDITIONAL_OPTIONS%% -b {input} -o {output} --outFileFormat bedgraph -bs %%BIN_SIZE%% --normalizeUsing %%NORMALIZE_METHOD%% 2>&1 |"
+        "bamCoverage -p {threads} %%ADDITIONAL_OPTIONS%% -b {input.bam} -o {output} --outFileFormat bedgraph -bs %%BIN_SIZE%% --normalizeUsing %%NORMALIZE_METHOD%% 2>&1 |"
         "tee {log}"
 
 rule normalize_bw:
     input:
-        "mapping/{sample}.bam"
+        bam="mapping/{sample}.bam",
+        csi="mapping/{sample}.bam.csi"
     output:
         "analysis/normalized_coverage/{sample}.bw"
     conda:
@@ -44,7 +46,7 @@ rule normalize_bw:
     threads:
         1
     shell:
-        "bamCoverage -p {threads} %%ADDITIONAL_OPTIONS%% -b {input} -o {output} --outFileFormat bigwig -bs %%BIN_SIZE%% --normalizeUsing %%NORMALIZE_METHOD%% 2>&1 |"
+        "bamCoverage -p {threads} %%ADDITIONAL_OPTIONS%% -b {input.bam} -o {output} --outFileFormat bigwig -bs %%BIN_SIZE%% --normalizeUsing %%NORMALIZE_METHOD%% 2>&1 |"
         "tee {log}"
 
 rule compress_bed_file:
