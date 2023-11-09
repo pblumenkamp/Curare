@@ -21,12 +21,14 @@ import pprint
 import matplotlib
 matplotlib.use('Agg')
 matplotlib.rcParams.update({'figure.autolayout': True})
+matplotlib.rcParams.update({'font.size': 12})
 import matplotlib.pyplot as plt
 import pandas
 import numpy as np
 
 
 from docopt import docopt
+from matplotlib.colors import ListedColormap
 
 PP = pprint.PrettyPrinter(indent=2)
 
@@ -81,9 +83,9 @@ def print_visualizations(assignment_data: Dict[str, Dict[str, int]], output_fold
         keys: List[str] = list(assignment_data[sample].keys())
         values: List[int] = [assignment_data[sample][key]for key in keys]
         df: pandas.DataFrame = pandas.DataFrame({'keys': keys, 'values': values})
-        ax: plt.Axes = df.plot.bar(x='keys', y='values', legend=False, log=True, color='#167df0')
+        ax: plt.Axes = df.plot.bar(x='keys', y='values', legend=False, log=True, color='#4878d0')
         ax.set_xlabel("")
-        ax.set_ylabel("# Assigned Alignments")
+        ax.set_ylabel("# Assigned Reads")
         plt.savefig(output_folder / (sample + '.svg'))
 
 

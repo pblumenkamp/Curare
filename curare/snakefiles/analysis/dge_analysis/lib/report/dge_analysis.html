@@ -44,7 +44,18 @@
                 <h3>FeatureCount Assignment of feature '{{ fc_main_feature }}'</h3>
                 <b-switch id="in-percent" type="is-info" v-model="counttable_in_percent"><p>in %</p></b-switch>
             </div>
-            <canvas id='stacked_barchart' style="padding-top: 1rem; padding-bottom: 2rem"></canvas>
+            <div class="column is-centered">
+              <img v-if="counttable_in_percent"
+                   src="../img/modules/dge_analysis/counts_assignment_relative.svg"
+                   alt="Barchart with feature assignment statistics (in %)"
+                   style="margin-left: auto; margin-right: auto; display: block"
+                   width="90%">
+              <img v-else
+                   src="../img/modules/dge_analysis/counts_assignment_absolute.svg"
+                   alt="Barchart with feature assignment statistics"
+                   style="margin-left: auto; margin-right: auto; display: block"
+                   width="85%">
+            </div>           
             <div style="display: flex; flex-direction: row-reverse; justify-content: space-between">
               <b-button id="get-counttable" type="is-primary" tag="a" :href="'../../' + count_table_path" target="_blank" rel="noopener noreferrer" size="is-medium">
                 <span style="padding-right: 0.5rem">Go to Count Table</span>
