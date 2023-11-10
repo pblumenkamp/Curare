@@ -1,3 +1,30 @@
+## 0.5.0
+
+## Changed (7 changes)
+- Curare uses conda/mamba by default and "--use-conda" is changed to "--no-conda"
+- Update of all tool versions
+- Update Snakemake to 7.32.3
+- All Curare modules now use fixed versions (Conda dependencies use '=', not '>=')
+- Tidied up correlation heatmap in 'dge_analysis'
+- Reworked 'dge_analysis' parameters: Options for using 'Parent' in GFFs as ID (useful when working with exons)
+- All modules will now generate csi files instead of bai files (This allows Curare to work with large plant genomes)
+
+## Added (5 changes)
+- New modules
+  - bwa-mem2
+  - minimap2
+  - fastp
+- Curare wizards now warns if target files already exist
+- "--keep-going" option: If a module throws an error, independent modules will still finish
+
+## Fixed (5 changes)
+- Fixed wrong mapped reads counting in STAR
+- Fixed error with xgzipped files
+- Fixed 'multiqc' error when Curare was rerun in same directory
+- Fixed clustering bug in 'dge_analysis' for cases with >65,536 genes
+- Standardized order of samples in all visualization
+
+
 ## 0.4.5
 
 ### Fixed (1 change)
