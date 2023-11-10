@@ -108,7 +108,6 @@ def main():
     steps = parse_config_yml(pipeline_file)
     output_list: List[Dict[str, Any]] = []
     for file in [f for f in listdir(conda_dir) if f.endswith('.yaml')]:
-        print(file)
         with open(conda_dir / file, 'r') as yaml_file:
             first_line = yaml_file.readline()
             if first_line.startswith("# module:") or first_line.startswith("#module:"):
