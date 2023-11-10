@@ -5,7 +5,7 @@ channels:
   - anaconda
   - defaults
 dependencies:
-  - trim-galore=0.6.7
-  - python>=3.10
-  - docopt>=0.6
-  - pandas=1.5.3
+  - trim-galore=0.6.10
+  - python=3.10
+  - docopt=0.6.2
+  - pandas=2.1.2

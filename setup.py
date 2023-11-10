@@ -31,7 +31,7 @@ setup(
     author='Patrick Blumenkamp',
     author_email='patrick.blumenkamp@computational.bio.uni-giessen.de',
     url='https://github.com/pblumenkamp/Curare',
-    python_requires='>=3.9',
+    python_requires='>=3.10',
     packages=find_packages(include=['curare', 'curare.*']),
     package_data={
         "": extra_files_snakefiles + extra_files_report
@@ -39,9 +39,9 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        'PyYAML == 5.4.1',
+        'PyYAML == 6.0.1',
         'docopt == 0.6.2',
-        'snakemake == 6.3'
+        'snakemake == 7.32.3'
     ],
     entry_points={
         'console_scripts': [

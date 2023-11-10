@@ -4,4 +4,4 @@ channels:
   - anaconda
   - defaults
 dependencies:
-  - deeptools=3.5.1
+  - deeptools=3.5.4
