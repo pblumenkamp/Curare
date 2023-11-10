@@ -28,12 +28,12 @@ rule mapping_stats_tsv:
     run:
         with open(output[0], 'w') as f_out:
             f_out.write("\t".join(["sample", "reads", "reads[%]", "aligned_0_times", "aligned_0_times[%]", "aligned_1_time", "aligned_1_time[%]", "aligned_more_than_1_times", "aligned_more_than_1_times[%]",
-                                   "aligned_too_many_times", "aligned_too_many_times[%]"]))
+                                   "aligned_too_many_times", "aligned_too_many_times[%]", "chimeric_reads", "chimeric_reads[%]"]))
             f_out.write("\n")
             for file_path in input:
                 with open(file_path) as f_in:
                     sample_name = file_path.split("/")[-1][:-len("_Log.final.out")]
-                    entries = {"sample": sample_name}
+                    entries = {"sample": sample_name, "aligned_0_times": 0}
                     for line in f_in:
                         splitted_line = [x.strip() for x in line.split("|")]
                         if splitted_line[0] == "Number of input reads":
@@ -46,30 +46,28 @@ rule mapping_stats_tsv:
                         elif splitted_line[0] == "Number of reads mapped to too many loci":
                             entries["aligned_too_many_times"] = int(splitted_line[1])
                         elif splitted_line[0] == "Number of reads unmapped: too many mismatches":
-                            if "aligned_0_times" in entries:
-                                entries["aligned_0_times"] += int(splitted_line[1])
-                            else:
-                                entries["aligned_0_times"] = int(splitted_line[1])
+                            entries["aligned_0_times"] += int(splitted_line[1])
                         elif splitted_line[0] == "Number of reads unmapped: too short":
-                            if "aligned_0_times" in entries:
-                                entries["aligned_0_times"] += int(splitted_line[1])
-                            else:
-                                entries["aligned_0_times"] = int(splitted_line[1])
+                            entries["aligned_0_times"] += int(splitted_line[1])
                         elif splitted_line[0] == "Number of reads unmapped: other":
-                            if "aligned_0_times" in entries:
-                                entries["aligned_0_times"] += int(splitted_line[1])
-                            else:
-                                entries["aligned_0_times"] = int(splitted_line[1])
+                            entries["aligned_0_times"] += int(splitted_line[1])
+                        elif splitted_line[0] == "Number of chimeric reads":
+                            entries["chimeric_reads"] = int(splitted_line[1])
                 
+                entries["chimeric_reads_%"] = entries.get("chimeric_reads", 0) / entries["reads"] * 100
                 entries["aligned_0_times_%"] = entries.get("aligned_0_times", 0) / entries["reads"] * 100
                 entries["aligned_1_time_%"] = entries.get("aligned_1_time", 0) / entries["reads"] * 100
                 entries["aligned_more_than_1_times_%"] = entries.get("aligned_more_than_1_times", 0) / entries["reads"] * 100
                 entries["aligned_too_many_times_%"] = entries.get("aligned_too_many_times", 0) / entries["reads"] * 100
             
-                f_out.write("{}\t{}\t{:.2f}\t{}\t{:.2f}\t{}\t{:.2f}\t{}\t{:.2f}\t{}\t{:.2f}\n".format(entries["sample"], entries["reads"], entries["reads_%"], entries.get("aligned_0_times", 0), 
-                                entries["aligned_0_times_%"], entries.get("aligned_1_time", 0), entries["aligned_1_time_%"], 
-                                entries.get("aligned_more_than_1_times", 0), entries["aligned_more_than_1_times_%"],
-                                entries.get("aligned_too_many_times", 0), entries["aligned_too_many_times_%"]))
+                f_out.write("{}\t{}\t{:.2f}\t{}\t{:.2f}\t{}\t{:.2f}\t{}\t{:.2f}\t{}\t{:.2f}\t{}\t{:.2f}\n".format(
+                    entries["sample"], entries["reads"], entries["reads_%"],
+                    entries["aligned_0_times"], entries["aligned_0_times_%"], 
+                    entries.get("aligned_1_time", 0), entries["aligned_1_time_%"], 
+                    entries.get("aligned_more_than_1_times", 0), entries["aligned_more_than_1_times_%"],
+                    entries.get("aligned_too_many_times", 0), entries["aligned_too_many_times_%"],
+                    entries.get("chimeric_reads", 0), entries["chimeric_reads_%"]
+                ))
 
 
 rule star_index:
