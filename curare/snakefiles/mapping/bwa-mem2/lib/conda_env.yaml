@@ -5,8 +5,8 @@ channels:
   - anaconda
   - defaults
 dependencies:
-  - samtools=1.17
+  - samtools=1.18
   - bwa-mem2=2.2.1
   - docopt=0.6.2
-  - pandas=1.5.3
+  - pandas=2.1.2
   - pyyaml=6.0

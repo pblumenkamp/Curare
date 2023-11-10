@@ -5,7 +5,7 @@ channels:
   - anaconda
   - defaults
 dependencies:
-  - fastp=0.23.3
+  - fastp=0.23.4
   - docopt=0.6.2
-  - pandas=1.5.3
-  - python=3.10
+  - pandas=2.1.2
+  - python=3.11

@@ -5,5 +5,5 @@ channels:
   - anaconda
   - defaults
 dependencies:
-  - subread=2.0.3
-  - docopt>=0.6
+  - subread=2.0.6
+  - docopt=0.6.2
