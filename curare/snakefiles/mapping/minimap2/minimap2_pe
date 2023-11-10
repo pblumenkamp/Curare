@@ -174,7 +174,7 @@ rule index_bam:
         "mapping/sam/{sample}.sam"
     output:
         bam="mapping/{sample}.bam",
-        bai="mapping/{sample}.bam.bai",
+        csi="mapping/{sample}.bam.csi",
         bam_unmapped="mapping/unmapped/{sample}_unmapped.bam",
         bam_singleton="mapping/singleton/{sample}_singletons.bam"
     params:
@@ -186,7 +186,7 @@ rule index_bam:
     threads:
         2
     shell:
-        "samtools view -F 12 -Shb {input} | samtools sort -@ {threads} -o {output.bam} - && samtools index {output.bam};"
+        "samtools view -F 12 -Shb {input} | samtools sort -@ {threads} -o {output.bam} - && samtools index -c {output.bam};"
 
         "samtools view -f 4 -F 8 -Sh {input} > {params.tmp_singleton} && samtools view -f 8 -F 4 -S {input} >> {params.tmp_singleton} "
         "&& samtools view -Shb {params.tmp_singleton} | samtools sort -@ {threads} -o {output.bam_singleton} - && rm {params.tmp_singleton};"
