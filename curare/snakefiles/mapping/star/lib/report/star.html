@@ -58,6 +58,8 @@
                       <th class="left-border right-border">Aligned too many times [%]</th>
                       <th class="left-border right-border">Unaligned</th>
                       <th class="left-border right-border">Unaligned [%]</th>
+                      <th class="left-border right-border">Chimeric Reads</th>
+                      <th class="left-border right-border">Chimeric Reads [%]</th>
                     </tr>
                     </thead>
                     <tfoot v-if="star_stats.length > 12">
@@ -72,6 +74,8 @@
                       <th class="left-border right-border">Aligned too many times [%]</th>
                       <th class="left-border right-border">Unaligned</th>
                       <th class="left-border right-border">Unaligned [%]</th>
+                      <th class="left-border right-border">Chimeric Reads</th>
+                      <th class="left-border right-border">Chimeric Reads [%]</th>
                     </tr>
                     </tfoot>
                     <tbody>
@@ -86,6 +90,8 @@
                       <td class="right-border">{{ (seqrun["aligned_too_many_times[%]"]).toFixed(2) }}</td>
                       <td>{{ seqrun["aligned_0_times"] }}</td>
                       <td class="right-border">{{ (seqrun["aligned_0_times[%]"]).toFixed(2) }}</td>
+                      <td>{{ seqrun["chimeric_reads"] }}</td>
+                      <td class="right-border">{{ (seqrun["chimeric_reads[%]"]).toFixed(2) }}</td>
                     </tr>
                     </tbody>
                 </table>
@@ -104,6 +110,8 @@
                     <th class="left-border right-border">Aligned too many times [%]</th>
                     <th class="left-border right-border">Unaligned</th>
                     <th class="left-border right-border">Unaligned [%]</th>
+                    <th class="left-border right-border">Chimeric Reads</th>
+                    <th class="left-border right-border">Chimeric Reads [%]</th>
                   </tr>
                   </thead>
                   <tfoot v-if="star_stats.length > 12">
@@ -118,6 +126,8 @@
                     <th class="left-border right-border">Aligned too many times [%]</th>
                     <th class="left-border right-border">Unaligned</th>
                     <th class="left-border right-border">Unaligned [%]</th>
+                    <th class="left-border right-border">Chimeric Reads</th>
+                    <th class="left-border right-border">Chimeric Reads [%]</th>
                   </tr>
                   </tfoot>
                   <tbody>
@@ -132,6 +142,8 @@
                     <td class="right-border">{{ (seqrun["aligned_too_many_times[%]"]).toFixed(2) }}</td>
                     <td>{{ seqrun["aligned_0_times"] }}</td>
                     <td class="right-border">{{ (seqrun["aligned_0_times[%]"]).toFixed(2) }}</td>
+                    <td>{{ seqrun["chimeric_reads"] }}</td>
+                    <td class="right-border">{{ (seqrun["chimeric_reads[%]"]).toFixed(2) }}</td>
                   </tr>
                   </tbody>
                 </table>
