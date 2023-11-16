@@ -1,3 +1,9 @@
+## 0.5.1
+
+## Fixed (1 change)
+- Fixed error during version parsing with newer conda/mamba versions
+
+
 ## 0.5.0
 
 ## Changed (7 changes)
