@@ -52,17 +52,20 @@ def parse_config_yml(pipeline_file: Path):
 
 
 def get_specified_tools(log_str: str):
-    #e.g. "# update specs: ["python[version='>=3.4']", 'pandas==1.3.3', "matplotlib[version='>=3.2.1']", 'xlsxwriter==3.0.1', 'bioconductor-deseq2']"
+    #e.g.         "# update specs: ["python[version='>=3.4']", 'pandas==1.3.3', "matplotlib[version='>=3.2.1']", 'xlsxwriter==3.0.1', 'bioconductor-deseq2']"
+    #new variant: "# update specs: ['fastp=0.23.4', 'docopt=0.6.2', 'pandas=2.1.2', 'python=3.11']""
     primary_tools_tmp: List[str] = log_str[len("# update specs: "):].strip("\n \t[]").split(", ")
     primary_tools: List[Tuple[str, str]] = []
     for tool in primary_tools_tmp:
         name: str
         version: str
-        if "[version='" in tool:
+        if "[version=" in tool:
             name = tool[:tool.index("[")].strip('"\' ')
             version = tool[tool.index("=")+1:].strip('"\' ]')
         elif "==" in tool:
             name, version = tool.strip('"\' ').split("==")
+        elif "=" in tool:
+            name, version = tool.strip('"\' ').split("=")
         else:
             name = tool.strip('"\' ')
             version = ""
