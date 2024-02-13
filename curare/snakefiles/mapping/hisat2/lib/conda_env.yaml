@@ -1,0 +1,17 @@
+# module: hisat2
+channels:
+  - conda-forge
+  - bioconda
+  - anaconda
+  - defaults
+dependencies:
+  - hisat2=2.2.1
+  - python=3.10
+  - docopt=0.6.2
+  - pandas=2.1.4
+  - pyarrow=15.0.0
+  - matplotlib=3.8.1
+  - samtools=1.18
+  - xlsxwriter=3.1.9
+  - pyyaml=6.0
+

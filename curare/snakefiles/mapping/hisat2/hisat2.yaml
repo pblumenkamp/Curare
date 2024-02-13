@@ -1,0 +1,28 @@
+name: 'hisat2'
+label: 'HISAT2'
+description: "HISAT2 is a fast and sensitive alignment program for mapping next-generation sequencing reads (both DNA and RNA) to a population of human genomes as well as to a single reference genome.  (https://daehwankimlab.github.io/hisat2/)"
+
+required_settings:
+  genome_fasta:
+    label: 'Reference Genome'
+    description: 'Path to reference genome fasta file'
+    type: 'file_input'
+
+optional_settings:
+  additional_hisat2_options:
+    label: 'Additional HISAT2 Options'
+    description: "Additional options to use in shell command"
+    type: "string"
+    default: ''
+
+single_end:
+  snakefile: 'hisat2_se'
+
+paired_end:
+  snakefile: 'hisat2_pe'
+
+
+report:
+  html_file: "hisat2.html"
+  new_tab: false
+  title: "HISAT2"

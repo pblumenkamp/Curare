@@ -1,0 +1,27 @@
+## Curare Pipeline File
+## This is an automatically created pipeline file for Curare.
+## All required parameters must be set (replace <Insert Config Here> with real value).
+## All optional parameters are commented out with a single '#'. For including these parameters, just remove the '#'.
+
+pipeline:
+  paired_end: true
+
+preprocessing:
+  modules: ["none"]
+
+premapping:
+  modules: []
+
+mapping:
+  modules: ["hisat2"]
+
+  hisat2:
+    ## Path to reference genome fasta file. [Value Type: File_input]
+    genome_fasta: "../../reference/GCF_000007445.1_ASM744v1_genomic.fna"
+
+    ## Additional options to use in shell command. [Value Type: String]
+    #additional_hisat2_options: ""
+
+
+analysis:
+  modules: []
