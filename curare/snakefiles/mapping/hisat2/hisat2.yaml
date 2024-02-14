@@ -11,7 +11,7 @@ required_settings:
 optional_settings:
   additional_hisat2_options:
     label: 'Additional HISAT2 Options'
-    description: "Additional options to use in shell command"
+    description: "You can enter additional command line options here, e.g. "--no-spliced-alignment --maxins 300" (see https://daehwankimlab.github.io/hisat2/manual/)"
     type: "string"
     default: ''
 
