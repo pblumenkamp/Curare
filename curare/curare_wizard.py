@@ -3,7 +3,7 @@
 Wizard script for creating pipeline and groups file for Curare.
 
 Usage:
-    curare_wizard.py (--output <output_folder> | --samples <samples> --pipeline <pipeline>) [--snakefiles <snakefiles>] [--verbose]
+    curare_wizard.py (--output <output_folder> | --samples <samples> --pipeline <pipeline>) [--genome_download_dir <genome_dir>] [--snakefiles <snakefiles>] [--verbose]
     curare_wizard.py (--version | --help)
 
 Options:
@@ -14,6 +14,7 @@ Options:
     --samples <samples>                             Path for output samples file (Default Name: <output_folder>/samples.tsv)
     --pipeline <pipeline>                           Path for output pipeline file (Default Name: <output_folder>/pipeline.yaml)
 
+    --genome_download_dir <genome_dir>              Output folder for downloaded reference genome and annotation.
     --snakefiles <snakefiles>                       Folder containing all Curare snakefiles. Uses default curare snakefiles if not specified.
     -v --verbose                                    Print additional information
 """
@@ -36,17 +37,23 @@ Options:
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from Bio import Entrez
 from docopt import docopt
+import ftplib
 import os
 from pathlib import Path
 import pprint
+import progressbar
 import sys
-from typing import Any, Callable, Dict, IO, List, Union
+from typing import Any, Callable, Dict, IO, Optional, List, Tuple, Union
 import yaml
 
 import curare.metadata as metadata
 
 PP = pprint.PrettyPrinter(indent=2)
+NCBI_FTP_URL: str = "ftp.ncbi.nlm.nih.gov"
+
+pbar = None
 
 
 class ClColors:
@@ -269,6 +276,58 @@ def format_description(description: str, parameter_type: str) -> List[str]:
         formatted_description.append('## {} [Value Type: {}]'.format(description, parameter_type.capitalize()))
     return formatted_description
 
+def get_entrez_entry_by_assembly_accession(query: str):
+    search_handle = Entrez.esearch(db="assembly", term="{}[Assembly Accession]".format(query), retmax=1)
+    search_record = Entrez.read(search_handle)
+    if not search_record:
+        raise NoEntrezEntryFoundError()
+    summary_handle = Entrez.esummary(db="assembly", id=search_record['IdList'][0], report="full")
+    summary_record = Entrez.read(summary_handle)
+    return summary_record['DocumentSummarySet']['DocumentSummary'][0]
+
+def download_fasta_and_gff_from_ncbi(esummary_entry, target_dir: Path):
+    refseq_url = esummary_entry['FtpPath_RefSeq']
+    if not refseq_url:
+        raise NoRefSeqURLError("RefSeq entry for {} not found.".format(esummary_entry.get("AssemblyAccession", "<Unknown ID>")))
+    with ftplib.FTP(NCBI_FTP_URL) as ftp:
+        ftp.login()
+        ftp_base_path = "/".join(refseq_url.split("/")[3:])
+        file_prefix = os.path.basename(refseq_url)
+        ftp.sendcmd("TYPE i")                
+        ftp_files: List[Tuple[str, str, int]] = []
+        for file_format in ['fna', 'gff']:
+            file_name: str = "{}_genomic.{}.gz".format(file_prefix, file_format)
+            ftp_full_path = os.path.join(ftp_base_path,file_name)
+            file_size: int = 0
+            try:
+                file_size = ftp.size(ftp_full_path)
+            except:
+                file_size = 0
+                if file_format == "fna":
+                    raise FASTANotFoundError("FASTA file for entry {} not found.".format(esummary_entry.get("AssemblyAccession", "<Unknown ID>")))
+                else:
+                    raise GFFNotFoundError("GFF file for entry {} not found.".format(esummary_entry.get("AssemblyAccession", "<Unknown ID>")))
+            target_file: Path = target_dir / file_name
+            ftp_files.append((target_file, ftp_full_path, file_size))
+        
+        for target_file, ftp_full_path, file_size in ftp_files:
+            with target_file.open("wb") as local_file:
+                print("Downloading \"{}\"".format(target_file))
+                ftp.retrbinary("RETR " + ftp_full_path, make_write_file_func_with_progress(file_size, local_file))
+                pbar.finish()
+
+
+def make_write_file_func_with_progress(file_size, target_file):
+    global pbar
+    pbar = progressbar.ProgressBar(widgets=['Downloading: ', progressbar.Percentage(), ' ',
+                    progressbar.Bar(marker='#',left='[',right=']'),
+                    ' ', progressbar.DataSize(), ' | ', progressbar.ETA(), ' ', progressbar.FileTransferSpeed()], maxval=file_size)
+    pbar.start()
+    def write_data(data):
+        global pbar
+        pbar += len(data)
+        target_file.write(data)
+    return write_data
 
 def user_question(question: str, answer_check: Callable):
     answer : str = ""
@@ -312,6 +371,13 @@ def main() -> None:
         print(ClColors.FAIL + "Missing permissions to write files in {}".format(args["--output"]) + ClColors.ENDC)
         sys.exit(3)
 
+    if args["--genome_download_dir"] is not None:
+        args["--genome_download_dir"] = Path(args["--genome_download_dir"]).resolve()
+        if args["--genome_download_dir"] and not (os.access(args["--genome_download_dir"], os.R_OK) and os.access(args["--genome_download_dir"], os.W_OK) and os.access(args["--genome_download_dir"], os.EX_OK)):
+            print(ClColors.FAIL + "Missing permissions to write files in {}".format(args["--genome_download_dir"]) + ClColors.ENDC)
+            sys.exit(3)
+
+
     if args["--snakefiles"] is None:
         args["--snakefiles"] = Path(__file__).resolve().parent / "snakefiles"  
     else:
@@ -322,6 +388,7 @@ def main() -> None:
     if args['--verbose']:
         print_verbose("Input Parameters:")
         print_verbose("Used output folder: {}".format(args["--output"]))
+        print_verbose("Used output genome folder: {}".format(args["--genome_download_dir"]))
         print_verbose("Output samples file: {}".format(args["--samples"]))
         print_verbose("Output pipeline file: {}".format(args["--pipeline"]))
         print_verbose("Used snakefile folder: {}".format(args["--snakefiles"]))
@@ -350,6 +417,50 @@ def main() -> None:
     create_pipeline_file(user_pipeline, settings, args["--pipeline"], is_paired_end)
     print('Pipeline file "{}" created.'.format(args["--pipeline"]))
 
+    print("\n\n\n")
+    if user_question("Curare also needs a reference genome in FASTA(.gz) and an annotation in GFF format.\n"
+                     "Download with this wizard is optional and can also be done by hand.\n"
+                     "Do you want to download a reference genome and annotation (Auto-download only supports RefSeq assemblies)? [y/n]\n",
+                    lambda x: x.lower() in ["y", "n"]) == 'n':
+        sys.exit(0)
+    print()
+    print("For downloading genome and annotation, Curare needs to communicate with the NCBI server.\n"
+            "For this, NCBI recommends sending an e-mail address with each query. Otherwise IP adresses\n"
+            "could get banned for several hours when too many requests happen.")
+    Entrez.email =  input("E-Mail address: ")
+    print()
+    if not args["--genome_download_dir"]:
+        args["--genome_download_dir"] = input("Output directory: ")
+    while True:
+        print("Download NCBI reference genome and annotation:")
+        print("[1] By RefSeq Assembly Accession (e.g., GCF_000005845.2)")
+        print("[2] By text input (e.g., Streptococcus pneumoniae)")
+        print("[Q] Quit")
+        selection: str = user_question('Select[1-2, Q]: ', lambda x: x in ["1","2","Q"])
+        if selection == "1":
+            query: str = input("Query: ")
+            entry = get_entrez_entry_by_assembly_accession(query)
+            if id is None:
+                print("Unknown assembly accession: {}".format(query))
+                continue
+            try:
+                download_fasta_and_gff_from_ncbi(entry, args["--genome_download_dir"])
+            except NoRefSeqURLError:
+                print(ClColors.FAIL + "No RefSeq was found for accession {}".format(query) + ClColors.ENDC)
+                continue
+            except FASTANotFoundError:
+                print(ClColors.FAIL + "Could not download FASTA of {}".format(query) + ClColors.ENDC)
+                continue
+            except GFFNotFoundError:
+                print(ClColors.FAIL + "Could not download GFF of {}".format(query) + ClColors.ENDC)
+                continue
+            break
+        elif selection == "2":
+            query: str = input("Query: ")
+            pass
+        else:
+            sys.exit(0)
+
 
 class MissingReadPermissionsError(Exception):
     """Exception raised when using unknown command line argument.
@@ -360,6 +471,47 @@ class MissingReadPermissionsError(Exception):
 
     def __init__(self, message: str):
         super(MissingReadPermissionsError, self).__init__(message)
+
+
+class NoEntrezEntryFoundError(Exception):
+    """Exception raised when using unknown command line argument.
+
+            Attributes:
+                message -- message displayed
+        """
+
+    def __init__(self, message: str):
+        super(NoEntrezEntryFoundError, self).__init__(message)
+
+class NoRefSeqURLError(Exception):
+    """Exception raised when using unknown command line argument.
+
+            Attributes:
+                message -- message displayed
+        """
+
+    def __init__(self, message: str):
+        super(NoRefSeqURLError, self).__init__(message)
+
+class FASTANotFoundError(Exception):
+    """Exception raised when using unknown command line argument.
+
+            Attributes:
+                message -- message displayed
+        """
+
+    def __init__(self, message: str):
+        super(NoRefSeqURLError, self).__init__(message)
+
+class GFFNotFoundError(Exception):
+    """Exception raised when using unknown command line argument.
+
+            Attributes:
+                message -- message displayed
+        """
+
+    def __init__(self, message: str):
+        super(NoRefSeqURLError, self).__init__(message)
 
 
 if __name__ == '__main__':
