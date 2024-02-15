@@ -276,6 +276,100 @@ def format_description(description: str, parameter_type: str) -> List[str]:
         formatted_description.append('## {} [Value Type: {}]'.format(description, parameter_type.capitalize()))
     return formatted_description
 
+
+def download_genome_ui(download_dir: Optional[Path] = None):
+    print("For downloading genome and annotation, Curare needs to communicate with the NCBI server.\n"
+                "For this, NCBI recommends sending an e-mail address with each query. Otherwise IP adresses\n"
+                "could get banned for several hours when too many requests happen.")
+    Entrez.email =  input("E-Mail address: ")
+    print()
+    if download_dir is None:
+        invalid_dir: bool = True
+        while invalid_dir:
+            download_dir_input = input("Output directory: ")
+            if not download_dir_input.strip():
+                print("No valid download directory: \"{}\"".format(download_dir_input))
+                continue
+            download_dir = Path(download_dir_input)
+            if download_dir.is_file():
+                print("Directory cannot be created. Path leads to a file: \"{}\"".format(download_dir))
+                continue
+            if not download_dir.exists():
+                try:
+                    download_dir.mkdir(parents=True)
+                except:
+                    print("Directory cannot be created: \"{}\"".format(download_dir))
+                    continue
+            invalid_dir = False
+    genome_download_loop: bool = True
+    while genome_download_loop:
+        print("Download NCBI reference genome and annotation:")
+        print("[1] By RefSeq Assembly Accession (e.g., GCF_000005845.2)")
+        print("[2] By text input (e.g., Streptococcus pneumoniae)")
+        print("[Q] Quit")
+        selection: str = user_question('Select[1-2, Q]: ', lambda x: x.upper() in ["1","2","Q"])
+        print()
+        if selection == "1":
+            query: str = input("RefSeq Assembly Accession: ")
+            try:
+                entry = get_entrez_entry_by_assembly_accession(query)
+                if id is None:
+                    print("Unknown assembly accession: {}".format(query))
+                    continue
+                download_fasta_and_gff_from_ncbi(entry, download_dir)
+            except NoEntrezEntryFoundError:
+                print(ClColors.FAIL + "No entry was found for accession {}".format(query) + ClColors.ENDC)
+                continue
+            except NoRefSeqURLError:
+                print(ClColors.FAIL + "No RefSeq entry was found for accession {}".format(query) + ClColors.ENDC)
+                continue
+            except FASTANotFoundError:
+                print(ClColors.FAIL + "Could not download FASTA of {}".format(query) + ClColors.ENDC)
+                continue
+            except GFFNotFoundError:
+                print(ClColors.FAIL + "Could not download GFF of {}".format(query) + ClColors.ENDC)
+                continue
+            genome_download_loop = False
+        elif selection == "2":
+            print("Please specify your query as much as possible. Only the Top 10 results with will be shown here.\n"
+                  "For more results, use https://www.ncbi.nlm.nih.gov/assembly and/or search by assembly accession.")
+            query: str = input("Query: ")
+            try:
+                entries = get_entrez_entry_by_text(query, 10)
+            except NoEntrezEntryFoundError:
+                print(ClColors.FAIL + "No entry was found with query \"{}\"".format(query) + ClColors.ENDC)
+                continue
+            pretty_print_entrez_entries(entries, query)
+            print("[N]\tNew Query")
+            print("[Q]\tQuit")
+            new_selection: bool = True
+            while new_selection:
+                selection_pool: List[str] = [str(i+1) for i in range(len(entries))] + ["N", "Q"]
+                selection: str = user_question('Select[1-{}, N, Q]: '.format(len(entries)), lambda x: x.upper() in selection_pool)
+                if selection.upper() == "N":
+                    new_selection = False
+                elif selection.upper() == "Q":
+                    new_selection = False
+                    genome_download_loop = False
+                else:
+                    if not entries[int(selection)].get("FtpPath_RefSeq", "").strip():
+                        print(ClColors.FAIL + "No RefSeq entry was found for accession {}".format(entries[int(selection)].get("AssemblyName", "-")) + ClColors.ENDC)
+                        continue
+                    try:
+                        download_fasta_and_gff_from_ncbi(entries[int(selection)], download_dir)
+                        new_selection = False
+                        genome_download_loop = False
+                    except NoRefSeqURLError:
+                        print(ClColors.FAIL + "No RefSeq entry was found for accession {}".format(query) + ClColors.ENDC)
+                        continue
+                    except FASTANotFoundError:
+                        print(ClColors.FAIL + "Could not download FASTA of {}".format(query) + ClColors.ENDC)
+                        continue
+                    except GFFNotFoundError:
+                        print(ClColors.FAIL + "Could not download GFF of {}".format(query) + ClColors.ENDC)
+                        continue
+    return
+
 def get_entrez_entry_by_assembly_accession(query: str):
     search_handle = Entrez.esearch(db="assembly", term="{}[Assembly Accession]".format(query), retmax=1)
     search_record = Entrez.read(search_handle)
@@ -284,6 +378,17 @@ def get_entrez_entry_by_assembly_accession(query: str):
     summary_handle = Entrez.esummary(db="assembly", id=search_record['IdList'][0], report="full")
     summary_record = Entrez.read(summary_handle)
     return summary_record['DocumentSummarySet']['DocumentSummary'][0]
+
+def get_entrez_entry_by_text(query: str, max_entries: int = 10):
+    search_handle = Entrez.esearch(db="assembly", term="{}".format(query), retmax=max_entries)
+    search_record = Entrez.read(search_handle)
+    if not search_record:
+        raise NoEntrezEntryFoundError()
+    summary_records = []
+    for entry in search_record['IdList']:
+        summary_handle = Entrez.esummary(db="assembly", id=entry, report="full")
+        summary_records.append(Entrez.read(summary_handle)['DocumentSummarySet']['DocumentSummary'][0])
+    return summary_records
 
 def download_fasta_and_gff_from_ncbi(esummary_entry, target_dir: Path):
     refseq_url = esummary_entry['FtpPath_RefSeq']
@@ -340,7 +445,27 @@ def print_verbose(text: Any = '', file: IO = sys.stderr) -> None:
     print(ClColors.OKBLUE + str(text) + ClColors.ENDC, file=file)
 
 
+def pretty_print_entrez_entries(entries: List, query: str):
+    print("Top 10 entries for \"{}\":".format(query))
+    for i, entry in enumerate(entries):
+        print("[{}]\tName: {}".format(i+1, entry.get("AssemblyName", "-")))
+        print("\tOrganism: {}".format(entry.get("Organism", "-")))
+        print("\tAssembly Accession: {}".format(entry.get("AssemblyAccession", "-")))
+        print("\tLast Update: {}".format(entry.get("LastUpdateDate", "-")), end="")
+        print("      " + ClColors.BOLD + "RefSeq Available: ", end="")
+        print(ClColors.OKGREEN + "Yes" + ClColors.ENDC if entry.get("FtpPath_RefSeq", "").strip() else ClColors.FAIL +"No" + ClColors.ENDC)
+        print()
+
+
 def main() -> None:
+    os.system('clear')
+    print("Welcome to the Curare Wizard")
+    print()
+    print("At the end of this you will have two configuration files for Curare and, optionally, downloaded the reference\n"
+          "genome and annotation of your target organism. Afterwards, remember to open both, the samples and the pipeline file,\n"
+          "to fill in additional required information like sample and reference genome location, and necessary tool parameters \n"
+          "like wanted genomic feature type.")
+    print()
     args = docopt(__doc__, version=metadata.__version__)
     if args["--output"] is not None:
         args["--output"] = Path(args["--output"]).resolve()
@@ -412,54 +537,23 @@ def main() -> None:
         print_verbose()
 
     create_groups_file(user_pipeline, settings, args["--samples"], is_paired_end)
-    print('Samples file "{}" created.'.format(args["--samples"]))
-
     create_pipeline_file(user_pipeline, settings, args["--pipeline"], is_paired_end)
+    print('Samples file "{}" created.'.format(args["--samples"]))
     print('Pipeline file "{}" created.'.format(args["--pipeline"]))
+    print("\n")
+    download_genome_mode: bool =  user_question("Curare also needs a reference genome in FASTA(.gz) and an annotation in GFF format.\n"
+                                           "Downloading with this wizard is optional for Curare and can also be done by hand.\n"
+                                           "Do you want to download a reference genome and annotation (Auto-download only supports RefSeq assemblies)? [y/n]\n",
+                                           lambda x: x.lower() in ["y", "n"]) == 'y'
+    if download_genome_mode:
+        print()
+        download_genome_ui(args["--genome_download_dir"])
 
-    print("\n\n\n")
-    if user_question("Curare also needs a reference genome in FASTA(.gz) and an annotation in GFF format.\n"
-                     "Download with this wizard is optional and can also be done by hand.\n"
-                     "Do you want to download a reference genome and annotation (Auto-download only supports RefSeq assemblies)? [y/n]\n",
-                    lambda x: x.lower() in ["y", "n"]) == 'n':
-        sys.exit(0)
     print()
-    print("For downloading genome and annotation, Curare needs to communicate with the NCBI server.\n"
-            "For this, NCBI recommends sending an e-mail address with each query. Otherwise IP adresses\n"
-            "could get banned for several hours when too many requests happen.")
-    Entrez.email =  input("E-Mail address: ")
+    print("Remember to add your samples to the samples file and fill in configuration settings like\n"
+          "path to reference genome and annotation in the pipeline file. Both can be opened with text editors.")
     print()
-    if not args["--genome_download_dir"]:
-        args["--genome_download_dir"] = input("Output directory: ")
-    while True:
-        print("Download NCBI reference genome and annotation:")
-        print("[1] By RefSeq Assembly Accession (e.g., GCF_000005845.2)")
-        print("[2] By text input (e.g., Streptococcus pneumoniae)")
-        print("[Q] Quit")
-        selection: str = user_question('Select[1-2, Q]: ', lambda x: x in ["1","2","Q"])
-        if selection == "1":
-            query: str = input("Query: ")
-            entry = get_entrez_entry_by_assembly_accession(query)
-            if id is None:
-                print("Unknown assembly accession: {}".format(query))
-                continue
-            try:
-                download_fasta_and_gff_from_ncbi(entry, args["--genome_download_dir"])
-            except NoRefSeqURLError:
-                print(ClColors.FAIL + "No RefSeq was found for accession {}".format(query) + ClColors.ENDC)
-                continue
-            except FASTANotFoundError:
-                print(ClColors.FAIL + "Could not download FASTA of {}".format(query) + ClColors.ENDC)
-                continue
-            except GFFNotFoundError:
-                print(ClColors.FAIL + "Could not download GFF of {}".format(query) + ClColors.ENDC)
-                continue
-            break
-        elif selection == "2":
-            query: str = input("Query: ")
-            pass
-        else:
-            sys.exit(0)
+        
 
 
 class MissingReadPermissionsError(Exception):
