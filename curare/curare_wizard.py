@@ -310,7 +310,8 @@ def download_genome_ui(download_dir: Optional[Path] = None):
         selection: str = user_question('Select[1-2, Q]: ', lambda x: x.upper() in ["1","2","Q"])
         print()
         if selection == "1":
-            query: str = input("RefSeq Assembly Accession: ")
+            while not (query := input("RefSeq Assembly Accession: ").strip()):
+                continue
             try:
                 entry = get_entrez_entry_by_assembly_accession(query)
                 if id is None:
@@ -352,11 +353,11 @@ def download_genome_ui(download_dir: Optional[Path] = None):
                     new_selection = False
                     genome_download_loop = False
                 else:
-                    if not entries[int(selection)].get("FtpPath_RefSeq", "").strip():
-                        print(ClColors.FAIL + "No RefSeq entry was found for accession {}".format(entries[int(selection)].get("AssemblyName", "-")) + ClColors.ENDC)
+                    if not entries[int(selection)-1].get("FtpPath_RefSeq", "").strip():
+                        print(ClColors.FAIL + "No RefSeq entry was found for accession {}".format(entries[int(selection)-1].get("AssemblyName", "-")) + ClColors.ENDC)
                         continue
                     try:
-                        download_fasta_and_gff_from_ncbi(entries[int(selection)], download_dir)
+                        download_fasta_and_gff_from_ncbi(entries[int(selection)-1], download_dir)
                         new_selection = False
                         genome_download_loop = False
                     except NoRefSeqURLError:
@@ -373,8 +374,8 @@ def download_genome_ui(download_dir: Optional[Path] = None):
 def get_entrez_entry_by_assembly_accession(query: str):
     search_handle = Entrez.esearch(db="assembly", term="{}[Assembly Accession]".format(query), retmax=1)
     search_record = Entrez.read(search_handle)
-    if not search_record:
-        raise NoEntrezEntryFoundError()
+    if not search_record['IdList']:
+        raise NoEntrezEntryFoundError("No entry for for \"{}\"".format(query))
     summary_handle = Entrez.esummary(db="assembly", id=search_record['IdList'][0], report="full")
     summary_record = Entrez.read(summary_handle)
     return summary_record['DocumentSummarySet']['DocumentSummary'][0]
@@ -382,8 +383,8 @@ def get_entrez_entry_by_assembly_accession(query: str):
 def get_entrez_entry_by_text(query: str, max_entries: int = 10):
     search_handle = Entrez.esearch(db="assembly", term="{}".format(query), retmax=max_entries)
     search_record = Entrez.read(search_handle)
-    if not search_record:
-        raise NoEntrezEntryFoundError()
+    if not search_record['IdList']:
+        raise NoEntrezEntryFoundError("No entries for for \"{}\"".format(query))
     summary_records = []
     for entry in search_record['IdList']:
         summary_handle = Entrez.esummary(db="assembly", id=entry, report="full")
@@ -426,7 +427,7 @@ def make_write_file_func_with_progress(file_size, target_file):
     global pbar
     pbar = progressbar.ProgressBar(widgets=['Downloading: ', progressbar.Percentage(), ' ',
                     progressbar.Bar(marker='#',left='[',right=']'),
-                    ' ', progressbar.DataSize(), ' | ', progressbar.ETA(), ' ', progressbar.FileTransferSpeed()], maxval=file_size)
+                    ' ', progressbar.DataSize(), ' | ', progressbar.ETA(), ' ', progressbar.FileTransferSpeed()], max_value=file_size, max_error=False)
     pbar.start()
     def write_data(data):
         global pbar
@@ -458,6 +459,7 @@ def pretty_print_entrez_entries(entries: List, query: str):
 
 
 def main() -> None:
+    args = docopt(__doc__, version=metadata.__version__)
     os.system('clear')
     print("Welcome to the Curare Wizard")
     print()
@@ -466,7 +468,6 @@ def main() -> None:
           "to fill in additional required information like sample and reference genome location, and necessary tool parameters \n"
           "like wanted genomic feature type.")
     print()
-    args = docopt(__doc__, version=metadata.__version__)
     if args["--output"] is not None:
         args["--output"] = Path(args["--output"]).resolve()
         args["--samples"] = args['--output'] / 'samples.tsv'
