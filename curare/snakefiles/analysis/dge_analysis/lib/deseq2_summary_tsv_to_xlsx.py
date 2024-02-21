@@ -100,6 +100,7 @@ def main():
                 stripped_identifier: str = attributes[identifier].strip('"\'')
                 annotations[stripped_identifier] = {}
                 annotations[stripped_identifier]['attr'] = attributes_string.replace(';', '; ')
+                annotations[stripped_identifier]['gff_chr'] = columns[0]
                 annotations[stripped_identifier]['gff_start'] = columns[3]
                 annotations[stripped_identifier]['gff_stop'] = columns[4]
                 annotations[stripped_identifier]['gff_strand'] = columns[6]
@@ -130,6 +131,7 @@ def main():
                 row.insert(1, 'Strand')
                 row.insert(1, 'End')
                 row.insert(1, 'Start')
+                row.insert(1, 'Chromosome')
                 row.append("Attributes")
             else:
                 if row[0] in annotations:
@@ -138,6 +140,7 @@ def main():
                     row.insert(1, annotations[row[0]]['gff_strand'])
                     row.insert(1, annotations[row[0]]['gff_stop'])
                     row.insert(1, annotations[row[0]]['gff_start'])
+                    row.insert(1, annotations[row[0]]['gff_chr'])
                     row.append(annotations[row[0]]['attr'])
                 else:
                     row.insert(1, "-")
@@ -169,9 +172,9 @@ def main():
                         'mid_type': 'num',
                         'min_type': 'num',
                         'max_type': 'num',
-                        'min_value': 0.001,
+                        'min_value': 0.01,
                         'max_value': 1,
-                        'mid_value': 0.01}
+                        'mid_value': 0.05}
 
         log_fold_format = {'type': '3_color_scale',
                         'min_color': "#7FFFAD",
@@ -192,11 +195,11 @@ def main():
                         'max_value': 1000}
 
         # conditional formatting
-        worksheet.conditional_format(1, 4 + len(wanted_gff_attributes), rows - 1, 2 * number_of_conditions + len(wanted_gff_attributes) + 3,
+        worksheet.conditional_format(1, 5 + len(wanted_gff_attributes), rows - 1, 2 * number_of_conditions + len(wanted_gff_attributes) + 3,
                                     p_value_format)
-        worksheet.conditional_format(1, 4 + len(wanted_gff_attributes) + 2 * number_of_conditions, rows - 1,
+        worksheet.conditional_format(1, 5 + len(wanted_gff_attributes) + 2 * number_of_conditions, rows - 1,
                                     3 * number_of_conditions + len(wanted_gff_attributes) + 3, log_fold_format)
-        worksheet.conditional_format(1, 4 + len(wanted_gff_attributes) + 3 * number_of_conditions, rows - 1, columns - 1, count_format)
+        worksheet.conditional_format(1, 5 + len(wanted_gff_attributes) + 3 * number_of_conditions, rows - 1, columns - 1, count_format)
 
         # freeze first row and column
         worksheet.freeze_panes(1, 1)
@@ -210,8 +213,8 @@ def main():
         legend_sheet.write(0, 1, "lfc")
         legend_sheet.write(0, 2, "counts")
 
-        legend_sheet.write(1, 0, 0.001)
-        legend_sheet.write(2, 0, 0.01)
+        legend_sheet.write(1, 0, 0.01)
+        legend_sheet.write(2, 0, 0.05)
         legend_sheet.write(3, 0, 1)
         legend_sheet.conditional_format(1, 0, 3, 0, p_value_format)
 
