@@ -226,6 +226,9 @@ def main():
         legend_sheet.write(2, 2, 100)
         legend_sheet.write(3, 2, 1000)
         legend_sheet.conditional_format(1, 2, 3, 2, count_format)
+
+        legend_sheet.write(5, 0, "Fold changes:")
+        legend_sheet.write(6, 0, "FC = B/A with A: Filename and B: Column name")
         
 
 def parse_attributes(attributes: str, attribute_separator: str=';', key_value_separator: str='=', quotes: str='"') -> Dict[str,str]:
