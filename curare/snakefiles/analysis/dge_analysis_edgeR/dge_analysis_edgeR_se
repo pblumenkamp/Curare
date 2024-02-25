@@ -4,7 +4,7 @@ from os.path import isfile
 import gzip
 
 def getConditions():
-    return set([seqRun['dge_analysis_edgeR']['condition'] for seqRun in config['entries'].values()])
+    return set([seqRun['modules']['condition'] for seqRun in config['entries'].values()])
 
 def list_of_all_features(gff_path):
     features = set()
@@ -128,7 +128,7 @@ rule create_conditions:
     run:
         with(open(output[0], 'w')) as output_file:
             for name in config['entry_order']:
-                output_file.write('{}\t{}\n'.format(name, config['entries'][name]['dge_analysis_edgeR']['condition']))
+                output_file.write('{}\t{}\n'.format(name, config['entries'][name]['modules']['condition']))
 
 rule edgeR_normalize_counts:
     input:
