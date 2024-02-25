@@ -4,7 +4,7 @@ from os.path import isfile
 import gzip
 
 def getConditions():
-    return set([seqRun['dge_analysis']['condition'] for seqRun in config['entries'].values()])
+    return set([seqRun['modules']['condition'] for seqRun in config['entries'].values()])
 
 def list_of_all_features(gff_path):
     features = set()
@@ -134,7 +134,7 @@ rule create_conditions:
     run:
         with(open(output[0], 'w')) as output_file:
             for name in config['entry_order']:
-                output_file.write('{}\t{}\n'.format(name, config['entries'][name]['dge_analysis']['condition']))
+                output_file.write('{}\t{}\n'.format(name, config['entries'][name]['modules']['condition']))
 
 rule genexvis_condition_file:
     output:
@@ -142,7 +142,7 @@ rule genexvis_condition_file:
     run:
         conditions = set()
         for name in config['entry_order']:
-            conditions.add(config['entries'][name]['dge_analysis']['condition'])
+            conditions.add(config['entries'][name]['modules']['condition'])
         with(open(output[0], 'w')) as output_file:
             for cond in conditions:
                 output_file.write('{}\n'.format(cond))
