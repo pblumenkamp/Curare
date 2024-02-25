@@ -55,7 +55,7 @@ for (cond in combn(levels(condition), 2, simplify = FALSE)) {
     res <-
     results(deseq.results,
     addMLE = FALSE,
-    contrast = c("condition", cond[1], cond[2]))
+    contrast = c("condition", cond[2], cond[1]))
     write.table(res, file = paste(output_folder, "deseq2_comparisons/deseq2_results_", cond[1], "_Vs_", cond[2], ".csv", sep = ""), sep = "\t", row.names = TRUE, col.names = NA)
 }
 
@@ -74,7 +74,7 @@ sapply(1 : length(levels(condition)), function(control_i) {
         lapply(
             lapply(vs_condition, function(x) c(control, x)),
             function(y){
-                df <- as.data.frame(results(deseq.results, addMLE = FALSE, contrast = c("condition", y[1], y[2])));
+                df <- as.data.frame(results(deseq.results, addMLE = FALSE, contrast = c("condition", y[2], y[1])));
                 colnames(df) <- paste(y[2], colnames(df), sep = ".");
                 df$gene_id <- rownames(df);
                 df
@@ -85,11 +85,10 @@ sapply(1 : length(levels(condition)), function(control_i) {
     if (length(vs_condition) >= 2) {
         fc2 <- log2foldChange[, c(1,
                                   seq(from = 3, to = length(log2foldChange), by = 6),
-                                  seq(from = 7, to = length(log2foldChange), by = 6),
-                                  seq(from = 6, to = length(log2foldChange), by = 6))
+                                  seq(from = 7, to = length(log2foldChange), by = 6))
         ]
     } else {
-        fc2 <- log2foldChange[, c(7, 2, 5, 6)]
+        fc2 <- log2foldChange[, c(7, 2, 6)]
         fc2 <- fc2[complete.cases(fc2[, 2]),]
     }
 
@@ -98,11 +97,11 @@ sapply(1 : length(levels(condition)), function(control_i) {
     fc2$Row.names <- NULL
     rownames(fc2) <- fc2$gene_id
     write.table(x = fc2[, c(1,
-                            rotate_vector(2:(1 + (length(vs_condition) * 3)), length(vs_condition)),
-                            (length(vs_condition) * 3 + 2):length(fc2))],
+                            rotate_vector(2:(1 + (length(vs_condition) * 2)), length(vs_condition)),
+                            (length(vs_condition) * 2 + 2):length(fc2))],
                 paste(output_folder, 'summary/', control, ".tsv", sep = ""),
                 row.names = F, col.names = T, sep = "\t")
-    if (length(vs_condition) > 2) {
+    if (length(vs_condition) >= 2) {
         m <- as.matrix(fc2[, 2 : (length(vs_condition) + 1)])
         colnames(m) <- sapply(colnames(m), function(x) gsub("\\..{1,}$", '', x))
         if ('gplots' %in% rownames(installed.packages())) {

@@ -192,11 +192,11 @@ def main():
                         'max_value': 1000}
 
         # conditional formatting
-        worksheet.conditional_format(1, 4 + len(wanted_gff_attributes), rows - 1, 2 * number_of_conditions + len(wanted_gff_attributes) + 3,
+        worksheet.conditional_format(1, 4 + len(wanted_gff_attributes), rows - 1, 4 + len(wanted_gff_attributes) + number_of_conditions - 1,
                                     p_value_format)
-        worksheet.conditional_format(1, 4 + len(wanted_gff_attributes) + 2 * number_of_conditions, rows - 1,
-                                    3 * number_of_conditions + len(wanted_gff_attributes) + 3, log_fold_format)
-        worksheet.conditional_format(1, 4 + len(wanted_gff_attributes) + 3 * number_of_conditions, rows - 1, columns - 1, count_format)
+        worksheet.conditional_format(1, 4 + len(wanted_gff_attributes) + number_of_conditions, rows - 1,
+                                    4 + len(wanted_gff_attributes) + 2 * number_of_conditions - 1, log_fold_format)
+        worksheet.conditional_format(1, 4 + len(wanted_gff_attributes) + 2 * number_of_conditions, rows - 1, columns - 1, count_format)
 
         # freeze first row and column
         worksheet.freeze_panes(1, 1)
@@ -223,6 +223,9 @@ def main():
         legend_sheet.write(2, 2, 100)
         legend_sheet.write(3, 2, 1000)
         legend_sheet.conditional_format(1, 2, 3, 2, count_format)
+
+        legend_sheet.write(5, 0, "Fold changes:")
+        legend_sheet.write(6, 0, "FC = B/A with A: Filename and B: Column name")
         
 
 def parse_attributes(attributes: str, attribute_separator: str=';', key_value_separator: str='=', quotes: str='"') -> Dict[str,str]:
