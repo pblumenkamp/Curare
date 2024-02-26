@@ -3,8 +3,8 @@
 Customizable and Reproducible Analysis Pipeline for RNA-Seq Experiments (Curare).
 
 Usage:
-    curare.py --samples <samples_file> --pipeline <pipeline_file> --output <output_folder>
-                 [--use-conda | --no-conda] [--conda-frontend <frontend>] [--conda-prefix <conda_prefix>] [--cores <cores>] [--keep-going] [--latency-wait <seconds>] [--verbose]
+    curare.py --samples <samples_file> --pipeline <pipeline_file> --output <output_folder> --cores <cores>
+                 [--use-conda | --no-conda] [--conda-frontend <frontend>] [--conda-prefix <conda_prefix>] [--keep-going] [--latency-wait <seconds>] [--verbose]
     curare.py --samples <samples_file> --pipeline <pipeline_file> --output <output_folder> --create-conda-envs-only [--conda-frontend <frontend>] [--conda-prefix <conda_prefix>] [--verbose]
     curare.py (--version | --help)
 
@@ -21,7 +21,7 @@ Options:
     --conda-frontend <frontend>                     Choose conda frontend for creating and installing conda environments (conda, mamba) [Default: mamba]
     --conda-prefix <conda_prefix>                   The directory in which conda environments will be created. Relative paths will be relative to output folder! (Default: Output_folder)
     --create-conda-envs-only                        Only download and create conda environments.
-    -t <cores> --cores <cores>                      Number of threads/cores. [Default: 1]
+    -t <cores> --cores <cores>                      Number of threads/cores.
     --keep-going                                    Keep going with individual jobs if a job fails.
     --latency-wait <seconds>                        Seconds to wait before checking if all files of a rule were created. [Default: 5]
     -v --verbose                                    Print additional information
