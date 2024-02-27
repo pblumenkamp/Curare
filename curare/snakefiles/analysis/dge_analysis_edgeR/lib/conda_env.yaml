@@ -5,7 +5,9 @@ channels:
   - anaconda
   - defaults
 dependencies:
-  - python=3.11
+  - python=3.10
+  - rseqc=5.0.3
+  - samtools=1.19.2
   - subread=2.0.6
   - pandas=2.1.2
   - matplotlib=3.8.1
