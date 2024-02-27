@@ -19,7 +19,7 @@
 
 ## Description
 
-Curare is a freely available analysis pipeline for reproducible, high-throughput, bacterial RNA-Seq experiments. Define standardized pipelines customized for your specific workflow without the necessity of installing all the tools by yourself.   
+Curare is a freely available analysis pipeline for reproducible, high-throughput RNA-Seq experiments. Define standardized pipelines customized for your specific workflow without the necessity of installing all the tools by yourself.   
   
 Curare is implemented in Python and uses the power of [Snakemake](https://snakemake.readthedocs.io/) and [Conda](https://docs.conda.io/projects/conda/en/latest/index.html) to build and execute the defined workflows. Its modularized structure and the simplicity of Snakemake enables developers to create new and advanced workflow steps. 
 
