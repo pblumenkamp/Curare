@@ -1,3 +1,22 @@
+## 0.6.0
+
+## Changed
+- `--cores` option is now mandatory
+- DESeq2 fold changes are now inversed, so that edgeR and DESeq2 results are comparable
+- Count tables for DESeq2 get rounded, so `--fraction` of featureCounts will work with DESeq2
+
+## Added
+- New modules
+  - HISAT2
+  - Differential gene expression with edgeR
+- Curare wizard now supports download of RefSeq genomes and annotations
+- STAR index and STAR mapping now have threads options. These can be used to control how many mappings can run in parallel
+- DESeq2 and edgeR modules also visualize the gene body coverage (using RSeQC)
+
+## Fixed
+- Fixed STAR index bug: Errors during STAR index building could lead to a state where Curare thought that the index was build properly
+- A chromosome column was missing in DGE summary xlsx files
+
 ## 0.5.1
 
 ## Fixed (1 change)

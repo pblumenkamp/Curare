@@ -19,7 +19,7 @@
 
 ## Description
 
-Curare is a freely available analysis pipeline for reproducible, high-throughput, bacterial RNA-Seq experiments. Define standardized pipelines customized for your specific workflow without the necessity of installing all the tools by yourself.   
+Curare is a freely available analysis pipeline for reproducible, high-throughput RNA-Seq experiments. Define standardized pipelines customized for your specific workflow without the necessity of installing all the tools by yourself.   
   
 Curare is implemented in Python and uses the power of [Snakemake](https://snakemake.readthedocs.io/) and [Conda](https://docs.conda.io/projects/conda/en/latest/index.html) to build and execute the defined workflows. Its modularized structure and the simplicity of Snakemake enables developers to create new and advanced workflow steps. 
 
@@ -57,8 +57,7 @@ At the end of a Curare run, you will also get an HTML report containing the most
 
 ## Usage
 ### Installation
-It is recommended to use [mamba](https://mamba.readthedocs.io/en/latest/installation.html) for installing curare with all dependencies. Please notice that the channels bioconda **and** conda-forge are required for installing Curare correctly.
-
+It is recommended to use [mamba](https://mamba.readthedocs.io/en/latest/installation/mamba-installation.html) for installing curare with all dependencies. Please notice that the channels bioconda **and** conda-forge are required for installing Curare correctly.
 ```bash
 mamba create -n curare -c conda-forge -c bioconda curare
 conda activate curare

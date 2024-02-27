@@ -1,4 +1,4 @@
-# module: dge_analysis
+# module: dge_analysis_edgeR
 channels:
   - conda-forge
   - bioconda
@@ -13,7 +13,8 @@ dependencies:
   - matplotlib=3.8.1
   - docopt=0.6.2
   - xlsxwriter=3.1.9
-  - bioconductor-deseq2=1.40.2
+  - bioconductor-edger=4.0.2
+  - bioconductor-biocparallel=1.36.0
   - r-ggplot2=3.4.4
   - r-reshape2=1.4.4
   - r-stringi=1.7.12

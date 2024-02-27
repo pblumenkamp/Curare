@@ -34,7 +34,28 @@ optional_settings:
     description: 'Used feature type, e.g. CDS or exon (will be used with "--sjdbGTFfeatureExon").'
     type: 'string'
     default: ''
-  
+
+  max_threads_index:
+    label: 'Maximum threads for building STAR index'
+    description: "Define a maximum number of threads <#threads> to use for STAR index. STAR index uses min(<#Curare cores>, <#threads>) cores with <#Curare cores>: Cores given Curare with --cores."
+    type: 'number'
+    number_type: 'integer'
+    default: '16'
+    range:
+      min: 1
+      max: Inf
+
+  max_threads_mapping: 
+    label: 'Maximum cores for each mapping with STAR'
+    description: "Define a maximum number of threads <#threads> to use for each STAR mapping. Each mapping uses min(<#Curare cores>, <#threads>) threads with <#Curare cores>: Cores given Curare with --cores. With this setting, it is possible to prevent multiple parallel mappings if not enough memory is available."
+    type: 'number'
+    number_type: 'integer'
+    default: '8'
+    range:
+      min: 1
+      max: Inf
+
+
   additional_star_index_options:
     label: 'Additional STAR Index Options'
     description: "Additional options to use for the index step"

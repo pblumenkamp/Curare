@@ -3,8 +3,8 @@
 Customizable and Reproducible Analysis Pipeline for RNA-Seq Experiments (Curare).
 
 Usage:
-    curare.py --samples <samples_file> --pipeline <pipeline_file> --output <output_folder>
-                 [--use-conda | --no-conda] [--conda-frontend <frontend>] [--conda-prefix <conda_prefix>] [--cores <cores>] [--keep-going] [--latency-wait <seconds>] [--verbose]
+    curare.py --samples <samples_file> --pipeline <pipeline_file> --output <output_folder> --cores <cores>
+                 [--use-conda | --no-conda] [--conda-frontend <frontend>] [--conda-prefix <conda_prefix>] [--keep-going] [--latency-wait <seconds>] [--verbose]
     curare.py --samples <samples_file> --pipeline <pipeline_file> --output <output_folder> --create-conda-envs-only [--conda-frontend <frontend>] [--conda-prefix <conda_prefix>] [--verbose]
     curare.py (--version | --help)
 
@@ -21,7 +21,7 @@ Options:
     --conda-frontend <frontend>                     Choose conda frontend for creating and installing conda environments (conda, mamba) [Default: mamba]
     --conda-prefix <conda_prefix>                   The directory in which conda environments will be created. Relative paths will be relative to output folder! (Default: Output_folder)
     --create-conda-envs-only                        Only download and create conda environments.
-    -t <cores> --cores <cores>                      Number of threads/cores. [Default: 1]
+    -t <cores> --cores <cores>                      Number of threads/cores.
     --keep-going                                    Keep going with individual jobs if a job fails.
     --latency-wait <seconds>                        Seconds to wait before checking if all files of a rule were created. [Default: 5]
     -v --verbose                                    Print additional information
@@ -56,6 +56,7 @@ import subprocess
 import sys
 import yaml
 
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Tuple, Any, Optional
 from docopt import docopt
@@ -85,6 +86,19 @@ class ClColors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+
+
+@dataclass
+class SampleColumnProperties:
+    module_name: str
+    value_type: str
+    value_char_sets: List[List[str]]
+
+    def is_empty(self) -> bool:
+        return not (self.module_name or self.value_char_sets or self.value_type)
+    
+    def __iter__(self):
+        return iter((self.module_name, self.value_type, self.value_char_sets))
 
 
 def main():
@@ -159,26 +173,26 @@ def main():
             )
 
 
-def check_columns(col_names: List[str], modules: Dict[str, List['Module']], paired_end: bool) -> List[Tuple[str, str, Optional[List[str]]]]:
-    col2module: List[Tuple[str, str, Optional[List[str]]]] = [('', '', []) for _ in col_names]
+def check_columns(col_names: List[str], modules: Dict[str, List['Module']], paired_end: bool) -> List[SampleColumnProperties]:
+    col2module: List[SampleColumnProperties] = [SampleColumnProperties('', '', []) for _ in col_names]
     if 'name' not in col_names:
         raise InvalidSamplesFileError('Samples file: Column "{}" is missing'.format('name'))
     else:
-        col2module[col_names.index('name')] = ('main', 'string', ['A-Z', 'a-z', '0-9', '_'])
+        col2module[col_names.index('name')] = SampleColumnProperties('main', 'string', [['A-Z', 'a-z', '0-9', '_']])
     if paired_end:
         if 'forward_reads' not in col_names:
             raise InvalidSamplesFileError('Samples file: Column "{}" is missing'.format('forward_reads'))
         else:
-            col2module[col_names.index('forward_reads')] = ('main', 'file', None)
+            col2module[col_names.index('forward_reads')] = SampleColumnProperties('main', 'file', [])
         if 'reverse_reads' not in col_names:
             raise InvalidSamplesFileError('Samples file: Column "{}" is missing'.format('reverse_reads'))
         else:
-            col2module[col_names.index('reverse_reads')] = ('main', 'file', None)
+            col2module[col_names.index('reverse_reads')] = SampleColumnProperties('main', 'file', [])
     else:
         if 'reads' not in col_names:
             raise InvalidSamplesFileError('Samples file: Column "{}" is missing'.format('reads'))
         else:
-            col2module[col_names.index('reads')] = ('main', 'file', None)
+            col2module[col_names.index('reads')] = SampleColumnProperties('main', 'file', [])
 
     for module in [module for module_list in modules.values() for module in module_list]:
         if len(module.columns) > 0:
@@ -186,7 +200,12 @@ def check_columns(col_names: List[str], modules: Dict[str, List['Module']], pair
                 if col_name not in col_names:
                     raise InvalidSamplesFileError('Samples file: Column "{}" is missing'.format(col_name))
                 else:
-                    col2module[col_names.index(col_name)] = (module.name, properties.type.lower(), properties.character_set)
+                    if col2module[col_names.index(col_name)].is_empty():
+                        col2module[col_names.index(col_name)] = SampleColumnProperties('modules', properties.type.lower(), [properties.character_set])
+                    else:
+                        if col2module[col_names.index(col_name)].value_type != properties.type.lower():
+                            raise AmbiguousSampleColumnValueTypeError("Ambiguous column types in column \"{}\"".format(col_name))
+                        col2module[col_names.index(col_name)].value_char_sets.append(properties.character_set)
     return col2module
 
 
@@ -198,23 +217,23 @@ def parse_samples_file(samples_file: Path, modules: Dict[str, List['Module']], p
             line = file.readline()
 
         col_names = [word.strip() for word in line.strip().split('\t')]
-        col2module: List[Tuple[str, str, Optional[List[str]]]] = check_columns(col_names, modules, paired_end)
+        col2module: List[SampleColumnProperties] = check_columns(col_names, modules, paired_end)
         for line in file:
             if len(line.strip()) == 0 or line.startswith('#'):
                 continue
             columns: List[str] = [word.strip() for word in line.strip().split('\t')]
             entries: Dict[str, Dict[str, str]] = {}
             for index, col in enumerate(columns):
-                module_name, value_type, value_char_set = col2module[index]
-                if value_type == 'string' and value_char_set is not None:
-                    is_valid, character = check_string_validity(col, value_char_set)
+                col_properties = col2module[index]
+                if col_properties.value_type == 'string' and col_properties.value_char_sets:
+                    is_valid, character = check_string_validity(col, col_properties.value_char_sets)
                     if not is_valid:
                         raise InvalidSamplesFileError(
                             'Column "{}" contains invalid character "{}" in entry "{}". Only these characters are allowed: {}'.format(
-                                col_names[index], character, col, value_char_set
+                                col_names[index], character, col, col_properties.value_char_sets
                             )
                         )
-                if value_type == 'file':
+                if col_properties.value_type == 'file':
                     if col.startswith('/'):
                         if not Path(col).resolve().exists():
                             raise InvalidSamplesFileError(
@@ -232,17 +251,17 @@ def parse_samples_file(samples_file: Path, modules: Dict[str, List['Module']], p
 
                 if col2module[index] == '' or col2module[index] == 'name':
                     continue
-                elif module_name not in entries:
-                    entries[module_name] = {}
-                if value_type == 'file' and not col.startswith('/'):
-                    entries[module_name][col_names[index]] = str((samples_file.parent / col).resolve())
+                elif col_properties.module_name not in entries:
+                    entries[col_properties.module_name] = {}
+                if col_properties.value_type == 'file' and not col.startswith('/'):
+                    entries[col_properties.module_name][col_names[index]] = str((samples_file.parent / col).resolve())
                     if col_names[index] in ['reads', 'forward_reads', 'reverse_reads']:
-                        if entries[module_name][col_names[index]].endswith(".gz"):
-                            entries[module_name][col_names[index] + "_gzipped"] = True
+                        if entries[col_properties.module_name][col_names[index]].endswith(".gz"):
+                            entries[col_properties.module_name][col_names[index] + "_gzipped"] = True
                         else:
-                            entries[module_name][col_names[index] + "_gzipped"] = False
+                            entries[col_properties.module_name][col_names[index] + "_gzipped"] = False
                 else:
-                    entries[module_name][col_names[index]] = col
+                    entries[col_properties.module_name][col_names[index]] = col
             table[columns[0]] = entries
 
     if not table:
@@ -255,20 +274,21 @@ def parse_samples_file(samples_file: Path, modules: Dict[str, List['Module']], p
     return table
 
 
-def check_string_validity(string: str, character_set: List[str]) -> Tuple[bool, Optional[str]]:
-    character_set = character_set.copy()
-    if 'A-Z' in character_set:
-        del character_set[character_set.index('A-Z')]
-        character_set.extend([chr(x) for x in range(65, 91)])
-    if 'a-z' in character_set:
-        del character_set[character_set.index('a-z')]
-        character_set.extend([chr(x) for x in range(97, 123)])
-    if '0-9' in character_set:
-        del character_set[character_set.index('0-9')]
-        character_set.extend([chr(x) for x in range(48, 58)])
-    for character in string:
-        if character not in character_set:
-            return False, character
+def check_string_validity(string: str, character_sets: List[List[str]]) -> Tuple[bool, Optional[str]]:
+    for character_set in character_sets:
+        character_set = character_set.copy()
+        if 'A-Z' in character_set:
+            del character_set[character_set.index('A-Z')]
+            character_set.extend([chr(x) for x in range(65, 91)])
+        if 'a-z' in character_set:
+            del character_set[character_set.index('a-z')]
+            character_set.extend([chr(x) for x in range(97, 123)])
+        if '0-9' in character_set:
+            del character_set[character_set.index('0-9')]
+            character_set.extend([chr(x) for x in range(48, 58)])
+        for character in string:
+            if character not in character_set:
+                return False, character
     return True, None
 
 
@@ -815,6 +835,17 @@ class InvalidFileError(Exception):
 
     def __init__(self, message: str):
         super(InvalidFileError, self).__init__(message)
+
+
+class AmbiguousSampleColumnValueTypeError(Exception):
+    """Exception raised when a sample file column is shared between multiple modules and the modules require different value types.
+
+        Attributes:
+            message -- message displayed
+    """
+
+    def __init__(self, message: str):
+        super(AmbiguousSampleColumnValueTypeError, self).__init__(message)
 
 
 class UnknownEnumError(Exception):
