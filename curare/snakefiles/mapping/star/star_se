@@ -87,7 +87,7 @@ rule star_index:
     conda:
         "../lib/conda_env.yaml"
     threads:
-        16
+        %%MAX_THREADS_INDEX%%
     shell:
         "genomeLength=`grep -v '^>' {input.genome}| wc -m`;\n"
         "genomeSAindexNbases=`python3 -c \"import math; print(min(14, int(math.log2($genomeLength)/2-1)))\"`;\n"
@@ -112,7 +112,7 @@ rule star_mapping:
     conda:
         "../lib/conda_env.yaml"
     threads:
-        4
+        %%MAX_THREADS_MAPPING%%
     shell:
         """
         STAR --runThreadN {threads} --readFilesCommand "gunzip -c" --genomeDir {params.genome_index_dir} --readFilesIn {input.reads}\
