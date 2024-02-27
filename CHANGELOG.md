@@ -17,7 +17,6 @@
 - Fixed STAR index bug: Errors during STAR index building could lead to a state where Curare thought that the index was build properly
 - A chromosome column was missing in DGE summary xlsx files
 
-
 ## 0.5.1
 
 ## Fixed (1 change)
