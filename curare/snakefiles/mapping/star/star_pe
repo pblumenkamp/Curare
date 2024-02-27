@@ -75,24 +75,23 @@ rule star_index:
         genome="%%GENOME_FASTA%%"
     output:
         index_settings="mapping/index_parameters.txt",
-        index_dir=directory("mapping/reference_index/")
+        index="mapping/reference_index/SA"
     params:
         gff_file=lambda wildcards: "" if len("%%GENOME_ANNOTATION%%") == 0 else " --sjdbGTFfile %%GENOME_ANNOTATION%%",
         gff_parent_keyword=lambda wildcards: "" if len("%%GFF_PARENT_KEYWORD%%") == 0 else " --sjdbGTFtagExonParentGene %%GFF_PARENT_KEYWORD%%",
         gff_id_keyword=lambda wildcards: "" if len("%%GFF_ID_KEYWORD%%") == 0 else " --sjdbGTFtagExonParentTranscript %%GFF_ID_KEYWORD%%",
-        gff_feature_type=lambda wildcards: "" if len("%%GFF_FEATURE_TYPE%%") == 0 else " --sjdbGTFfeatureExon %%GFF_FEATURE_TYPE%%"
-    
+        gff_feature_type=lambda wildcards: "" if len("%%GFF_FEATURE_TYPE%%") == 0 else " --sjdbGTFfeatureExon %%GFF_FEATURE_TYPE%%",
+        index_dir="mapping/reference_index"
     log:
         "mapping/logs/star_index.log"
     conda:
         "../lib/conda_env.yaml"
     threads:
-        16
+        %%MAX_THREADS_INDEX%%
     shell:
         "genomeLength=`grep -v '^>' {input.genome}| wc -m`;\n"
         "genomeSAindexNbases=`python3 -c \"import math; print(min(14, int(math.log2($genomeLength)/2-1)))\"`;\n"
-        "mkdir -p {output.index_dir};\n"
-        "STAR --runMode genomeGenerate --runThreadN {threads} --genomeSAindexNbases $genomeSAindexNbases --genomeDir {output.index_dir} --genomeFastaFiles {input.genome} "
+        "STAR --runMode genomeGenerate --runThreadN {threads} --genomeSAindexNbases $genomeSAindexNbases --genomeDir {params.index_dir} --genomeFastaFiles {input.genome} "
         "{params.gff_file}{params.gff_parent_keyword}{params.gff_id_keyword}{params.gff_feature_type} %%ADDITIONAL_STAR_INDEX_OPTIONS%% 2>&1 |"
         "tee {log}; echo \"genomeSAindexNbases: $genomeSAindexNbases\" > \"mapping/index_parameters.txt\";"
 
@@ -100,7 +99,7 @@ rule star_index:
 rule star_mapping:
     input:
         genome="%%GENOME_FASTA%%",
-        genome_index_dir="mapping/reference_index/",
+        genome_index="mapping/reference_index/SA",
 	    reads="preprocessing/{sample}_R1.fastq.gz",
 	    reads_reverse="preprocessing/{sample}_R2.fastq.gz"
     output:
@@ -109,14 +108,15 @@ rule star_mapping:
     conda:
         "../lib/conda_env.yaml"
     params:
-        output_prefix="mapping/raw_star_output/{sample}_"
+        output_prefix="mapping/raw_star_output/{sample}_",
+        genome_index_dir="mapping/reference_index"
     log:
         "mapping/logs/star_mapping.{sample}.log"
     threads:
-        4
+        %%MAX_THREADS_MAPPING%%
     shell:
         """
-        STAR --runThreadN {threads} --readFilesCommand "gunzip -c" --genomeDir {input.genome_index_dir} --readFilesIn {input.reads} {input.reads_reverse} \
+        STAR --runThreadN {threads} --readFilesCommand "gunzip -c" --genomeDir {params.genome_index_dir} --readFilesIn {input.reads} {input.reads_reverse} \
         --outFileNamePrefix {params.output_prefix} --outSAMtype BAM SortedByCoordinate --outBAMsortingThreadN {threads} --outReadsUnmapped Fastx \
         %%ADDITIONAL_STAR_MAPPING_OPTIONS%% 2>&1 | tee {log}
         """

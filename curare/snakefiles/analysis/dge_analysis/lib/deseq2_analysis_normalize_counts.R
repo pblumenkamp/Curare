@@ -52,7 +52,7 @@ colnames(conditiontable) <- c('condition')
 conditiontable$condition <- factor(conditiontable$condition, levels = unique(conditiontable$condition))
 condition <- as.factor(conditiontable$condition)
 
-deseqDataset <- DESeqDataSetFromMatrix(countData = countdata, colData = conditiontable, design = ~ condition)
+deseqDataset <- DESeqDataSetFromMatrix(countData = round(countdata), colData = conditiontable, design = ~ condition)
 
 # Write normalized count table
 deseqDataset <- estimateSizeFactors(deseqDataset)

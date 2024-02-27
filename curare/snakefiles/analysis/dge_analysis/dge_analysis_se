@@ -4,7 +4,7 @@ from os.path import isfile
 import gzip
 
 def getConditions():
-    return set([seqRun['dge_analysis']['condition'] for seqRun in config['entries'].values()])
+    return set([seqRun['modules']['condition'] for seqRun in config['entries'].values()])
 
 def list_of_all_features(gff_path):
     features = set()
@@ -49,7 +49,8 @@ rule all:
         'analysis/dge_analysis/visualization/feature_assignments',
         expand('analysis/dge_analysis/summary/{COND}.xlsx', COND=getConditions()),
         "analysis/dge_analysis/genexvis_conditions.txt",
-        ".report/modules/dge_analysis.html"
+        ".report/modules/dge_analysis.html",
+        expand("analysis/dge_analysis/gene_body_coverage/{feature}/{feature}.geneBodyCoverage.txt", feature = list_of_all_features("%%GFF_PATH%%"))
 
 rule summary_tsv_to_xslx:
     input:
@@ -134,7 +135,7 @@ rule create_conditions:
     run:
         with(open(output[0], 'w')) as output_file:
             for name in config['entry_order']:
-                output_file.write('{}\t{}\n'.format(name, config['entries'][name]['dge_analysis']['condition']))
+                output_file.write('{}\t{}\n'.format(name, config['entries'][name]['modules']['condition']))
 
 rule genexvis_condition_file:
     output:
@@ -142,7 +143,7 @@ rule genexvis_condition_file:
     run:
         conditions = set()
         for name in config['entry_order']:
-            conditions.add(config['entries'][name]['dge_analysis']['condition'])
+            conditions.add(config['entries'][name]['modules']['condition'])
         with(open(output[0], 'w')) as output_file:
             for cond in conditions:
                 output_file.write('{}\n'.format(cond))
@@ -195,6 +196,47 @@ rule deseq2_create_comparison_files:
     shell:
         "R --vanilla --file=lib/deseq2_analysis_create_comparison_files_and_summary.R --args --threads {threads} --output {params.output_folder} --r-data {input.dump} "
         "--featcounts-log {input.feature_counts_log} 2>&1 | tee -a {log.log}"
+
+rule index_bam:
+    input:
+        bam="mapping/{bam}.bam"
+    output:
+        bam=temp("analysis/dge_analysis/gene_body_coverage/{bam}.bam"),
+        bai=temp("analysis/dge_analysis/gene_body_coverage/{bam}.bam.bai")
+    conda:
+        "../lib/conda_env.yaml"
+    shell:
+        "ln -s ../../../{input.bam} {output.bam} && samtools index {output.bam}"
+
+rule convert_gff_to_bed:
+    input:
+        reference = "%%GFF_PATH%%"
+    output:
+        bed = "analysis/dge_analysis/gene_body_coverage/ref_{feature_type}.bed"
+    params:
+        reverse_strand = lambda wildcards: "-r" if "%%STRAND_SPECIFICITY%%" == "-s 2" else ""
+    conda:
+        "../lib/conda_env.yaml"
+    shell:
+        "python3 lib/gff_to_rseqc_bed.py {params.reverse_strand} --gff {input.reference} --type {wildcards.feature_type} > {output.bed}"
+
+rule gene_body_coverage:
+    input:
+        ref="analysis/dge_analysis/gene_body_coverage/ref_{feature_type}.bed",
+        bam_files=expand("analysis/dge_analysis/gene_body_coverage/{name}.bam", name=config['entries'].keys()),
+        bam_index=expand("analysis/dge_analysis/gene_body_coverage/{name}.bam.bai", name=config['entries'].keys())
+    output:
+        "analysis/dge_analysis/gene_body_coverage/{feature_type}/{feature_type}.geneBodyCoverage.txt"
+    params:
+        in_bam=lambda wildcards, input: ",".join(input.bam_files),
+        out_dir="analysis/dge_analysis/gene_body_coverage/{feature_type}/{feature_type}",
+        reverse_strand = lambda wildcards: "0" if "%%STRAND_SPECIFICITY%%" == "-s 2" else "1",
+        warning="analysis/dge_analysis/gene_body_coverage/{feature_type}/WARNING.txt"
+    conda:
+        "../lib/conda_env.yaml"
+    shell:
+        "geneBody_coverage.py -r {input.ref} -i {params.in_bam} -o {params.out_dir};"
+        "if [ {params.reverse_strand} -eq 0 ]; then echo -e \"Warning\nThis module was run with \\\"reversely stranded\\\" settings. The plots must be interpreted as 3' to 5' and not as labeled!\" > {params.warning}; fi"
 
 rule generate_report_data:
     input:

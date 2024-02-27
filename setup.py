@@ -41,7 +41,9 @@ setup(
     install_requires=[
         'PyYAML == 6.0.1',
         'docopt == 0.6.2',
-        'snakemake == 7.32.3'
+        'snakemake == 7.32.3',
+        'progressbar2 == 4.3.2',
+        'biopython == 1.83'
     ],
     entry_points={
         'console_scripts': [

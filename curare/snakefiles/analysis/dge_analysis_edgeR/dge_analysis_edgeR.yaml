@@ -1,6 +1,6 @@
-name: "dge_analysis"
-label: "DGE Analysis with DESeq2"
-description: "A differential gene expression analysis using DESeq2 for statistical tests. As a pre-step, featureCounts is used for assigning the alignments to a genomic feature."
+name: "dge_analysis_edgeR"
+label: "DGE Analysis with edgeR"
+description: "A differential gene expression analysis using edgeR for statistical tests. As a pre-step, featureCounts is used for assigning the alignments to a genomic feature. edgeR will filter all features with not enough coverage (see chapter 2.7 - https://bioconductor.org/packages/release/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf). Therfore, result tables show only edgeR-filtered results."
 
 required_settings:
   gff_feature_type:
@@ -72,14 +72,14 @@ columns:
 
 
 single_end:
-  snakefile: "dge_analysis_se"
+  snakefile: "dge_analysis_edgeR_se"
 
 
 paired_end:
-  snakefile: "dge_analysis_pe"
+  snakefile: "dge_analysis_edgeR_pe"
 
 
 report:
-  html_file: "dge_analysis.html"
+  html_file: "dge_analysis_edgeR.html"
   new_tab: false
-  title: "DGE Analysis - DESeq2"
+  title: "DGE Analysis - edgeR"
