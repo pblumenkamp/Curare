@@ -272,7 +272,7 @@ Curare can be started with this command:
 # Current working directory inside of root tool directory
 cd curare
 conda activate curare
-curare --samples <target_directory>/samples.tsv --pipeline <target_directory>/pipeline.yml --output <results_directory>
+curare --cores <number_of_cores_used> --samples <target_directory>/samples.tsv --pipeline <target_directory>/pipeline.yml --output <results_directory>
 ```
 
 All results, including the conda environments and a final report, will be written in `results_directory`.
